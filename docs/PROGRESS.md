@@ -1,13 +1,13 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (M1 in progress)_
+_Last updated: 2026-10-03 by Claude Code (M1 done)_
 
 ## Milestones
 
 | #             | Status  | PR  | Notes / deferred items                                                                 |
 | ------------- | ------- | --- | -------------------------------------------------------------------------------------- |
 | M0 Scaffold   | ✅ done | #1  |                                                                                        |
-| M1 Foundation | 🚧      | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods |
+| M1 Foundation | ✅ done | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods |
 | M2 Logging    | ⏳      |     |                                                                                        |
 | M3 Dashboard  | ⏳      |     |                                                                                        |
 | M4 MCP        | ⏳      |     |                                                                                        |
@@ -30,9 +30,9 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration          | Applied              |
-| ------------------ | -------------------- |
-| `0001_initial.sql` | ⏳ waiting for owner |
+| Migration          | Applied                                                  |
+| ------------------ | -------------------------------------------------------- |
+| `0001_initial.sql` | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
 
 ## Owner's manual steps
 
@@ -48,24 +48,22 @@ One database for everything (D15), so each migration runs once.
       `MCP_SECRET` has its own Production value, temp file deleted)
 - [x] Netlify CLI logged in and folder linked (`netlify link`); `netlify dev` serves `/api/health` locally
 - [x] PROD_URL repo variable set
-- [ ] Run `supabase/migrations/0001_initial.sql` in the Supabase SQL Editor (M1)
+- [x] Run `supabase/migrations/0001_initial.sql` in the Supabase SQL Editor (M1)
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
 
 Setup is done (R0 live; Step 8.7 explained to the owner). Blank local dev page fixed in #6.
 
-**M1 (`feat/foundation`, PR #7)**: code complete and green locally (schema, RLS, RPCs, repositories,
-core skeleton, auth API with lockout, keepalive + workflow, seed, DataSources, login page, demo
-skeleton). Remaining:
+**M1 done (PR #7).** Verified against the real database locally and on the preview: keepalive,
+login (cookie attributes), seeded tree, settings, `me`, logout; `/login` and `/demo` render.
 
-1. Owner runs `0001_initial.sql` in the Supabase SQL Editor (link:
-   https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new). The SQL is copied to the
-   clipboard with `Get-Content supabase/migrations/0001_initial.sql -Raw | Set-Clipboard`.
-2. Verify with `npm run dev`: `/api/keepalive` (read only), then a real login. Tell the owner first:
-   the first login writes the seed into the real database (D15), which is intended.
-3. Check the PR #7 preview (log in there too), then squash-merge into `develop`.
-4. Then M2 (`feat/logging`).
+**Next: M2 (`feat/logging`)**: TREE-1–7, LOG-1–10, HIST-1–4, SET-1 (SPEC §B14.2), then release
+**R1** (first live version) after the owner says yes. Run new SQL in the SQL Editor the same way:
+https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
+`Get-Content <file> -Raw -Encoding UTF8 | Set-Clipboard`.
+
+Note: the live site still runs R0, so the keepalive workflow (on `main`) only starts working at R1.
 
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
@@ -95,6 +93,9 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 - Session cookie `sw_session` = `<expiry>.<HMAC>`; the HMAC also covers a digest of `APP_PASSCODE`, so
   changing the passcode (or `SESSION_SECRET`) logs out every device. `SESSION_SECRET` must be ≥ 32 chars.
 - Login lockout stores only failures (hashed IP); a successful login clears that IP's failures.
+- The local `.env` passcode contained `#`, which dotenv treats as a comment (locally only 1 character
+  counted). It is now double-quoted; `.env.example` warns about this. Netlify's value was correct.
+  `netlify env:get` masks secret values, so check them by testing the preview, not by reading them.
 - Functions import core code with relative paths (`../../src/core/...`), not the `@/` alias.
 - Bundle after M1: ~150 KB gzipped (Zod is a large part). Budget is 250 KB; consider `zod/mini` in the
   browser if it gets tight.
