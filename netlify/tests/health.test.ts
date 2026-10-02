@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import pkg from '../../package.json' with { type: 'json' };
-import health, { config } from './health';
+import health, { config } from '../functions/health';
 
 describe('health function', () => {
   it('returns ok with the app version', async () => {
