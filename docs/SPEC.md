@@ -570,9 +570,9 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 
 | Branch | Netlify | Database | Cost |
 |---|---|---|---|
-| Feature branches (PRs) | Deploy previews | Supabase **dev** | Free |
-| `develop` | Branch deploy | Supabase **dev** | Free |
-| `main` | **Production** | Supabase **prod** | About 15 credits per deploy (the free plan has 300 a month) |
+| Feature branches (PRs) | Deploy previews | Supabase (shared, see D15) | Free |
+| `develop` | Branch deploy | Supabase (shared, see D15) | Free |
+| `main` | **Production** | Supabase (shared, see D15) | About 15 credits per deploy (the free plan has 300 a month) |
 
 - Feature PRs target `develop` and are squash-merged. Deploy previews must be on for PRs against
   branch-deploy branches, so PRs into `develop` get a free preview.
@@ -648,12 +648,13 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D6 | Core services are isomorphic; demo mode runs them in the browser | Demo parity, less code, easy testing |
 | D7 | MCP protected by a secret URL path | Single user; the simplest option that's secure enough |
 | D8 | `develop`/`main` split; at most 8 production deploys a month | Netlify free plan credit limit |
-| D9 | Two Supabase projects (dev and prod) | Previews never touch real data |
+| D9 | ~~Two Supabase projects (dev and prod)~~ Superseded by D15 | Previews never touch real data |
 | D10 | Full schema in the first migration; seed runs automatically on first login | Fewer manual SQL steps for the owner |
 | D11 | Reports in English; notes off by default | The audience is teachers and parents |
 | D12 | Public repo, MIT license, one PR per milestone | Portfolio |
 | D13 | Feature PRs squash-merged into `develop`; release PRs merged into `main` with a merge commit | Clean history, and release PRs that don't conflict |
 | D14 | R2 (M0–M4) is the minimum useful version | Exams come first; the core goal is met early |
+| D15 | One Supabase project for every environment (owner's choice, 2026-10-03). Previews and the `develop` deploy use the real database; features are tested in demo mode first, and Claude Code warns the owner before any test that writes to the database. `MCP_SECRET` still differs between production and other contexts. | The owner's Supabase account already uses its free project allowance; a second project isn't available for free |
 
 ## B16. Out of scope
 

@@ -1,0 +1,9 @@
+dist
+coverage
+.netlify
+playwright-report
+test-results
+package-lock.json
+docs/SPEC.md
+docs/SETUP.md
+CLAUDE.md
