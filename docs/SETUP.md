@@ -190,8 +190,9 @@ Set up a professional foundation with no features yet, just a placeholder page.
   - build command, publish dir, and functions dir
   - `NODE_VERSION`
   - SPA fallback
-  - security headers, and `X-Robots-Tag: noindex` for `/r/*`
   - an `ignore` command that skips builds when only docs or Markdown changed (SPEC §B14.1)
+- `build/security-headers.ts`: security headers, and `X-Robots-Tag: noindex` for `/r/*`, written to
+  `dist/_headers` only by builds on Netlify (in `netlify.toml` they would blank the local dev page)
 - `.env.example` with names only: `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `APP_PASSCODE`, `SESSION_SECRET`, `MCP_SECRET`
 - `.github/workflows/ci.yml`: on PRs to `develop`/`main` and pushes to them, run lint, typecheck, test, and build
   (Node LTS, npm cache). The end-to-end job is added in M7.
