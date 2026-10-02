@@ -4,17 +4,17 @@ _Last updated: 2026-10-03 by Claude Code_
 
 ## Milestones
 
-| #             | Status         | PR  | Notes / deferred items |
-| ------------- | -------------- | --- | ---------------------- |
-| M0 Scaffold   | 🔄 in review   |     |                        |
-| M1 Foundation | ⏳             |     |                        |
-| M2 Logging    | ⏳             |     |                        |
-| M3 Dashboard  | ⏳             |     |                        |
-| M4 MCP        | ⏳             |     |                        |
-| M5 Progress   | ⏳             |     |                        |
-| M6 Reports    | ⏳             |     |                        |
-| M7 Demo + PWA | ⏳             |     |                        |
-| M8 Polish     | ⏳             |     |                        |
+| #             | Status       | PR  | Notes / deferred items |
+| ------------- | ------------ | --- | ---------------------- |
+| M0 Scaffold   | 🔄 in review |     |                        |
+| M1 Foundation | ⏳           |     |                        |
+| M2 Logging    | ⏳           |     |                        |
+| M3 Dashboard  | ⏳           |     |                        |
+| M4 MCP        | ⏳           |     |                        |
+| M5 Progress   | ⏳           |     |                        |
+| M6 Reports    | ⏳           |     |                        |
+| M7 Demo + PWA | ⏳           |     |                        |
+| M8 Polish     | ⏳           |     |                        |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
