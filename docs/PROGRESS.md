@@ -18,8 +18,13 @@ _Last updated: 2026-10-03 by Claude Code_
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
-| Release | Date | Includes |
-| ------- | ---- | -------- |
+| Release | Date       | Includes                                                                                                                                                                   |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
+
+Production builds this month (Oct 2026): **2** (~30 credits, counted conservatively).
+
+Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 ## Database migrations applied
 
@@ -33,14 +38,15 @@ _Last updated: 2026-10-03 by Claude Code_
 - [x] Supabase account
 - [x] Supabase project `streakwise-dev` created (Southeast Asia / Singapore), keys in `.env`, connection verified
 - [x] ~~Supabase prod project created~~ Not needed: one project for everything (SPEC D15)
-- [ ] Netlify site connected, env vars set per context, branch deploys for `develop` on
-- [ ] PROD_URL repo variable set
+- [x] Netlify site connected (`streakwise-ap`, production branch `main`)
+- [ ] Netlify env vars set per context, branch deploys for `develop` on
+- [x] PROD_URL repo variable set
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
 
-Setup in progress (SETUP.md Part 2). Steps 1–7 done (M0 merged as #1). Next: Step 8 (Netlify site,
-env vars, R0). With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context;
+Setup in progress (SETUP.md Part 2). Steps 1–7 done; Step 8: site connected, R0 live, PROD_URL set.
+Next in Step 8: branch deploys for `develop`, env vars, `netlify link`. With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context;
 `MCP_SECRET` still gets a new value for Production.
 
 ## Open questions for the owner
