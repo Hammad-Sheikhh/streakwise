@@ -19,7 +19,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'netlify/**/*.test.ts', 'build/**/*.test.ts'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'netlify/**/*.test.ts',
+      'build/**/*.test.ts',
+      'supabase/**/*.test.ts',
+    ],
     css: false,
     coverage: {
       provider: 'v8',

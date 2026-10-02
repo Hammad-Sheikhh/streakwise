@@ -1,20 +1,20 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (after #6)_
+_Last updated: 2026-10-03 by Claude Code (M1 done)_
 
 ## Milestones
 
-| #             | Status  | PR  | Notes / deferred items |
-| ------------- | ------- | --- | ---------------------- |
-| M0 Scaffold   | ✅ done | #1  |                        |
-| M1 Foundation | ⏳      |     |                        |
-| M2 Logging    | ⏳      |     |                        |
-| M3 Dashboard  | ⏳      |     |                        |
-| M4 MCP        | ⏳      |     |                        |
-| M5 Progress   | ⏳      |     |                        |
-| M6 Reports    | ⏳      |     |                        |
-| M7 Demo + PWA | ⏳      |     |                        |
-| M8 Polish     | ⏳      |     |                        |
+| #             | Status  | PR  | Notes / deferred items                                                                 |
+| ------------- | ------- | --- | -------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done | #1  |                                                                                        |
+| M1 Foundation | ✅ done | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods |
+| M2 Logging    | ⏳      |     |                                                                                        |
+| M3 Dashboard  | ⏳      |     |                                                                                        |
+| M4 MCP        | ⏳      |     |                                                                                        |
+| M5 Progress   | ⏳      |     |                                                                                        |
+| M6 Reports    | ⏳      |     |                                                                                        |
+| M7 Demo + PWA | ⏳      |     |                                                                                        |
+| M8 Polish     | ⏳      |     |                                                                                        |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -28,8 +28,11 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 ## Database migrations applied
 
-| Migration | dev | prod |
-| --------- | --- | ---- |
+One database for everything (D15), so each migration runs once.
+
+| Migration          | Applied                                                  |
+| ------------------ | -------------------------------------------------------- |
+| `0001_initial.sql` | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
 
 ## Owner's manual steps
 
@@ -45,15 +48,22 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
       `MCP_SECRET` has its own Production value, temp file deleted)
 - [x] Netlify CLI logged in and folder linked (`netlify link`); `netlify dev` serves `/api/health` locally
 - [x] PROD_URL repo variable set
+- [x] Run `supabase/migrations/0001_initial.sql` in the Supabase SQL Editor (M1)
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
 
-Setup Steps 1–8 are done (R0 live). Blank local dev page fixed in #6 (on `develop`, not yet in
-production; it only affects local dev, so it can wait for the next release).
+Setup is done (R0 live; Step 8.7 explained to the owner). Blank local dev page fixed in #6.
 
-1. SETUP Step 8.7: explain previews vs the `develop` deploy vs the live site to the owner.
-2. Then start **M1** (`feat/foundation`), SPEC §B14.2.
+**M1 done (PR #7).** Verified against the real database locally and on the preview: keepalive,
+login (cookie attributes), seeded tree, settings, `me`, logout; `/login` and `/demo` render.
+
+**Next: M2 (`feat/logging`)**: TREE-1–7, LOG-1–10, HIST-1–4, SET-1 (SPEC §B14.2), then release
+**R1** (first live version) after the owner says yes. Run new SQL in the SQL Editor the same way:
+https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
+`Get-Content <file> -Raw -Encoding UTF8 | Set-Clipboard`.
+
+Note: the live site still runs R0, so the keepalive workflow (on `main`) only starts working at R1.
 
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
@@ -77,6 +87,18 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 - Response headers live in `build/security-headers.ts`, written to `dist/_headers` only when
   `NETLIFY=true`. Not in `netlify.toml`: `netlify dev` applies them locally (it even reads a leftover
   `dist/_headers` despite `[dev] publish`) and the CSP blanks the Vite dev page (#6).
+- Migrations are tested in CI on PGlite (Postgres in WebAssembly, dev dependency): schema rules, RPCs,
+  RLS on, and no access for `anon`/`authenticated`.
+- Track palette tokens: amber, blue, violet, emerald, rose, cyan, orange, slate.
+- Session cookie `sw_session` = `<expiry>.<HMAC>`; the HMAC also covers a digest of `APP_PASSCODE`, so
+  changing the passcode (or `SESSION_SECRET`) logs out every device. `SESSION_SECRET` must be ≥ 32 chars.
+- Login lockout stores only failures (hashed IP); a successful login clears that IP's failures.
+- The local `.env` passcode contained `#`, which dotenv treats as a comment (locally only 1 character
+  counted). It is now double-quoted; `.env.example` warns about this. Netlify's value was correct.
+  `netlify env:get` masks secret values, so check them by testing the preview, not by reading them.
+- Functions import core code with relative paths (`../../src/core/...`), not the `@/` alias.
+- Bundle after M1: ~150 KB gzipped (Zod is a large part). Budget is 250 KB; consider `zod/mini` in the
+  browser if it gets tight.
 - **D15 (owner's choice): one Supabase project (`streakwise-dev`, Singapore) for every environment.**
   The owner's free project allowance was already used. Previews and the `develop` deploy touch real
   data, so test features in demo mode first and warn the owner before any test that writes to the

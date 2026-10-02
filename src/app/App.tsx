@@ -2,9 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
-import { PlaceholderPage } from '@/app/PlaceholderPage';
+import { createRoutes } from '@/app/routes';
+import { ApiDataSource } from '@/data/ApiDataSource';
 
-const router = createBrowserRouter([{ path: '*', element: <PlaceholderPage /> }]);
+const router = createBrowserRouter(createRoutes(new ApiDataSource()));
 
 export function App() {
   // One QueryClient per app instance, kept stable across re-renders.
