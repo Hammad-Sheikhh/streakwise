@@ -1,0 +1,88 @@
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+
+import type { DataSource } from '@/data/DataSource';
+import { DataSourceError } from '@/data/DataSource';
+import { DemoDataSource } from '@/data/DemoDataSource';
+import { renderRoutes } from '@/test/renderRoutes';
+
+/** A fake API: logged out until the passcode "letmein" is entered; the tree is the seed. */
+function fakeApi(): DataSource & { loggedIn: boolean } {
+  const demo = new DemoDataSource(() => new Date('2026-10-03T10:00:00Z'));
+  return {
+    mode: 'api',
+    basePath: '',
+    loggedIn: false,
+    async isAuthenticated() {
+      return this.loggedIn;
+    },
+    async login(passcode: string) {
+      if (passcode !== 'letmein') {
+        throw new DataSourceError(401, 'wrong_passcode', 'That passcode isn’t right.');
+      }
+      this.loggedIn = true;
+    },
+    async logout() {
+      this.loggedIn = false;
+    },
+    listTree: () => demo.listTree(),
+    getSettings: () => demo.getSettings(),
+  };
+}
+
+describe('login flow (AUTH-1)', () => {
+  it('sends a logged-out visitor from Home to the login page', async () => {
+    const { router } = renderRoutes('/', fakeApi());
+    expect(await screen.findByLabelText('Passcode')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
+    expect(screen.getByRole('link', { name: 'Try the demo' })).toHaveAttribute('href', '/demo');
+  });
+
+  it('shows a calm error for a wrong passcode and stays on the login page', async () => {
+    const user = userEvent.setup();
+    const { router } = renderRoutes('/login', fakeApi());
+    await user.type(await screen.findByLabelText('Passcode'), 'guess');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('That passcode isn’t right.');
+    expect(screen.getByLabelText('Passcode')).toHaveAttribute('aria-invalid', 'true');
+    expect(router.state.location.pathname).toBe('/login');
+  });
+
+  it('logs in, shows the tracks, and logs out again (AUTH-4)', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    const { router } = renderRoutes('/login', api);
+    await user.type(await screen.findByLabelText('Passcode'), 'letmein');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(await screen.findByText('German Language')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
+
+    await user.click(screen.getByRole('button', { name: 'Log out' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+    expect(api.loggedIn).toBe(false);
+  });
+
+  it('disables the button until a passcode is typed', async () => {
+    renderRoutes('/login', fakeApi());
+    expect(await screen.findByRole('button', { name: 'Log in' })).toBeDisabled();
+  });
+});
+
+describe('demo mode (DEMO-1, DEMO-2, DEMO-4)', () => {
+  it('shows the banner and the seed tree without calling the API', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const api = fakeApi();
+    const isAuthenticated = vi.spyOn(api, 'isAuthenticated');
+    renderRoutes('/demo', api);
+
+    expect(await screen.findByText('Claude Certification')).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent('Demo — sample data. Changes aren’t saved.');
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(isAuthenticated).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+});

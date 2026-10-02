@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { PGlite } from '@electric-sql/pglite';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 // Runs every migration on PGlite (Postgres compiled to WebAssembly) so SQL mistakes and broken
 // rules are caught in CI, long before the owner pastes a migration into Supabase.
@@ -13,7 +13,10 @@ const migrations = readdirSync(migrationsDir)
   .sort()
   .map((name) => readFileSync(path.join(migrationsDir, name), 'utf8'));
 
-async function freshDatabase(): Promise<PGlite> {
+// Migrating once and copying the data directory for each test is much faster than migrating again.
+let migratedSnapshot: Promise<File | Blob> | undefined;
+
+async function migrate(): Promise<File | Blob> {
   const db = new PGlite();
   // Supabase's built-in roles.
   await db.exec(`
@@ -22,7 +25,14 @@ async function freshDatabase(): Promise<PGlite> {
     create role service_role nologin bypassrls;
   `);
   for (const sql of migrations) await db.exec(sql);
-  return db;
+  const snapshot = await db.dumpDataDir('none');
+  await db.close();
+  return snapshot;
+}
+
+async function freshDatabase(): Promise<PGlite> {
+  migratedSnapshot ??= migrate();
+  return PGlite.create({ loadDataDir: await migratedSnapshot });
 }
 
 async function errorOf(promise: Promise<unknown>): Promise<string> {
@@ -61,6 +71,7 @@ describe('migrations', () => {
   beforeEach(async () => {
     db = await freshDatabase();
   }, 30_000);
+  afterEach(() => db.close());
 
   it('creates the single settings row with defaults', async () => {
     const { rows } = await db.query<{ student_name: string; neglect_days: number }>(
