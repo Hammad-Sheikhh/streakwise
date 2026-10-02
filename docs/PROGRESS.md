@@ -4,17 +4,17 @@ _Last updated: 2026-10-03 by Claude Code_
 
 ## Milestones
 
-| #             | Status       | PR  | Notes / deferred items |
-| ------------- | ------------ | --- | ---------------------- |
-| M0 Scaffold   | 🔄 in review |     |                        |
-| M1 Foundation | ⏳           |     |                        |
-| M2 Logging    | ⏳           |     |                        |
-| M3 Dashboard  | ⏳           |     |                        |
-| M4 MCP        | ⏳           |     |                        |
-| M5 Progress   | ⏳           |     |                        |
-| M6 Reports    | ⏳           |     |                        |
-| M7 Demo + PWA | ⏳           |     |                        |
-| M8 Polish     | ⏳           |     |                        |
+| #             | Status  | PR  | Notes / deferred items |
+| ------------- | ------- | --- | ---------------------- |
+| M0 Scaffold   | ✅ done | #1  |                        |
+| M1 Foundation | ⏳      |     |                        |
+| M2 Logging    | ⏳      |     |                        |
+| M3 Dashboard  | ⏳      |     |                        |
+| M4 MCP        | ⏳      |     |                        |
+| M5 Progress   | ⏳      |     |                        |
+| M6 Reports    | ⏳      |     |                        |
+| M7 Demo + PWA | ⏳      |     |                        |
+| M8 Polish     | ⏳      |     |                        |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -39,9 +39,8 @@ _Last updated: 2026-10-03 by Claude Code_
 
 ## Current work / next step
 
-Setup in progress (SETUP.md Part 2). Steps 1, 2, 4, 5 done. Step 6 (M0 scaffold) PR open on
-`chore/scaffold`. Next: merge M0 when CI is green, then Step 3 (owner confirms Netlify + Supabase
-accounts) and Step 7 (Supabase dev/prod projects).
+Setup in progress (SETUP.md Part 2). Steps 1, 2, 4, 5, 6 done (M0 merged as #1). Next: Step 3 (owner
+confirms Netlify + Supabase accounts), then Step 7 (Supabase dev/prod projects) and Step 8 (Netlify).
 
 ## Open questions for the owner
 
