@@ -29,18 +29,19 @@ _Last updated: 2026-10-03 by Claude Code_
 ## Owner's manual steps
 
 - [x] GitHub CLI logged in
-- [ ] Netlify account
-- [ ] Supabase account
-- [ ] Supabase dev project created, keys in `.env`
-- [ ] Supabase prod project created
+- [x] Netlify account
+- [x] Supabase account
+- [x] Supabase project `streakwise-dev` created (Southeast Asia / Singapore), keys in `.env`, connection verified
+- [x] ~~Supabase prod project created~~ Not needed: one project for everything (SPEC D15)
 - [ ] Netlify site connected, env vars set per context, branch deploys for `develop` on
 - [ ] PROD_URL repo variable set
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
 
-Setup in progress (SETUP.md Part 2). Steps 1, 2, 4, 5, 6 done (M0 merged as #1). Next: Step 3 (owner
-confirms Netlify + Supabase accounts), then Step 7 (Supabase dev/prod projects) and Step 8 (Netlify).
+Setup in progress (SETUP.md Part 2). Steps 1–7 done (M0 merged as #1). Next: Step 8 (Netlify site,
+env vars, R0). With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context;
+`MCP_SECRET` still gets a new value for Production.
 
 ## Open questions for the owner
 
@@ -55,3 +56,7 @@ confirms Netlify + Supabase accounts), then Step 7 (Supabase dev/prod projects) 
 - shadcn/ui: Radix base, Nova preset. Dark mode follows `prefers-color-scheme` (no manual switch, SPEC §B16).
 - CSP: `style-src 'unsafe-inline'` allowed (needed by Radix/Recharts inline styles); scripts stay `'self'` only.
 - CI also runs `prettier --check`.
+- **D15 (owner's choice): one Supabase project (`streakwise-dev`, Singapore) for every environment.**
+  The owner's free project allowance was already used. Previews and the `develop` deploy touch real
+  data, so test features in demo mode first and warn the owner before any test that writes to the
+  database. Migrations are run once. Keep-alive covers the only project.
