@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment / secrets (keep only the template)
+.env
+.env.*
+!.env.example
+
+# Netlify
+.netlify/
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
