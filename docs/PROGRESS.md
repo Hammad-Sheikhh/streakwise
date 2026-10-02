@@ -39,15 +39,29 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 - [x] Supabase project `streakwise-dev` created (Southeast Asia / Singapore), keys in `.env`, connection verified
 - [x] ~~Supabase prod project created~~ Not needed: one project for everything (SPEC D15)
 - [x] Netlify site connected (`streakwise-ap`, production branch `main`)
-- [ ] Netlify env vars set per context, branch deploys for `develop` on
+- [x] Netlify branch deploys for `develop` turned on by the owner (not yet verified: appears on the next code merge to `develop`)
+- [x] Netlify env vars set via the Netlify API from `.env` (5 vars; 4 marked secret, scopes builds/functions/runtime;
+      `MCP_SECRET` has its own Production value, temp file deleted)
+- [x] Netlify CLI logged in and folder linked (`netlify link`); `netlify dev` serves `/api/health` locally
 - [x] PROD_URL repo variable set
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
 
-Setup in progress (SETUP.md Part 2). Steps 1–7 done; Step 8: site connected, R0 live, PROD_URL set.
-Next in Step 8: branch deploys for `develop`, env vars, `netlify link`. With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context;
-`MCP_SECRET` still gets a new value for Production.
+Setup Steps 1–8 are essentially done (R0 live). Remaining before M1:
+
+1. **Fix first (suspected, not yet verified in a browser):** `netlify dev` applies the `netlify.toml`
+   CSP (`script-src 'self'`) to the local Vite dev server, which blocks the inline React Refresh
+   preamble `<script type="module">` Vite injects, so the app is probably blank under `npm run dev`
+   (production is fine). Verify with Playwright/Chromium (already installed) against
+   `http://localhost:8888`. Proposed fix: move only the CSP header out of `netlify.toml` into a
+   `_headers` file emitted by a build-only Vite plugin, and set `[dev] publish = "public"` so
+   `netlify dev` never reads `dist/_headers`. Keep other headers in `netlify.toml`. Do it on a
+   `fix/dev-csp` branch → PR into `develop` (this also verifies the `develop` branch deploy).
+2. SETUP Step 8.7: explain previews vs the `develop` deploy vs the live site to the owner.
+3. Then start **M1** (`feat/foundation`), SPEC §B14.2.
+
+With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
 ## Open questions for the owner
 
@@ -55,7 +69,11 @@ Next in Step 8: branch deploys for `develop`, env vars, `netlify link`. With D15
 
 - App name: **Streakwise** (repo `streakwise`), public repo, MIT license under "Hammad Sheikh".
 - Netlify CLI installed globally; npm skipped its optional postinstall scripts (new npm allow-scripts
-  policy). Check `netlify dev` works in Step 8.
+  policy). `netlify dev` works anyway (verified).
+- Function tests live in `netlify/tests/`, never in `netlify/functions/` (Netlify deploys every
+  top-level file there; a test there broke the first R0 build). A test enforces this.
+- Netlify env vars are managed with the Netlify API/CLI (values read from local files, never printed)
+  instead of the UI, because the free-plan UI differs from the docs.
 - Node 24 (current LTS) pinned in `.nvmrc`, `engines`, and `NODE_VERSION`.
 - TypeScript pinned to 6.0.x: TypeScript 7 is out, but typescript-eslint supports only `<6.1`.
 - Time zones: `@date-fns/tz` (the official companion of date-fns v4) instead of `date-fns-tz`.
