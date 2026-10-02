@@ -26,7 +26,8 @@ flowchart LR
 | `src/components`      | Shared UI (`components/ui` = shadcn/ui)                                             |
 | `src/data`            | `DataSource` interface and implementations                                          |
 | `src/core`            | Isomorphic domain types, Zod schemas, pure logic, services, repositories, demo data |
-| `netlify/functions`   | Thin API handlers and the MCP server                                                |
+| `netlify/functions`   | Thin API handlers and the MCP server (every top-level file is deployed)             |
+| `netlify/tests`       | Tests for the functions (kept out of `netlify/functions` so they aren't deployed)   |
 | `supabase/migrations` | Numbered SQL migrations                                                             |
 | `e2e`                 | Playwright tests (run against `/demo`)                                              |
 
