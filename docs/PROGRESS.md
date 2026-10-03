@@ -1,20 +1,20 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (M2 and M3 built, PRs open)_
+_Last updated: 2026-10-03 by Claude Code (M2 merged; M3 PR #9 waiting for the owner to merge)_
 
 ## Milestones
 
-| #             | Status                          | PR               | Notes / deferred items                                                                                               |
-| ------------- | ------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done                         | #1               |                                                                                                                      |
-| M1 Foundation | ✅ done                         | #7               | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
-| M2 Logging    | 🔄 PR open, owner check pending | #8               | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
-| M3 Dashboard  | 🔄 PR open (stacked on #8)      | `feat/dashboard` | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
-| M4 MCP        | ⏳                              |                  |                                                                                                                      |
-| M5 Progress   | ⏳                              |                  |                                                                                                                      |
-| M6 Reports    | ⏳                              |                  |                                                                                                                      |
-| M7 Demo + PWA | ⏳                              |                  |                                                                                                                      |
-| M8 Polish     | ⏳                              |                  |                                                                                                                      |
+| #             | Status                         | PR  | Notes / deferred items                                                                                               |
+| ------------- | ------------------------------ | --- | -------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done                        | #1  |                                                                                                                      |
+| M1 Foundation | ✅ done                        | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
+| M2 Logging    | ✅ done                        | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
+| M3 Dashboard  | 🔄 owner-tested, merge pending | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
+| M4 MCP        | ⏳                             |     |                                                                                                                      |
+| M5 Progress   | ⏳                             |     |                                                                                                                      |
+| M6 Reports    | ⏳                             |     |                                                                                                                      |
+| M7 Demo + PWA | ⏳                             |     |                                                                                                                      |
+| M8 Polish     | ⏳                             |     |                                                                                                                      |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -49,9 +49,10 @@ One database for everything (D15), so each migration runs once.
 - [x] Netlify CLI logged in and folder linked (`netlify link`); `netlify dev` serves `/api/health` locally
 - [x] PROD_URL repo variable set
 - [x] Run `supabase/migrations/0001_initial.sql` in the Supabase SQL Editor (M1)
-- [ ] Try M2 on the deploy preview (writes to the real database; delete test sessions afterwards)
-- [ ] Try M3 (Home dashboard, targets, deadlines) on its preview
-- [ ] Merge #8, then the M3 PR (or allow Claude Code to merge)
+- [x] Try M2 on the deploy preview (owner logged, checked, and deleted a real test session)
+- [x] Try M3 (Home dashboard, targets, deadlines) on its preview (demo steps all worked)
+- [x] Merge #8 (merged by Claude Code with the owner's OK)
+- [ ] Merge #9: `gh pr merge 9 --squash --delete-branch` (auto mode blocked Claude Code from doing it)
 - [ ] Say yes/no to release R1 (first live version)
 - [ ] Claude custom connector added (after R2)
 
@@ -66,20 +67,23 @@ login (cookie attributes), seeded tree, settings, `me`, logout; `/login` and `/d
 sidebar), Log, History, Settings, Settings → Structure; core services, endpoints, tests (161 unit/
 component + e2e on /demo). Tested in demo mode and with in-memory tests only. **Not yet checked
 against the real database**, because previews share it (D15) and the owner was away.
+Later checked by the owner on the real database; merged as #8. A dark-mode fix for unreadable
+dropdown options on Windows (white text on the system's white list) went in with it.
 
 **M3 built on `feat/dashboard`** (DASH-1, TGT-1–2, NEG-1, STRK-1–2, HEAT-1–3, DEAD-1–3), branched
 from `feat/logging` because merging #8 needs the owner's OK (Claude Code's auto mode refused
 the merge without the owner's review). Home dashboard (neglect, today + streaks, weekly target
 bars, next 3 deadlines with syllabus left, 12-month heatmap with keyboard navigation), Settings →
 Weekly targets and Deadlines, `/api/dashboard` and `/api/deadlines`. 205 tests + e2e. Checked in
-demo mode only.
+demo mode only. The owner then tried it on the preview: all demo steps worked. Heatmap shading
+by time studied (not by number of sessions) confirmed by the owner.
 
 **Next:**
 
-1. Owner tries the M2 and M3 previews (they write real data; see "Owner's manual steps").
-2. Owner merges #8 (M2), then the M3 PR (squash), or tells Claude Code to.
-3. Ask the owner about release **R1** (first live version, ~15 credits). M3 can ride along.
-4. Then M4 (`feat/mcp`), which leads to R2 (Claude connected).
+1. Owner merges #9 (M3) into `develop` (command in "Owner's manual steps").
+2. Ask the owner about release **R1** (first live version, ~15 credits), now including M2 + M3.
+3. Then M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
+   Check the current MCP TypeScript SDK and Netlify docs first (SPEC MCP-2).
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
