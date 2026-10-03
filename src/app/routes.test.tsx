@@ -2,34 +2,8 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { DataSource } from '@/data/DataSource';
-import { DataSourceError } from '@/data/DataSource';
-import { DemoDataSource } from '@/data/DemoDataSource';
+import { fakeApi } from '@/test/fakeApi';
 import { renderRoutes } from '@/test/renderRoutes';
-
-/** A fake API: logged out until the passcode "letmein" is entered; the tree is the seed. */
-function fakeApi(): DataSource & { loggedIn: boolean } {
-  const demo = new DemoDataSource(() => new Date('2026-10-03T10:00:00Z'));
-  return {
-    mode: 'api',
-    basePath: '',
-    loggedIn: false,
-    async isAuthenticated() {
-      return this.loggedIn;
-    },
-    async login(passcode: string) {
-      if (passcode !== 'letmein') {
-        throw new DataSourceError(401, 'wrong_passcode', 'That passcode isn’t right.');
-      }
-      this.loggedIn = true;
-    },
-    async logout() {
-      this.loggedIn = false;
-    },
-    listTree: () => demo.listTree(),
-    getSettings: () => demo.getSettings(),
-  };
-}
 
 describe('login flow (AUTH-1)', () => {
   it('sends a logged-out visitor from Home to the login page', async () => {
@@ -50,7 +24,7 @@ describe('login flow (AUTH-1)', () => {
     expect(router.state.location.pathname).toBe('/login');
   });
 
-  it('logs in, shows the tracks, and logs out again (AUTH-4)', async () => {
+  it('logs in, shows the tracks, and logs out from Settings (AUTH-4)', async () => {
     const user = userEvent.setup();
     const api = fakeApi();
     const { router } = renderRoutes('/login', api);
@@ -60,7 +34,8 @@ describe('login flow (AUTH-1)', () => {
     expect(await screen.findByText('German Language')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/');
 
-    await user.click(screen.getByRole('button', { name: 'Log out' }));
+    await router.navigate('/settings');
+    await user.click(await screen.findByRole('button', { name: 'Log out' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     expect(api.loggedIn).toBe(false);
   });
@@ -68,6 +43,23 @@ describe('login flow (AUTH-1)', () => {
   it('disables the button until a passcode is typed', async () => {
     renderRoutes('/login', fakeApi());
     expect(await screen.findByRole('button', { name: 'Log in' })).toBeDisabled();
+  });
+});
+
+describe('navigation (SPEC §B6)', () => {
+  it('links every main screen, prefixed with /demo in demo mode', async () => {
+    renderRoutes('/demo', fakeApi());
+    await screen.findByText('German Language');
+    const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
+    for (const path of ['/demo', '/demo/log', '/demo/history', '/demo/tasks', '/demo/more']) {
+      expect(hrefs).toContain(path);
+    }
+  });
+
+  it('shows a placeholder for screens from later milestones', async () => {
+    renderRoutes('/tasks', fakeApi({ loggedIn: true }));
+    expect(await screen.findByRole('heading', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByText(/arrive in a later update/)).toBeInTheDocument();
   });
 });
 
@@ -80,9 +72,14 @@ describe('demo mode (DEMO-1, DEMO-2, DEMO-4)', () => {
 
     expect(await screen.findByText('Claude Certification')).toBeInTheDocument();
     expect(screen.getByRole('note')).toHaveTextContent('Demo — sample data. Changes aren’t saved.');
-    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(isAuthenticated).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
+  });
+
+  it('offers Exit demo instead of Log out in Settings', async () => {
+    renderRoutes('/demo/settings', fakeApi());
+    expect(await screen.findByRole('button', { name: 'Exit demo' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
   });
 });

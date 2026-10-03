@@ -1,13 +1,26 @@
 import { z } from 'zod';
 
 import { meSchema } from '@/core/schemas/auth';
-import { apiErrorSchema, settingsSchema, treeNodeSchema } from '@/core/schemas/domain';
+import {
+  apiErrorSchema,
+  historyPageSchema,
+  sessionSchema,
+  settingsSchema,
+  treeNodeSchema,
+} from '@/core/schemas/domain';
+import type { HistoryQuery } from '@/core/schemas/inputs';
 
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
 
 const treeResponse = z.object({ nodes: z.array(treeNodeSchema) });
+const nodeResponse = z.object({ node: treeNodeSchema });
+const sessionResponse = z.object({ session: sessionSchema });
+const recentResponse = z.object({ nodeIds: z.array(z.uuid()) });
 const settingsResponse = z.object({ settings: settingsSchema });
+const okResponse = z.object({ ok: z.literal(true) });
+
+type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
 export class ApiDataSource implements DataSource {
   readonly mode = 'api';
@@ -15,10 +28,14 @@ export class ApiDataSource implements DataSource {
 
   constructor(private readonly fetchFn: typeof fetch = (...args) => fetch(...args)) {}
 
+  now(): Date {
+    return new Date();
+  }
+
   private async request<T>(
     path: string,
     schema: z.ZodType<T>,
-    init: { method?: 'GET' | 'POST'; body?: unknown } = {},
+    init: { method?: Method; body?: unknown } = {},
   ): Promise<T> {
     let response: Response;
     try {
@@ -67,7 +84,57 @@ export class ApiDataSource implements DataSource {
     return (await this.request('nodes', treeResponse)).nodes;
   }
 
+  async addNode(input: Parameters<DataSource['addNode']>[0]) {
+    return (await this.request('nodes', nodeResponse, { method: 'POST', body: input })).node;
+  }
+
+  async updateNode(id: string, input: Parameters<DataSource['updateNode']>[1]) {
+    const path = `nodes/${encodeURIComponent(id)}`;
+    return (await this.request(path, nodeResponse, { method: 'PATCH', body: input })).node;
+  }
+
+  async deleteNode(id: string) {
+    await this.request(`nodes/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async moveNode(id: string, input: Parameters<DataSource['moveNode']>[1]) {
+    const path = `nodes/${encodeURIComponent(id)}/move`;
+    await this.request(path, okResponse, { method: 'POST', body: input });
+  }
+
+  async getHistory(query: HistoryQuery) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (typeof value === 'string') params.set(key, value);
+    }
+    const search = params.size > 0 ? `?${params}` : '';
+    return this.request(`sessions${search}`, historyPageSchema);
+  }
+
+  async logSession(input: Parameters<DataSource['logSession']>[0]) {
+    return (await this.request('sessions', sessionResponse, { method: 'POST', body: input }))
+      .session;
+  }
+
+  async updateSession(id: string, input: Parameters<DataSource['updateSession']>[1]) {
+    const path = `sessions/${encodeURIComponent(id)}`;
+    return (await this.request(path, sessionResponse, { method: 'PATCH', body: input })).session;
+  }
+
+  async deleteSession(id: string) {
+    await this.request(`sessions/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async recentNodeIds() {
+    return (await this.request('recent-nodes', recentResponse)).nodeIds;
+  }
+
   async getSettings() {
     return (await this.request('settings', settingsResponse)).settings;
+  }
+
+  async updateSettings(input: Parameters<DataSource['updateSettings']>[0]) {
+    return (await this.request('settings', settingsResponse, { method: 'PATCH', body: input }))
+      .settings;
   }
 }
