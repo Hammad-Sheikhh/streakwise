@@ -27,13 +27,13 @@ import { LEVEL_NAMES } from './levels';
 export function NodeDialog({
   node,
   nodes,
+  open,
   onClose,
-  onDeleted,
 }: {
   node: TreeNode;
   nodes: readonly TreeNode[];
+  open: boolean;
   onClose: () => void;
-  onDeleted: () => void;
 }) {
   const id = useId();
   const levels: readonly string[] = LEVEL_NAMES;
@@ -64,7 +64,7 @@ export function NodeDialog({
     toastErrors: false,
     onSuccess: () => {
       toast.success(`Deleted “${node.name}”.`);
-      onDeleted();
+      onClose();
     },
   });
 
@@ -88,7 +88,7 @@ export function NodeDialog({
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{node.name}</DialogTitle>

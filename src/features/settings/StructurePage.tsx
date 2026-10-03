@@ -24,7 +24,10 @@ export function StructurePage() {
   const { basePath } = useDataSource();
   const tree = useTree();
   const [showArchived, setShowArchived] = useState(false);
-  const [managing, setManaging] = useState<string | null>(null);
+  // The dialog stays mounted while it closes (unmounting an open Radix dialog can leave the page
+  // unclickable), so the last managed node is kept even after it's deleted.
+  const [managing, setManaging] = useState<TreeNode | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const archivedToggleId = useId();
 
   const move = useDataMutation(
@@ -36,7 +39,7 @@ export function StructurePage() {
   const nodes = tree.data ?? [];
   const hidden = hiddenIds(nodes);
   const shown = showArchived ? nodes : nodes.filter((n) => !hidden.has(n.id));
-  const managed = nodes.find((n) => n.id === managing);
+  const managed = managing && (nodes.find((n) => n.id === managing.id) ?? managing);
 
   /** Position among visible siblings, for the up/down buttons (archived ones don't count). */
   function position(node: TreeNode) {
@@ -145,7 +148,10 @@ export function StructurePage() {
                   size="icon"
                   className="size-11"
                   aria-label={`Manage ${node.name}`}
-                  onClick={() => setManaging(node.id)}
+                  onClick={() => {
+                    setManaging(node);
+                    setDialogOpen(true);
+                  }}
                 >
                   <Settings2 aria-hidden="true" />
                 </Button>
@@ -157,10 +163,12 @@ export function StructurePage() {
 
       {managed && (
         <NodeDialog
+          // A fresh dialog (and form state) for each node.
+          key={managed.id}
           node={managed}
           nodes={nodes}
-          onClose={() => setManaging(null)}
-          onDeleted={() => setManaging(null)}
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
         />
       )}
     </>

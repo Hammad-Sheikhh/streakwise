@@ -16,6 +16,13 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
+// jsdom also lacks pointer capture, which toasts use for swipe-to-dismiss.
+if (typeof Element !== 'undefined' && !Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = () => {};
+  Element.prototype.releasePointerCapture = () => {};
+  Element.prototype.hasPointerCapture = () => false;
+}
+
 afterEach(() => {
   cleanup();
 });
