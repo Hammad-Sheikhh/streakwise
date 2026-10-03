@@ -1,4 +1,4 @@
-﻿# Progress
+# Progress
 
 _Last updated: 2026-10-03 by Claude Code (M2 built, PR open)_
 
