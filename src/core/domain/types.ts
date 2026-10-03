@@ -38,6 +38,34 @@ export interface TreeNode {
   updatedAt: string;
 }
 
+export const SESSION_SOURCES = ['app', 'claude'] as const;
+export type SessionSource = (typeof SESSION_SOURCES)[number];
+
+export interface Session {
+  id: string;
+  nodeId: string;
+  /** Local date (Asia/Karachi). */
+  studiedOn: string;
+  minutes: number;
+  note: string | null;
+  source: SessionSource;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One day of History (HIST-1): its sessions, newest first, and their total. */
+export interface HistoryDay {
+  date: string;
+  totalMinutes: number;
+  sessions: Session[];
+}
+
+export interface HistoryPage {
+  days: HistoryDay[];
+  /** Where the next (older) page starts, or null when there's nothing older. */
+  nextTo: string | null;
+}
+
 export type TaskRecurrence = 'none' | 'weekly';
 
 export interface Task {

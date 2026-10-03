@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
-import type { Settings, TreeNode } from '../domain/types';
+import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
+import type { HistoryPage, Session, Settings, TreeNode } from '../domain/types';
 
 // Shapes of domain objects as they cross the API, so the browser can check what it receives.
 
@@ -21,6 +21,28 @@ export const treeNodeSchema = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
 }) satisfies z.ZodType<TreeNode>;
+
+export const sessionSchema = z.object({
+  id: z.uuid(),
+  nodeId: z.uuid(),
+  studiedOn: z.iso.date(),
+  minutes: z.number().int().min(1).max(1440),
+  note: z.string().max(500).nullable(),
+  source: z.enum(SESSION_SOURCES),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}) satisfies z.ZodType<Session>;
+
+export const historyPageSchema = z.object({
+  days: z.array(
+    z.object({
+      date: z.iso.date(),
+      totalMinutes: z.number().int().min(0),
+      sessions: z.array(sessionSchema),
+    }),
+  ),
+  nextTo: z.iso.date().nullable(),
+}) satisfies z.ZodType<HistoryPage>;
 
 export const settingsSchema = z.object({
   studentName: z.string().max(80),
