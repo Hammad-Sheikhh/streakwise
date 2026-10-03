@@ -3,8 +3,16 @@ import { z } from 'zod';
 
 import { notFound } from '../../../src/core/domain/errors';
 import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../../../src/core/domain/types';
-import type { Session, Settings, TreeNode } from '../../../src/core/domain/types';
 import type {
+  Deadline,
+  Session,
+  SessionFact,
+  Settings,
+  TreeNode,
+} from '../../../src/core/domain/types';
+import type {
+  DeadlinePatch,
+  NewDeadline,
   NewNode,
   NewSession,
   NodePatch,
@@ -88,11 +96,36 @@ const sessionRow = z
     updatedAt: row.updated_at,
   }));
 
+const factRow = z
+  .object({ node_id: z.string(), studied_on: z.string(), minutes: z.number() })
+  .transform((row): SessionFact => ({
+    nodeId: row.node_id,
+    studiedOn: row.studied_on,
+    minutes: row.minutes,
+  }));
+
+const deadlineRow = z
+  .object({
+    id: z.string(),
+    node_id: z.string(),
+    title: z.string(),
+    due_on: z.string(),
+    created_at: timestamp,
+  })
+  .transform((row): Deadline => ({
+    id: row.id,
+    nodeId: row.node_id,
+    title: row.title,
+    dueOn: row.due_on,
+    createdAt: row.created_at,
+  }));
+
 function nodeColumns(patch: NodePatch) {
   return {
     name: patch.name,
     color: patch.color,
     sort_order: patch.sortOrder,
+    weekly_target_minutes: patch.weeklyTargetMinutes,
     topic_status: patch.topicStatus,
     topic_done_at: patch.topicDoneAt,
     archived_at: patch.archivedAt,
@@ -223,6 +256,65 @@ export class SupabaseRepository implements Repository {
       .limit(limit);
     if (error) throwDbError(error);
     return z.array(sessionRow).parse(data);
+  }
+
+  async listSessionFacts(): Promise<SessionFact[]> {
+    // PostgREST returns at most 1000 rows per request (Supabase's default), so read in pages.
+    const pageSize = 1000;
+    const facts: SessionFact[] = [];
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await this.db
+        .from('sessions')
+        .select('node_id, studied_on, minutes')
+        .order('id')
+        .range(offset, offset + pageSize - 1);
+      if (error) throwDbError(error);
+      const rows = z.array(factRow).parse(data);
+      facts.push(...rows);
+      if (rows.length < pageSize) return facts;
+    }
+  }
+
+  async listDeadlines(): Promise<Deadline[]> {
+    const { data, error } = await this.db
+      .from('deadlines')
+      .select('*')
+      .order('due_on')
+      .order('created_at');
+    if (error) throwDbError(error);
+    return z.array(deadlineRow).parse(data);
+  }
+
+  async insertDeadline(deadline: NewDeadline): Promise<Deadline> {
+    const { data, error } = await this.db
+      .from('deadlines')
+      .insert({
+        id: deadline.id,
+        node_id: deadline.nodeId,
+        title: deadline.title,
+        due_on: deadline.dueOn,
+      })
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return deadlineRow.parse(data);
+  }
+
+  async updateDeadline(id: string, patch: DeadlinePatch): Promise<Deadline> {
+    const { data, error } = await this.db
+      .from('deadlines')
+      .update({ node_id: patch.nodeId, title: patch.title, due_on: patch.dueOn })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return deadlineRow.parse(data);
+  }
+
+  async deleteDeadline(id: string): Promise<void> {
+    const { data, error } = await this.db.from('deadlines').delete().eq('id', id).select('id');
+    if (error) throwDbError(error);
+    if (data.length === 0) throw notFound('deadline_not_found');
   }
 
   async getSettings(): Promise<Settings> {

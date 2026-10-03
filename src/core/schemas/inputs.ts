@@ -21,11 +21,21 @@ export const createNodeInputSchema = z.object({
 });
 export type CreateNodeInput = z.infer<typeof createNodeInputSchema>;
 
+/** TGT-1: weekly targets are set in half-hour steps; null (or 0) means no target. */
+export const weeklyTargetSchema = z
+  .number()
+  .int()
+  .min(0, 'A target can’t be negative.')
+  .max(7 * 24 * 60, 'A week only has 168 hours.')
+  .multipleOf(30, 'Targets go in half-hour steps.')
+  .nullable();
+
 export const updateNodeInputSchema = z
   .object({
     name: nodeName.optional(),
     color: z.enum(TRACK_COLORS).optional(),
     archived: z.boolean().optional(),
+    weeklyTargetMinutes: weeklyTargetSchema.optional(),
   })
   .refine((input) => Object.values(input).some((value) => value !== undefined), {
     message: 'Nothing to change.',
@@ -82,6 +92,30 @@ export const historyQuerySchema = z.object({
   source: z.enum(SESSION_SOURCES).optional(),
 });
 export type HistoryQuery = z.infer<typeof historyQuerySchema>;
+
+const deadlineTitle = z
+  .string()
+  .trim()
+  .min(1, 'Enter a title.')
+  .max(200, 'Titles can be at most 200 characters.');
+
+export const createDeadlineInputSchema = z.object({
+  nodeId: z.uuid('Choose what the deadline is for.'),
+  title: deadlineTitle,
+  dueOn: localDateSchema,
+});
+export type CreateDeadlineInput = z.infer<typeof createDeadlineInputSchema>;
+
+export const updateDeadlineInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the deadline is for.').optional(),
+    title: deadlineTitle.optional(),
+    dueOn: localDateSchema.optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Nothing to change.',
+  });
+export type UpdateDeadlineInput = z.infer<typeof updateDeadlineInputSchema>;
 
 export const updateSettingsInputSchema = z
   .object({

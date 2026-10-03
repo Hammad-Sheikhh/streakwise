@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { meSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
+  dashboardSchema,
+  deadlineSchema,
   historyPageSchema,
   sessionSchema,
   settingsSchema,
@@ -19,6 +21,8 @@ const sessionResponse = z.object({ session: sessionSchema });
 const recentResponse = z.object({ nodeIds: z.array(z.uuid()) });
 const settingsResponse = z.object({ settings: settingsSchema });
 const okResponse = z.object({ ok: z.literal(true) });
+const deadlineResponse = z.object({ deadline: deadlineSchema });
+const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -127,6 +131,28 @@ export class ApiDataSource implements DataSource {
 
   async recentNodeIds() {
     return (await this.request('recent-nodes', recentResponse)).nodeIds;
+  }
+
+  async getDashboard() {
+    return this.request('dashboard', dashboardSchema);
+  }
+
+  async listDeadlines() {
+    return (await this.request('deadlines', deadlinesResponse)).deadlines;
+  }
+
+  async addDeadline(input: Parameters<DataSource['addDeadline']>[0]) {
+    return (await this.request('deadlines', deadlineResponse, { method: 'POST', body: input }))
+      .deadline;
+  }
+
+  async updateDeadline(id: string, input: Parameters<DataSource['updateDeadline']>[1]) {
+    const path = `deadlines/${encodeURIComponent(id)}`;
+    return (await this.request(path, deadlineResponse, { method: 'PATCH', body: input })).deadline;
+  }
+
+  async deleteDeadline(id: string) {
+    await this.request(`deadlines/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
   }
 
   async getSettings() {

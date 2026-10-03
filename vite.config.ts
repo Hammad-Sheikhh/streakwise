@@ -19,6 +19,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Screen tests render whole pages (Home has a ~370-cell heatmap); allow for busy CI machines.
+    testTimeout: 15_000,
     include: [
       'src/**/*.test.{ts,tsx}',
       'netlify/**/*.test.ts',

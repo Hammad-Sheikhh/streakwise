@@ -1,6 +1,8 @@
 import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
+import * as dashboard from '@/core/services/dashboard';
+import * as deadlines from '@/core/services/deadlines';
 import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
 import * as settings from '@/core/services/settings';
@@ -95,6 +97,26 @@ export class DemoDataSource implements DataSource {
 
   recentNodeIds() {
     return this.run((repo) => sessions.recentNodeIds(repo));
+  }
+
+  getDashboard() {
+    return this.run((repo) => dashboard.getDashboard(repo, this.clock));
+  }
+
+  listDeadlines() {
+    return this.run((repo) => deadlines.listDeadlines(repo));
+  }
+
+  addDeadline(input: Parameters<DataSource['addDeadline']>[0]) {
+    return this.run((repo) => deadlines.addDeadline(repo, this.newId, input));
+  }
+
+  updateDeadline(id: string, input: Parameters<DataSource['updateDeadline']>[1]) {
+    return this.run((repo) => deadlines.updateDeadline(repo, id, input));
+  }
+
+  deleteDeadline(id: string) {
+    return this.run((repo) => deadlines.deleteDeadline(repo, id));
   }
 
   getSettings() {

@@ -11,8 +11,10 @@ import { HomePage } from '@/features/dashboard/HomePage';
 import { DemoLayout } from '@/features/demo/DemoLayout';
 import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogPage } from '@/features/log/LogPage';
+import { DeadlinesPage } from '@/features/settings/DeadlinesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { StructurePage } from '@/features/settings/StructurePage';
+import { TargetsPage } from '@/features/settings/TargetsPage';
 
 // The app's pages; demo mode mounts the same pages under /demo (SPEC §B6).
 const appPages: RouteObject[] = [
@@ -25,6 +27,8 @@ const appPages: RouteObject[] = [
       { path: 'more', element: <MorePage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/structure', element: <StructurePage /> },
+      { path: 'settings/targets', element: <TargetsPage /> },
+      { path: 'settings/deadlines', element: <DeadlinesPage /> },
       {
         path: 'tasks',
         element: (

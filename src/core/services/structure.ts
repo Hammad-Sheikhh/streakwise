@@ -119,6 +119,12 @@ export async function updateNode(
     if (node.depth !== 1) throw invalid('color_tracks_only', 'Only tracks have a color.');
     patch.color = input.color;
   }
+  if (input.weeklyTargetMinutes !== undefined) {
+    if (node.depth !== 1) {
+      throw invalid('target_tracks_only', 'Only tracks have a weekly target.');
+    }
+    patch.weeklyTargetMinutes = input.weeklyTargetMinutes || null;
+  }
   if (input.archived !== undefined) {
     patch.archivedAt = input.archived ? (node.archivedAt ?? clock().toISOString()) : null;
   }

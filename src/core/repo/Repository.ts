@@ -1,5 +1,7 @@
 import type {
+  Deadline,
   Session,
+  SessionFact,
   SessionSource,
   Settings,
   TaskRecurrence,
@@ -50,8 +52,20 @@ export interface NewNode {
 }
 
 export type NodePatch = Partial<
-  Pick<TreeNode, 'name' | 'color' | 'sortOrder' | 'topicStatus' | 'topicDoneAt' | 'archivedAt'>
+  Pick<
+    TreeNode,
+    | 'name'
+    | 'color'
+    | 'sortOrder'
+    | 'weeklyTargetMinutes'
+    | 'topicStatus'
+    | 'topicDoneAt'
+    | 'archivedAt'
+  >
 >;
+
+export type NewDeadline = Pick<Deadline, 'id' | 'nodeId' | 'title' | 'dueOn'>;
+export type DeadlinePatch = Partial<Pick<Deadline, 'nodeId' | 'title' | 'dueOn'>>;
 
 export type NewSession = Pick<
   Session,
@@ -87,6 +101,14 @@ export interface Repository {
   latestSessionDate(filter: SessionFilter): Promise<string | null>;
   /** The most recently created sessions, newest first. */
   listRecentSessions(limit: number): Promise<Session[]>;
+  /** Node, date, and minutes of every session (all history), for dashboard calculations. */
+  listSessionFacts(): Promise<SessionFact[]>;
+
+  /** Ordered by due date. */
+  listDeadlines(): Promise<Deadline[]>;
+  insertDeadline(deadline: NewDeadline): Promise<Deadline>;
+  updateDeadline(id: string, patch: DeadlinePatch): Promise<Deadline>;
+  deleteDeadline(id: string): Promise<void>;
 
   getSettings(): Promise<Settings>;
   updateSettings(patch: SettingsPatch): Promise<Settings>;

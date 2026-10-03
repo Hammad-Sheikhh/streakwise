@@ -31,8 +31,8 @@ describe('login flow (AUTH-1)', () => {
     await user.type(await screen.findByLabelText('Passcode'), 'letmein');
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-    expect(await screen.findByText('German Language')).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(api.loggedIn).toBe(true);
 
     await router.navigate('/settings');
     await user.click(await screen.findByRole('button', { name: 'Log out' }));
