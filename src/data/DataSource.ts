@@ -1,6 +1,15 @@
-import type { HistoryPage, Session, Settings, TreeNode } from '@/core/domain/types';
 import type {
+  Dashboard,
+  Deadline,
+  HistoryPage,
+  Session,
+  Settings,
+  TreeNode,
+} from '@/core/domain/types';
+import type {
+  CreateDeadlineInput,
   CreateNodeInput,
+  UpdateDeadlineInput,
   HistoryQuery,
   LogSessionInput,
   MoveNodeInput,
@@ -35,6 +44,13 @@ export interface DataSource {
   updateSession(id: string, input: UpdateSessionInput): Promise<Session>;
   deleteSession(id: string): Promise<void>;
   recentNodeIds(): Promise<string[]>;
+
+  getDashboard(): Promise<Dashboard>;
+
+  listDeadlines(): Promise<Deadline[]>;
+  addDeadline(input: CreateDeadlineInput): Promise<Deadline>;
+  updateDeadline(id: string, input: UpdateDeadlineInput): Promise<Deadline>;
+  deleteDeadline(id: string): Promise<void>;
 
   getSettings(): Promise<Settings>;
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;

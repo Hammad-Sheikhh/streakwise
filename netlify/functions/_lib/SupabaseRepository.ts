@@ -98,13 +98,11 @@ const sessionRow = z
 
 const factRow = z
   .object({ node_id: z.string(), studied_on: z.string(), minutes: z.number() })
-  .transform(
-    (row): SessionFact => ({
-      nodeId: row.node_id,
-      studiedOn: row.studied_on,
-      minutes: row.minutes,
-    }),
-  );
+  .transform((row): SessionFact => ({
+    nodeId: row.node_id,
+    studiedOn: row.studied_on,
+    minutes: row.minutes,
+  }));
 
 const deadlineRow = z
   .object({
@@ -114,15 +112,13 @@ const deadlineRow = z
     due_on: z.string(),
     created_at: timestamp,
   })
-  .transform(
-    (row): Deadline => ({
-      id: row.id,
-      nodeId: row.node_id,
-      title: row.title,
-      dueOn: row.due_on,
-      createdAt: row.created_at,
-    }),
-  );
+  .transform((row): Deadline => ({
+    id: row.id,
+    nodeId: row.node_id,
+    title: row.title,
+    dueOn: row.due_on,
+    createdAt: row.created_at,
+  }));
 
 function nodeColumns(patch: NodePatch) {
   return {
