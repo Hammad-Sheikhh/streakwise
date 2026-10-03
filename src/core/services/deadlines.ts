@@ -22,15 +22,19 @@ export async function listDeadlines(repo: Repository): Promise<Deadline[]> {
   return repo.listDeadlines();
 }
 
-/** DEAD-2/3: deadlines from today on, for visible nodes, with days and syllabus left. */
+/**
+ * DEAD-2/3: deadlines from today on (or all of them with `includePast`), for visible nodes, with
+ * days left (negative once passed) and syllabus left.
+ */
 export function selectUpcoming(
   nodes: readonly TreeNode[],
   deadlines: readonly Deadline[],
   today: string,
+  { includePast = false }: { includePast?: boolean } = {},
 ): UpcomingDeadline[] {
   const hidden = hiddenIds(nodes);
   return deadlines
-    .filter((d) => d.dueOn >= today && !hidden.has(d.nodeId))
+    .filter((d) => (includePast || d.dueOn >= today) && !hidden.has(d.nodeId))
     .map((d) => {
       const done = syllabusPercent(nodes, d.nodeId);
       return {
@@ -44,9 +48,10 @@ export function selectUpcoming(
 export async function upcomingDeadlines(
   repo: Repository,
   clock: Clock,
+  options: { includePast?: boolean } = {},
 ): Promise<UpcomingDeadline[]> {
   const [nodes, deadlines] = await Promise.all([repo.listNodes(), repo.listDeadlines()]);
-  return selectUpcoming(nodes, deadlines, localDate(clock()));
+  return selectUpcoming(nodes, deadlines, localDate(clock()), options);
 }
 
 export async function addDeadline(
