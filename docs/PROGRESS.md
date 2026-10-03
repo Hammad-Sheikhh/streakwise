@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (M2 and M3 merged into develop)_
+_Last updated: 2026-10-03 by Claude Code (R1 released: M1–M3 live)_
 
 ## Milestones
 
@@ -21,8 +21,9 @@ _Last updated: 2026-10-03 by Claude Code (M2 and M3 merged into develop)_
 | Release | Date       | Includes                                                                                                                                                                   |
 | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
+| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).   |
 
-Production builds this month (Oct 2026): **2** (~30 credits, counted conservatively).
+Production builds this month (Oct 2026): **3** (~45 credits, counted conservatively).
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -53,7 +54,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Try M3 (Home dashboard, targets, deadlines) on its preview (demo steps all worked)
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
 - [x] Merge #9 (merged by Claude Code at the owner's request)
-- [ ] Say yes/no to release R1 (first live version)
+- [x] Say yes/no to release R1 (first live version): yes, released 2026-10-03 (#10)
 - [ ] Claude custom connector added (after R2)
 
 ## Current work / next step
@@ -78,17 +79,16 @@ Weekly targets and Deadlines, `/api/dashboard` and `/api/deadlines`. 205 tests +
 demo mode only. The owner then tried it on the preview: all demo steps worked. Heatmap shading
 by time studied (not by number of sessions) confirmed by the owner.
 
+**R1 released 2026-10-03 (#10).** The keepalive workflow on `main` now has a live site to ping.
+
 **Next:**
 
-1. Ask the owner about release **R1** (first live version, ~15 credits), now including M2 + M3.
-2. Then M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
+1. M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
    Check the current MCP TypeScript SDK and Netlify docs first (SPEC MCP-2).
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
 `Get-Content <file> -Raw -Encoding UTF8 | Set-Clipboard`.
-
-Note: the live site still runs R0, so the keepalive workflow (on `main`) only starts working at R1.
 
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
