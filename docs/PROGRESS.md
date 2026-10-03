@@ -1,20 +1,20 @@
-# Progress
+﻿# Progress
 
 _Last updated: 2026-10-03 by Claude Code (M2 built, PR open)_
 
 ## Milestones
 
-| #             | Status                          | PR             | Notes / deferred items                                                                  |
-| ------------- | ------------------------------- | -------------- | --------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done                         | #1             |                                                                                         |
-| M1 Foundation | ✅ done                         | #7             | Repository covers nodes, settings, seed so far; later milestones add their own methods  |
-| M2 Logging    | 🔄 PR open, owner check pending | `feat/logging` | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent) |
-| M3 Dashboard  | ⏳                              |                |                                                                                         |
-| M4 MCP        | ⏳                              |                |                                                                                         |
-| M5 Progress   | ⏳                              |                |                                                                                         |
-| M6 Reports    | ⏳                              |                |                                                                                         |
-| M7 Demo + PWA | ⏳                              |                |                                                                                         |
-| M8 Polish     | ⏳                              |                |                                                                                         |
+| #             | Status                          | PR  | Notes / deferred items                                                                  |
+| ------------- | ------------------------------- | --- | --------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done                         | #1  |                                                                                         |
+| M1 Foundation | ✅ done                         | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods  |
+| M2 Logging    | 🔄 PR open, owner check pending | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent) |
+| M3 Dashboard  | ⏳                              |     |                                                                                         |
+| M4 MCP        | ⏳                              |     |                                                                                         |
+| M5 Progress   | ⏳                              |     |                                                                                         |
+| M6 Reports    | ⏳                              |     |                                                                                         |
+| M7 Demo + PWA | ⏳                              |     |                                                                                         |
+| M8 Polish     | ⏳                              |     |                                                                                         |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
