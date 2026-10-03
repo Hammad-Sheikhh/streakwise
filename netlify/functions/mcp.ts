@@ -1,5 +1,3 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
-
 import type { Config } from '@netlify/functions';
 import { createMcpHandler } from '@modelcontextprotocol/server';
 
@@ -9,20 +7,11 @@ import type { ServerDeps } from './_lib/deps';
 import { ConfigError } from './_lib/env';
 import { describeError, log } from './_lib/log';
 import { buildMcpServer } from './_lib/mcp/server';
+import { isMcpConfigured, mcpSecretMatches } from './_lib/mcpSecret';
 
 // MCP-1/MCP-2: the Claude connection at /mcp/<MCP_SECRET>, stateless Streamable HTTP. The secret in
 // the URL is the only credential, so anything that doesn't match gets the same plain 404 as an
 // unknown page.
-
-/** Shorter secrets are treated as not configured: the URL must be impossible to guess. */
-export const MIN_MCP_SECRET_LENGTH = 32;
-
-/** Constant-time comparison: both sides are hashed to equal-length digests first. */
-export function mcpSecretMatches(given: string, expected: string | undefined): boolean {
-  if (!expected || expected.length < MIN_MCP_SECRET_LENGTH) return false;
-  const digest = (value: string) => createHash('sha256').update(value).digest();
-  return timingSafeEqual(digest(given), digest(expected));
-}
 
 function notFoundResponse(): Response {
   return new Response('Not found', {
@@ -42,7 +31,7 @@ export function createMcpFunction(getDeps: () => ServerDeps): NetlifyHandler {
     try {
       const expected = getDeps().env.MCP_SECRET;
       if (!mcpSecretMatches(context.params?.secret ?? '', expected)) {
-        if (!expected || expected.length < MIN_MCP_SECRET_LENGTH) {
+        if (!isMcpConfigured(expected)) {
           log.warn('mcp_not_configured', { variables: ['MCP_SECRET'] });
         }
         return notFoundResponse();

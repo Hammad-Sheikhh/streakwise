@@ -5,7 +5,8 @@ import { seedIfEmpty } from '../../src/core/services/seed';
 import { addDeadline } from '../../src/core/services/deadlines';
 import { logSession } from '../../src/core/services/sessions';
 import { addNode, updateNode } from '../../src/core/services/structure';
-import { createMcpFunction, mcpSecretMatches } from '../functions/mcp';
+import { mcpSecretMatches } from '../functions/_lib/mcpSecret';
+import { createMcpFunction } from '../functions/mcp';
 import { testDeps } from './fakes';
 
 // MCP-1–9 against the in-memory repository, through the real HTTP handler and SDK. Requests use

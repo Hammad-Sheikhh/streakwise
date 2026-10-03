@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
 import type {
+  ClaudeConnection,
   Dashboard,
   Deadline,
   HistoryPage,
@@ -86,6 +87,11 @@ export const settingsSchema = z.object({
   lastExportAt: timestamp.nullable(),
   lastMcpCallAt: timestamp.nullable(),
 }) satisfies z.ZodType<Settings>;
+
+export const claudeConnectionSchema = z.object({
+  url: z.url().nullable(),
+  lastMcpCallAt: timestamp.nullable(),
+}) satisfies z.ZodType<ClaudeConnection>;
 
 export const apiErrorSchema = z.object({
   error: z.object({ code: z.string(), message: z.string() }),

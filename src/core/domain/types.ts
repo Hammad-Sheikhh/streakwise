@@ -124,6 +124,12 @@ export interface Settings {
   lastMcpCallAt: string | null;
 }
 
+/** SET-4: how to connect Claude. `url` is null when the server has no MCP secret configured. */
+export interface ClaudeConnection {
+  url: string | null;
+  lastMcpCallAt: string | null;
+}
+
 /** Returns the current time. Injected everywhere so tests are deterministic. */
 export type Clock = () => Date;
 

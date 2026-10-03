@@ -1,4 +1,5 @@
 import type {
+  ClaudeConnection,
   Dashboard,
   Deadline,
   HistoryPage,
@@ -54,6 +55,8 @@ export interface DataSource {
 
   getSettings(): Promise<Settings>;
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;
+  /** SET-4. Not available in demo mode (DEMO-5). */
+  getClaudeConnection(): Promise<ClaudeConnection>;
 }
 
 /** A failed request, with the API's error code and a message that is safe to show. */
