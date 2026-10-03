@@ -51,6 +51,21 @@ describe('ApiDataSource', () => {
     await expect(new ApiDataSource(fetchFn).listTree()).rejects.toMatchObject({ code: 'network' });
   });
 
+  it('sends edits with the right method, path, and query string', async () => {
+    const fetchFn = respond(200, { ok: true });
+    const api = new ApiDataSource(fetchFn);
+    await api.deleteSession('abc');
+    await api.moveNode('n1', { direction: 'up' });
+    expect(fetchFn.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+      ['/api/sessions/abc', 'DELETE'],
+      ['/api/nodes/n1/move', 'POST'],
+    ]);
+
+    const history = respond(200, { days: [], nextTo: null });
+    await new ApiDataSource(history).getHistory({ to: '2026-10-03', source: 'claude' });
+    expect(history.mock.calls[0]?.[0]).toBe('/api/sessions?to=2026-10-03&source=claude');
+  });
+
   it('validates the tree it receives', async () => {
     expect(await new ApiDataSource(respond(200, { nodes: [node] })).listTree()).toEqual([node]);
     await expect(

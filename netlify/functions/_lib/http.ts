@@ -63,6 +63,15 @@ export function toErrorResponse(error: unknown, route: string): Response {
   return errorJson(500, 'internal', 'Something went wrong. Please try again.');
 }
 
+function validate<T>(schema: z.ZodType<T>, value: unknown): T {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    const message = result.error.issues[0]?.message ?? 'Invalid input.';
+    throw new HttpError(400, 'validation', message);
+  }
+  return result.data;
+}
+
 /** Parses a JSON body with a Zod schema; any problem becomes a 400 with a readable message. */
 export async function readJson<T>(request: Request, schema: z.ZodType<T>): Promise<T> {
   let body: unknown;
@@ -71,10 +80,10 @@ export async function readJson<T>(request: Request, schema: z.ZodType<T>): Promi
   } catch {
     throw new HttpError(400, 'invalid_json', 'The request body must be valid JSON.');
   }
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    const message = result.error.issues[0]?.message ?? 'Invalid input.';
-    throw new HttpError(400, 'validation', message);
-  }
-  return result.data;
+  return validate(schema, body);
+}
+
+/** Parses the query string (each parameter once) with a Zod schema. */
+export function readQuery<T>(request: Request, schema: z.ZodType<T>): T {
+  return validate(schema, Object.fromEntries(new URL(request.url).searchParams));
 }

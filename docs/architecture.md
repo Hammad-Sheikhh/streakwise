@@ -31,13 +31,42 @@ flowchart LR
 | `supabase/migrations` | Numbered SQL migrations                                                             |
 | `e2e`                 | Playwright tests (run against `/demo`)                                              |
 
+## Validation
+
+Every service validates its own input with the Zod schemas in `src/core/schemas/inputs.ts`
+(`parseInput`), so the API, MCP, and demo mode enforce the same rules. API handlers also validate
+the request body first, which turns bad JSON into a 400 before any service runs. Repositories are
+the last line of defence: the database (and `InMemoryRepository`, which mirrors it) rejects
+duplicate sibling names, a fourth level, and deleting nodes that have history.
+
+## API endpoints
+
+All require a session cookie except `auth/login`, `health`, and `keepalive`.
+
+| Endpoint              | Methods       | Purpose                                         |
+| --------------------- | ------------- | ----------------------------------------------- |
+| `/api/auth/login`     | POST          | Passcode login (rate-limited), first-login seed |
+| `/api/auth/logout`    | POST          | Clear the session cookie                        |
+| `/api/auth/me`        | GET           | Is this browser logged in?                      |
+| `/api/nodes`          | GET, POST     | The structure tree; add a node                  |
+| `/api/nodes/:id`      | PATCH, DELETE | Rename, recolor, archive/restore; delete        |
+| `/api/nodes/:id/move` | POST          | Move up/down among siblings                     |
+| `/api/sessions`       | GET, POST     | A 30-day History page (filters); log a session  |
+| `/api/sessions/:id`   | PATCH, DELETE | Edit or delete a session                        |
+| `/api/recent-nodes`   | GET           | The 5 most recently used nodes                  |
+| `/api/settings`       | GET, PATCH    | Student name, neglect threshold                 |
+| `/api/health`         | GET           | Liveness, no database                           |
+| `/api/keepalive`      | GET           | One trivial database read                       |
+
 ## Environments
 
-| Branch           | Netlify         | Database      |
-| ---------------- | --------------- | ------------- |
-| Feature branches | Deploy previews | Supabase dev  |
-| `develop`        | Branch deploy   | Supabase dev  |
-| `main`           | Production      | Supabase prod |
+One Supabase project serves every environment (SPEC D15).
+
+| Branch           | Netlify         | Database                |
+| ---------------- | --------------- | ----------------------- |
+| Feature branches | Deploy previews | Supabase (shared, real) |
+| `develop`        | Branch deploy   | Supabase (shared, real) |
+| `main`           | Production      | Supabase (shared, real) |
 
 ## Decisions
 
