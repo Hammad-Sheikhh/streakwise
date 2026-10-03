@@ -1,6 +1,16 @@
 import { conflict, notFound } from '../domain/errors';
-import type { Clock, Session, Settings, Task, TreeNode } from '../domain/types';
 import type {
+  Clock,
+  Deadline,
+  Session,
+  SessionFact,
+  Settings,
+  Task,
+  TreeNode,
+} from '../domain/types';
+import type {
+  DeadlinePatch,
+  NewDeadline,
   NewNode,
   NewSession,
   NodePatch,
@@ -21,6 +31,7 @@ export class InMemoryRepository implements Repository {
   private nodes: TreeNode[] = [];
   private sessions: Session[] = [];
   private tasks: Task[] = [];
+  private deadlines: Deadline[] = [];
   private settings: Settings = {
     studentName: '',
     neglectDays: 3,
@@ -94,7 +105,9 @@ export class InMemoryRepository implements Repository {
       }
     }
     const inUse =
-      this.sessions.some((s) => ids.has(s.nodeId)) || this.tasks.some((t) => ids.has(t.nodeId));
+      this.sessions.some((s) => ids.has(s.nodeId)) ||
+      this.tasks.some((t) => ids.has(t.nodeId)) ||
+      this.deadlines.some((d) => ids.has(d.nodeId));
     if (inUse) throw conflict('node_in_use');
     this.nodes = this.nodes.filter((n) => !ids.has(n.id));
   }
@@ -152,6 +165,37 @@ export class InMemoryRepository implements Repository {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, limit)
       .map((s) => ({ ...s }));
+  }
+
+  async listSessionFacts(): Promise<SessionFact[]> {
+    return this.sessions.map(({ nodeId, studiedOn, minutes }) => ({ nodeId, studiedOn, minutes }));
+  }
+
+  async listDeadlines(): Promise<Deadline[]> {
+    return [...this.deadlines]
+      .sort((a, b) => a.dueOn.localeCompare(b.dueOn) || a.createdAt.localeCompare(b.createdAt))
+      .map((d) => ({ ...d }));
+  }
+
+  async insertDeadline(input: NewDeadline): Promise<Deadline> {
+    this.findNode(input.nodeId);
+    const deadline: Deadline = { ...input, createdAt: this.stamp() };
+    this.deadlines.push(deadline);
+    return { ...deadline };
+  }
+
+  async updateDeadline(id: string, patch: DeadlinePatch): Promise<Deadline> {
+    const deadline = this.deadlines.find((d) => d.id === id);
+    if (!deadline) throw notFound('deadline_not_found');
+    if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
+    Object.assign(deadline, patch);
+    return { ...deadline };
+  }
+
+  async deleteDeadline(id: string): Promise<void> {
+    const index = this.deadlines.findIndex((d) => d.id === id);
+    if (index === -1) throw notFound('deadline_not_found');
+    this.deadlines.splice(index, 1);
   }
 
   async getSettings(): Promise<Settings> {

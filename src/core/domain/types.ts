@@ -53,6 +53,32 @@ export interface Session {
   updatedAt: string;
 }
 
+/** The parts of a session the dashboard calculations need. */
+export type SessionFact = Pick<Session, 'nodeId' | 'studiedOn' | 'minutes'>;
+
+export interface Deadline {
+  id: string;
+  nodeId: string;
+  title: string;
+  dueOn: string;
+  createdAt: string;
+}
+
+/** Everything Home shows, from one request (DASH-1). Names and colors come from the tree. */
+export interface Dashboard {
+  today: string;
+  todayMinutes: number;
+  streak: { current: number; longest: number };
+  /** Visible tracks in display order, with this week's minutes (TGT-2). */
+  targets: { trackId: string; minutes: number; targetMinutes: number | null }[];
+  /** NEG-1, most neglected first. */
+  neglect: { nodeId: string; days: number; neverLogged: boolean }[];
+  /** DEAD-2/3: the next 3 upcoming deadlines. */
+  deadlines: (Deadline & { daysLeft: number; syllabusLeftPercent: number | null })[];
+  /** HEAT-1: days with sessions in the last 12 months. */
+  heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
+}
+
 /** One day of History (HIST-1): its sessions, newest first, and their total. */
 export interface HistoryDay {
   date: string;
