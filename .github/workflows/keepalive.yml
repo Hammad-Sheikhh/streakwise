@@ -1,0 +1,25 @@
+name: Keep Supabase awake
+
+# OPS-2: Supabase pauses free projects after a week without activity. Every 3 days this calls
+# /api/keepalive on the live site, which does one trivial database read.
+on:
+  schedule:
+    - cron: '17 3 */3 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Skip until the live URL is configured
+        if: vars.PROD_URL == ''
+        run: echo "PROD_URL repository variable is not set yet; skipping."
+
+      - name: Call /api/keepalive
+        if: vars.PROD_URL != ''
+        env:
+          PROD_URL: ${{ vars.PROD_URL }}
+        run: curl --fail --silent --show-error --retry 3 --retry-delay 20 --max-time 30 "${PROD_URL%/}/api/keepalive"

@@ -5,10 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
+import { securityHeaders } from './build/security-headers.ts';
+
 const srcDir = fileURLToPath(new URL('./src', import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), securityHeaders()],
   resolve: {
     alias: {
       '@': path.resolve(srcDir),
@@ -17,7 +19,14 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'netlify/**/*.test.ts'],
+    // Screen tests render whole pages (Home has a ~370-cell heatmap); allow for busy CI machines.
+    testTimeout: 15_000,
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'netlify/**/*.test.ts',
+      'build/**/*.test.ts',
+      'supabase/**/*.test.ts',
+    ],
     css: false,
     coverage: {
       provider: 'v8',

@@ -501,8 +501,8 @@ swatches. No navigation or buttons. Sections avoid page breaks inside them. A we
   - The browser never talks to Supabase. Secrets exist only in environment variables.
   - Nothing secret ends up in the frontend bundle or build output. Netlify's secret scanning may fail the build if it does.
   - Zod validates every input on the server.
-  - `netlify.toml` sets security headers (a CSP that works with the chosen libraries, X-Frame-Options,
-    Referrer-Policy, X-Content-Type-Options).
+  - Netlify builds set security headers (a CSP that works with the chosen libraries, X-Frame-Options,
+    Referrer-Policy, X-Content-Type-Options), via `build/security-headers.ts` → `dist/_headers`.
   - RLS is enabled, logins are rate-limited (AUTH-5), and the MCP secret is compared in constant time.
 - **Privacy:**
   - Notes are off by default in reports, and shared links expose only their snapshot.
