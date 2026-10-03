@@ -1,20 +1,20 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (M2 merged; M3 PR #9 waiting for the owner to merge)_
+_Last updated: 2026-10-03 by Claude Code (M2 and M3 merged into develop)_
 
 ## Milestones
 
-| #             | Status                         | PR  | Notes / deferred items                                                                                               |
-| ------------- | ------------------------------ | --- | -------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done                        | #1  |                                                                                                                      |
-| M1 Foundation | ✅ done                        | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
-| M2 Logging    | ✅ done                        | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
-| M3 Dashboard  | 🔄 owner-tested, merge pending | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
-| M4 MCP        | ⏳                             |     |                                                                                                                      |
-| M5 Progress   | ⏳                             |     |                                                                                                                      |
-| M6 Reports    | ⏳                             |     |                                                                                                                      |
-| M7 Demo + PWA | ⏳                             |     |                                                                                                                      |
-| M8 Polish     | ⏳                             |     |                                                                                                                      |
+| #             | Status  | PR  | Notes / deferred items                                                                                               |
+| ------------- | ------- | --- | -------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done | #1  |                                                                                                                      |
+| M1 Foundation | ✅ done | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
+| M2 Logging    | ✅ done | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
+| M3 Dashboard  | ✅ done | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
+| M4 MCP        | ⏳      |     |                                                                                                                      |
+| M5 Progress   | ⏳      |     |                                                                                                                      |
+| M6 Reports    | ⏳      |     |                                                                                                                      |
+| M7 Demo + PWA | ⏳      |     |                                                                                                                      |
+| M8 Polish     | ⏳      |     |                                                                                                                      |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -52,7 +52,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Try M2 on the deploy preview (owner logged, checked, and deleted a real test session)
 - [x] Try M3 (Home dashboard, targets, deadlines) on its preview (demo steps all worked)
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
-- [ ] Merge #9: `gh pr merge 9 --squash --delete-branch` (auto mode blocked Claude Code from doing it)
+- [x] Merge #9 (merged by Claude Code at the owner's request)
 - [ ] Say yes/no to release R1 (first live version)
 - [ ] Claude custom connector added (after R2)
 
@@ -80,9 +80,8 @@ by time studied (not by number of sessions) confirmed by the owner.
 
 **Next:**
 
-1. Owner merges #9 (M3) into `develop` (command in "Owner's manual steps").
-2. Ask the owner about release **R1** (first live version, ~15 credits), now including M2 + M3.
-3. Then M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
+1. Ask the owner about release **R1** (first live version, ~15 credits), now including M2 + M3.
+2. Then M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
    Check the current MCP TypeScript SDK and Netlify docs first (SPEC MCP-2).
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
