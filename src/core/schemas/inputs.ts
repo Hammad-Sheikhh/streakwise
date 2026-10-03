@@ -93,6 +93,28 @@ export const historyQuerySchema = z.object({
 });
 export type HistoryQuery = z.infer<typeof historyQuerySchema>;
 
+/** MCP-4: lists are capped (default 50, max 200). */
+export const DEFAULT_LIST_LIMIT = 50;
+export const MAX_LIST_LIMIT = 200;
+export const listLimitSchema = z
+  .number()
+  .int()
+  .min(1, 'The limit must be at least 1.')
+  .max(MAX_LIST_LIMIT, `The limit can be at most ${MAX_LIST_LIMIT}.`)
+  .default(DEFAULT_LIST_LIMIT);
+
+export const listSessionsQuerySchema = z
+  .object({
+    /** Includes the node's descendants. */
+    nodeId: z.uuid().optional(),
+    from: localDateSchema.optional(),
+    to: localDateSchema.optional(),
+    source: z.enum(SESSION_SOURCES).optional(),
+    limit: listLimitSchema,
+  })
+  .refine((q) => !q.from || !q.to || q.from <= q.to, { message: '"from" must not be after "to".' });
+export type ListSessionsQuery = z.input<typeof listSessionsQuerySchema>;
+
 const deadlineTitle = z
   .string()
   .trim()
