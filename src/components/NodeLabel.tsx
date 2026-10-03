@@ -9,10 +9,13 @@ export function NodeLabel({
   nodes,
   nodeId,
   className,
+  truncate = false,
 }: {
   nodes: readonly TreeNode[];
   nodeId: string;
   className?: string;
+  /** Cut long paths with "…" (for one-line chips); otherwise they wrap. */
+  truncate?: boolean;
 }) {
   const track = trackOf(nodes, nodeId);
   const path = nodePath(nodes, nodeId);
@@ -24,7 +27,9 @@ export function NodeLabel({
           className={cn('size-2.5 shrink-0 rounded-full', trackSwatchClass[track.color])}
         />
       )}
-      <span className="truncate">{path.length > 0 ? path.join(' › ') : 'Deleted item'}</span>
+      <span className={truncate ? 'truncate' : 'break-words'}>
+        {path.length > 0 ? path.join(' › ') : 'Deleted item'}
+      </span>
     </span>
   );
 }

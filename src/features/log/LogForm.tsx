@@ -196,7 +196,7 @@ export function LogForm({
                 className="h-11 max-w-full"
                 onClick={() => selectNode(id)}
               >
-                <NodeLabel nodes={nodes} nodeId={id} />
+                <NodeLabel nodes={nodes} nodeId={id} truncate />
               </Button>
             ))}
           </div>
