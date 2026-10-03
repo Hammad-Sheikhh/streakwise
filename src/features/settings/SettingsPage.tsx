@@ -15,6 +15,12 @@ import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 
+const SECTIONS = [
+  { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
+  { path: 'targets', title: 'Weekly targets', description: 'Hours per week for each track' },
+  { path: 'deadlines', title: 'Deadlines', description: 'Exams and due dates' },
+];
+
 // SET-1: the Settings shell. Later milestones add targets, deadlines, shared links, export, and
 // the Claude connection as more sections.
 export function SettingsPage() {
@@ -51,18 +57,22 @@ export function SettingsPage() {
         <h2 id="sections-heading" className="text-lg font-medium">
           Your study plan
         </h2>
-        <Link
-          to={`${dataSource.basePath}/settings/structure`}
-          className="flex min-h-12 items-center justify-between rounded-lg border px-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <span>
-            <span className="block font-medium">Structure</span>
-            <span className="block text-sm text-muted-foreground">
-              Tracks, subtasks, and topics
-            </span>
-          </span>
-          <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
-        </Link>
+        <ul className="flex flex-col divide-y rounded-lg border">
+          {SECTIONS.map((section) => (
+            <li key={section.path}>
+              <Link
+                to={`${dataSource.basePath}/settings/${section.path}`}
+                className="flex min-h-14 items-center justify-between px-4 py-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <span>
+                  <span className="block font-medium">{section.title}</span>
+                  <span className="block text-sm text-muted-foreground">{section.description}</span>
+                </span>
+                <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section aria-labelledby="account-heading" className="flex flex-col items-start gap-4">

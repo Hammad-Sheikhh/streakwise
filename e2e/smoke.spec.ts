@@ -17,12 +17,15 @@ test('the demo logs a session without ever calling the API', async ({ page }) =>
   await page.getByRole('link', { name: 'Try the demo' }).click();
 
   await expect(page.getByRole('heading', { level: 1, name: 'Streakwise' })).toBeVisible();
-  await page.getByRole('link', { name: 'Log time on German Language' }).click();
-  await expect(page.getByRole('combobox', { name: 'Track', exact: true })).toHaveValue(/.+/);
+  await page.getByRole('link', { name: 'Log your first session' }).click();
+  await page
+    .getByRole('combobox', { name: 'Track', exact: true })
+    .selectOption({ label: 'German Language' });
   await page.getByRole('button', { name: '45m' }).click();
   await page.getByRole('button', { name: 'Save session' }).click();
 
   await expect(page.getByText('Logged 45m · German Language')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Today' })).toContainText('45m');
+  await expect(page.getByRole('region', { name: 'Streak' })).toContainText('1 day');
   expect(apiCalls).toEqual([]);
 });

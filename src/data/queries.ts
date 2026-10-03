@@ -19,6 +19,16 @@ export function useSettings() {
   return useQuery({ queryKey: [ds.mode, 'settings'], queryFn: () => ds.getSettings() });
 }
 
+export function useDashboard() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'dashboard'], queryFn: () => ds.getDashboard() });
+}
+
+export function useDeadlines() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'deadlines'], queryFn: () => ds.listDeadlines() });
+}
+
 export function useRecentNodeIds() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'recent'], queryFn: () => ds.recentNodeIds() });
@@ -66,9 +76,12 @@ export function useDataMutation<TInput, TResult>(
         action: { label: 'Retry', onClick: () => retry.mutate(input) },
       });
     },
+    // Home summarises everything, so every change refreshes it too.
     onSettled: () =>
       Promise.all(
-        refresh.map((key) => queryClient.invalidateQueries({ queryKey: [ds.mode, key] })),
+        [...new Set([...refresh, 'dashboard'])].map((key) =>
+          queryClient.invalidateQueries({ queryKey: [ds.mode, key] }),
+        ),
       ),
   });
   retry.mutate = mutation.mutate;
@@ -76,4 +89,4 @@ export function useDataMutation<TInput, TResult>(
 }
 
 /** Everything a session change can affect: lists, recent shortcuts, and topic statuses. */
-export const SESSION_KEYS = ['sessions', 'recent', 'tree'];
+export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard'];
