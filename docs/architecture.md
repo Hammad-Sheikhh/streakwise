@@ -39,6 +39,14 @@ the request body first, which turns bad JSON into a 400 before any service runs.
 the last line of defence: the database (and `InMemoryRepository`, which mirrors it) rejects
 duplicate sibling names, a fourth level, and deleting nodes that have history.
 
+## Dashboard
+
+`getDashboard` reads the tree, settings, deadlines, and a light list of every session
+(`node, date, minutes`) once, then computes everything with the pure functions in `src/core/logic`
+(roll-ups, streaks, neglect, syllabus %, heatmap). Supabase returns at most 1000 rows per request,
+so `SupabaseRepository.listSessionFacts` reads in pages. For one person's history this stays small;
+if it ever grows too large, a Postgres view or RPC can pre-aggregate it.
+
 ## API endpoints
 
 All require a session cookie except `auth/login`, `health`, and `keepalive`.
@@ -54,6 +62,9 @@ All require a session cookie except `auth/login`, `health`, and `keepalive`.
 | `/api/sessions`       | GET, POST     | A 30-day History page (filters); log a session  |
 | `/api/sessions/:id`   | PATCH, DELETE | Edit or delete a session                        |
 | `/api/recent-nodes`   | GET           | The 5 most recently used nodes                  |
+| `/api/dashboard`      | GET           | Everything Home shows, in one request (DASH-1)  |
+| `/api/deadlines`      | GET, POST     | List and add deadlines                          |
+| `/api/deadlines/:id`  | PATCH, DELETE | Edit or delete a deadline                       |
 | `/api/settings`       | GET, PATCH    | Student name, neglect threshold                 |
 | `/api/health`         | GET           | Liveness, no database                           |
 | `/api/keepalive`      | GET           | One trivial database read                       |

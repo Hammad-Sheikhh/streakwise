@@ -235,10 +235,12 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
                       {formatDaysLeft(deadline.daysLeft)}
                     </span>
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDay(deadline.dueOn)} ·{' '}
-                    <NodeLabel nodes={nodes} nodeId={deadline.nodeId} />
-                  </p>
+                  <p className="text-sm text-muted-foreground">{formatDay(deadline.dueOn)}</p>
+                  <NodeLabel
+                    nodes={nodes}
+                    nodeId={deadline.nodeId}
+                    className="text-sm text-muted-foreground"
+                  />
                   {deadline.syllabusLeftPercent !== null && (
                     <p className="text-sm">{deadline.syllabusLeftPercent}% of syllabus left</p>
                   )}
