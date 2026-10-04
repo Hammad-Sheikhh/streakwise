@@ -2,25 +2,38 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import { notFound } from '../../../src/core/domain/errors';
-import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../../../src/core/domain/types';
+import {
+  SCORE_KINDS,
+  SESSION_SOURCES,
+  TOPIC_STATUSES,
+  TRACK_COLORS,
+} from '../../../src/core/domain/types';
 import type {
   Deadline,
+  Score,
   Session,
   SessionFact,
   Settings,
+  Task,
+  TaskCompletion,
   TreeNode,
 } from '../../../src/core/domain/types';
 import type {
   DeadlinePatch,
+  NewCompletion,
   NewDeadline,
   NewNode,
+  NewScore,
   NewSession,
+  NewTask,
   NodePatch,
   Repository,
+  ScorePatch,
   SeedData,
   SessionFilter,
   SessionPatch,
   SettingsPatch,
+  TaskPatch,
 } from '../../../src/core/repo/Repository';
 import { throwDbError } from './dbErrors';
 
@@ -119,6 +132,109 @@ const deadlineRow = z
     dueOn: row.due_on,
     createdAt: row.created_at,
   }));
+
+// Postgres `numeric` columns may arrive as strings, depending on PostgREST settings.
+const numeric = z.coerce.number();
+
+const taskRow = z
+  .object({
+    id: z.string(),
+    node_id: z.string(),
+    parent_task_id: z.string().nullable(),
+    title: z.string(),
+    description: z.string().nullable(),
+    due_on: z.string().nullable(),
+    recurrence: z.enum(['none', 'weekly']),
+    is_scored: z.boolean(),
+    default_max_score: numeric.nullable(),
+    sort_order: z.number(),
+    archived_at: timestamp.nullable(),
+    created_at: timestamp,
+    updated_at: timestamp,
+  })
+  .transform((row): Task => ({
+    id: row.id,
+    nodeId: row.node_id,
+    parentTaskId: row.parent_task_id,
+    title: row.title,
+    description: row.description,
+    dueOn: row.due_on,
+    recurrence: row.recurrence,
+    isScored: row.is_scored,
+    defaultMaxScore: row.default_max_score,
+    sortOrder: row.sort_order,
+    archivedAt: row.archived_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+
+const completionRow = z
+  .object({
+    id: z.string(),
+    task_id: z.string(),
+    period_start: z.string().nullable(),
+    completed_at: timestamp,
+    note: z.string().nullable(),
+  })
+  .transform((row): TaskCompletion => ({
+    id: row.id,
+    taskId: row.task_id,
+    periodStart: row.period_start,
+    completedAt: row.completed_at,
+    note: row.note,
+  }));
+
+const scoreRow = z
+  .object({
+    id: z.string(),
+    node_id: z.string(),
+    task_completion_id: z.string().nullable(),
+    kind: z.enum(SCORE_KINDS),
+    title: z.string(),
+    taken_on: z.string(),
+    score: numeric,
+    max_score: numeric,
+    note: z.string().nullable(),
+    created_at: timestamp,
+  })
+  .transform((row): Score => ({
+    id: row.id,
+    nodeId: row.node_id,
+    taskCompletionId: row.task_completion_id,
+    kind: row.kind,
+    title: row.title,
+    takenOn: row.taken_on,
+    score: row.score,
+    maxScore: row.max_score,
+    note: row.note,
+    createdAt: row.created_at,
+  }));
+
+function taskColumns(patch: TaskPatch) {
+  return {
+    node_id: patch.nodeId,
+    title: patch.title,
+    description: patch.description,
+    due_on: patch.dueOn,
+    recurrence: patch.recurrence,
+    is_scored: patch.isScored,
+    default_max_score: patch.defaultMaxScore,
+    sort_order: patch.sortOrder,
+    archived_at: patch.archivedAt,
+  };
+}
+
+function scoreColumns(patch: ScorePatch) {
+  return {
+    node_id: patch.nodeId,
+    kind: patch.kind,
+    title: patch.title,
+    taken_on: patch.takenOn,
+    score: patch.score,
+    max_score: patch.maxScore,
+    note: patch.note,
+  };
+}
 
 function nodeColumns(patch: NodePatch) {
   return {
@@ -315,6 +431,128 @@ export class SupabaseRepository implements Repository {
     const { data, error } = await this.db.from('deadlines').delete().eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('deadline_not_found');
+  }
+
+  /** Reads every row of a table in pages (PostgREST returns at most 1000 per request). */
+  private async readAll(table: string): Promise<unknown[]> {
+    const pageSize = 1000;
+    const rows: unknown[] = [];
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await this.db
+        .from(table)
+        .select('*')
+        .order('id')
+        .range(offset, offset + pageSize - 1);
+      if (error) throwDbError(error);
+      rows.push(...data);
+      if (data.length < pageSize) return rows;
+    }
+  }
+
+  async listTasks(): Promise<Task[]> {
+    return z.array(taskRow).parse(await this.readAll('tasks'));
+  }
+
+  async insertTask(task: NewTask): Promise<Task> {
+    const { data, error } = await this.db
+      .from('tasks')
+      .insert({
+        id: task.id,
+        parent_task_id: task.parentTaskId,
+        ...taskColumns(task),
+      })
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return taskRow.parse(data);
+  }
+
+  async updateTask(id: string, patch: TaskPatch): Promise<Task> {
+    const { data, error } = await this.db
+      .from('tasks')
+      .update(taskColumns(patch))
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return taskRow.parse(data);
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    // One statement: sub-tasks and completions cascade, linked scores are set null (SPEC §B7).
+    const { data, error } = await this.db.from('tasks').delete().eq('id', id).select('id');
+    if (error) throwDbError(error);
+    if (data.length === 0) throw notFound('task_not_found');
+  }
+
+  async listTaskCompletions(): Promise<TaskCompletion[]> {
+    return z.array(completionRow).parse(await this.readAll('task_completions'));
+  }
+
+  async completeTask(input: NewCompletion): Promise<TaskCompletion> {
+    const score = input.score && {
+      node_id: input.score.nodeId,
+      kind: input.score.kind,
+      title: input.score.title,
+      taken_on: input.score.takenOn,
+      score: input.score.score,
+      max_score: input.score.maxScore,
+      note: input.score.note,
+    };
+    const { data: completionId, error } = await this.db.rpc('complete_task', {
+      p_task_id: input.taskId,
+      p_period_start: input.periodStart,
+      p_completed_at: input.completedAt,
+      p_note: input.note,
+      p_score: score,
+    });
+    if (error) throwDbError(error);
+    const { data, error: readError } = await this.db
+      .from('task_completions')
+      .select('*')
+      .eq('id', z.string().parse(completionId))
+      .single();
+    if (readError) throwDbError(readError);
+    return completionRow.parse(data);
+  }
+
+  async uncompleteTask(completionId: string): Promise<void> {
+    const { error } = await this.db.rpc('uncomplete_task', { p_completion_id: completionId });
+    if (error) throwDbError(error);
+  }
+
+  async listScores(): Promise<Score[]> {
+    const scores = z.array(scoreRow).parse(await this.readAll('scores'));
+    return scores.sort(
+      (a, b) => b.takenOn.localeCompare(a.takenOn) || b.createdAt.localeCompare(a.createdAt),
+    );
+  }
+
+  async insertScore(score: NewScore): Promise<Score> {
+    const { data, error } = await this.db
+      .from('scores')
+      .insert({ id: score.id, ...scoreColumns(score) })
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return scoreRow.parse(data);
+  }
+
+  async updateScore(id: string, patch: ScorePatch): Promise<Score> {
+    const { data, error } = await this.db
+      .from('scores')
+      .update(scoreColumns(patch))
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return scoreRow.parse(data);
+  }
+
+  async deleteScore(id: string): Promise<void> {
+    const { data, error } = await this.db.from('scores').delete().eq('id', id).select('id');
+    if (error) throwDbError(error);
+    if (data.length === 0) throw notFound('score_not_found');
   }
 
   async getSettings(): Promise<Settings> {

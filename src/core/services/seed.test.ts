@@ -11,7 +11,7 @@ function sequentialIds() {
 }
 
 describe('seedIfEmpty', () => {
-  it('creates the starting tree and the weekly scored task (SPEC §B4)', async () => {
+  it('creates the starting tree and the weekly scored task (SPEC Â§B4)', async () => {
     const repo = new InMemoryRepository(clock);
     expect(await seedIfEmpty(repo, sequentialIds())).toBe(true);
 
@@ -31,7 +31,7 @@ describe('seedIfEmpty', () => {
       'violet',
     ]);
 
-    const [task] = repo.listTasksForTesting();
+    const [task] = await repo.listTasks();
     expect(task).toMatchObject({
       title: 'Weekly recall / revision',
       nodeId: tree[0]?.id,

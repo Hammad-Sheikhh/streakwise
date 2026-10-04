@@ -2,23 +2,30 @@ import { conflict, notFound } from '../domain/errors';
 import type {
   Clock,
   Deadline,
+  Score,
   Session,
   SessionFact,
   Settings,
   Task,
+  TaskCompletion,
   TreeNode,
 } from '../domain/types';
 import type {
   DeadlinePatch,
+  NewCompletion,
   NewDeadline,
   NewNode,
+  NewScore,
   NewSession,
+  NewTask,
   NodePatch,
   Repository,
+  ScorePatch,
   SeedData,
   SessionFilter,
   SessionPatch,
   SettingsPatch,
+  TaskPatch,
 } from './Repository';
 
 // Repository for demo mode (in the browser) and service tests. It mirrors the database rules that
@@ -31,6 +38,8 @@ export class InMemoryRepository implements Repository {
   private nodes: TreeNode[] = [];
   private sessions: Session[] = [];
   private tasks: Task[] = [];
+  private completions: TaskCompletion[] = [];
+  private scores: Score[] = [];
   private deadlines: Deadline[] = [];
   private settings: Settings = {
     studentName: '',
@@ -42,7 +51,14 @@ export class InMemoryRepository implements Repository {
   // is frozen in tests.
   private lastStamp = 0;
 
+  // Completion ids are made by the store, like the database's default.
+  private completionCount = 0;
+
   constructor(private readonly clock: Clock) {}
+
+  private newCompletionId(): string {
+    return `00000000-0000-4000-a000-${String(++this.completionCount).padStart(12, '0')}`;
+  }
 
   private stamp(): string {
     this.lastStamp = Math.max(this.clock().getTime(), this.lastStamp + 1);
@@ -107,6 +123,7 @@ export class InMemoryRepository implements Repository {
     const inUse =
       this.sessions.some((s) => ids.has(s.nodeId)) ||
       this.tasks.some((t) => ids.has(t.nodeId)) ||
+      this.scores.some((s) => ids.has(s.nodeId)) ||
       this.deadlines.some((d) => ids.has(d.nodeId));
     if (inUse) throw conflict('node_in_use');
     this.nodes = this.nodes.filter((n) => !ids.has(n.id));
@@ -232,8 +249,117 @@ export class InMemoryRepository implements Repository {
     return true;
   }
 
-  /** For tests and demo data: the stored tasks. Replaced by a real query in M5. */
-  listTasksForTesting(): Task[] {
+  private findTask(id: string): Task {
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) throw notFound('task_not_found');
+    return task;
+  }
+
+  async listTasks(): Promise<Task[]> {
     return this.tasks.map((task) => ({ ...task }));
+  }
+
+  async insertTask(input: NewTask): Promise<Task> {
+    this.findNode(input.nodeId);
+    if (input.parentTaskId !== null) this.findTask(input.parentTaskId);
+    const now = this.stamp();
+    const task: Task = { ...input, archivedAt: null, createdAt: now, updatedAt: now };
+    this.tasks.push(task);
+    return { ...task };
+  }
+
+  async updateTask(id: string, patch: TaskPatch): Promise<Task> {
+    const task = this.findTask(id);
+    if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
+    Object.assign(task, patch, { updatedAt: this.stamp() });
+    return { ...task };
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    this.findTask(id);
+    const ids = new Set([id]);
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const t of this.tasks) {
+        if (t.parentTaskId !== null && ids.has(t.parentTaskId) && !ids.has(t.id)) {
+          ids.add(t.id);
+          grew = true;
+        }
+      }
+    }
+    const removed = new Set(this.completions.filter((c) => ids.has(c.taskId)).map((c) => c.id));
+    // Like the foreign keys: completions cascade, linked scores are kept but unlinked.
+    for (const score of this.scores) {
+      if (score.taskCompletionId !== null && removed.has(score.taskCompletionId)) {
+        score.taskCompletionId = null;
+      }
+    }
+    this.completions = this.completions.filter((c) => !removed.has(c.id));
+    this.tasks = this.tasks.filter((t) => !ids.has(t.id));
+  }
+
+  async listTaskCompletions(): Promise<TaskCompletion[]> {
+    return this.completions.map((c) => ({ ...c }));
+  }
+
+  async completeTask(input: NewCompletion): Promise<TaskCompletion> {
+    this.findTask(input.taskId);
+    if (
+      this.completions.some((c) => c.taskId === input.taskId && c.periodStart === input.periodStart)
+    ) {
+      throw conflict('already_completed');
+    }
+    if (input.score) this.findNode(input.score.nodeId);
+    const completion: TaskCompletion = {
+      id: this.newCompletionId(),
+      taskId: input.taskId,
+      periodStart: input.periodStart,
+      completedAt: input.completedAt,
+      note: input.note,
+    };
+    this.completions.push(completion);
+    if (input.score) {
+      this.scores.push({
+        ...input.score,
+        taskCompletionId: completion.id,
+        createdAt: this.stamp(),
+      });
+    }
+    return { ...completion };
+  }
+
+  async uncompleteTask(completionId: string): Promise<void> {
+    if (!this.completions.some((c) => c.id === completionId)) {
+      throw notFound('completion_not_found');
+    }
+    this.scores = this.scores.filter((s) => s.taskCompletionId !== completionId);
+    this.completions = this.completions.filter((c) => c.id !== completionId);
+  }
+
+  async listScores(): Promise<Score[]> {
+    return [...this.scores]
+      .sort((a, b) => b.takenOn.localeCompare(a.takenOn) || b.createdAt.localeCompare(a.createdAt))
+      .map((s) => ({ ...s }));
+  }
+
+  async insertScore(input: NewScore): Promise<Score> {
+    this.findNode(input.nodeId);
+    const score: Score = { ...input, taskCompletionId: null, createdAt: this.stamp() };
+    this.scores.push(score);
+    return { ...score };
+  }
+
+  async updateScore(id: string, patch: ScorePatch): Promise<Score> {
+    const score = this.scores.find((s) => s.id === id);
+    if (!score) throw notFound('score_not_found');
+    if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
+    Object.assign(score, patch);
+    return { ...score };
+  }
+
+  async deleteScore(id: string): Promise<void> {
+    const index = this.scores.findIndex((s) => s.id === id);
+    if (index === -1) throw notFound('score_not_found');
+    this.scores.splice(index, 1);
   }
 }
