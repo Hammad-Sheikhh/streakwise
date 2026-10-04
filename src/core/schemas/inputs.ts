@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
+import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
 
 // Inputs from the UI, the API, and MCP. The server validates every request with these (SPEC §B8);
 // messages are written for the owner, because the UI shows them as they are.
@@ -157,3 +157,67 @@ export const updateSettingsInputSchema = z
     message: 'Nothing to change.',
   });
 export type UpdateSettingsInput = z.infer<typeof updateSettingsInputSchema>;
+
+const taskTitle = z
+  .string()
+  .trim()
+  .min(1, 'Enter a title.')
+  .max(120, 'Titles can be at most 120 characters.');
+
+// An empty description is stored as "no description".
+const taskDescription = z
+  .string()
+  .trim()
+  .max(2000, 'Descriptions can be at most 2000 characters.')
+  .nullable()
+  .transform((value) => (value ? value : null));
+
+const maxScore = z.number().positive('The maximum must be more than 0.').max(100_000);
+
+/** TASK-2: either a due date or weekly recurrence; scored tasks need a default maximum. */
+export const createTaskInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the task is for.'),
+    parentTaskId: z.uuid().nullable().default(null),
+    title: taskTitle,
+    description: taskDescription.optional().transform((value) => value ?? null),
+    dueOn: localDateSchema.nullable().default(null),
+    recurrence: z.enum(['none', 'weekly']).default('none'),
+    isScored: z.boolean().default(false),
+    defaultMaxScore: maxScore.nullable().default(null),
+  })
+  .refine((t) => t.recurrence === 'none' || t.dueOn === null, {
+    message: 'Weekly tasks don’t have a due date.',
+    path: ['dueOn'],
+  })
+  .refine((t) => !t.isScored || t.defaultMaxScore !== null, {
+    message: 'Enter the usual maximum score.',
+    path: ['defaultMaxScore'],
+  });
+export type CreateTaskInput = z.input<typeof createTaskInputSchema>;
+
+/** TASK-8. The combined result is checked again by the service (weekly vs due date, scored max). */
+export const updateTaskInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the task is for.').optional(),
+    title: taskTitle.optional(),
+    description: taskDescription.optional(),
+    dueOn: localDateSchema.nullable().optional(),
+    recurrence: z.enum(['none', 'weekly']).optional(),
+    isScored: z.boolean().optional(),
+    defaultMaxScore: maxScore.nullable().optional(),
+    archived: z.boolean().optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Nothing to change.',
+  });
+export type UpdateTaskInput = z.input<typeof updateTaskInputSchema>;
+
+/** TASK-6: scored tasks need a score; the maximum defaults to the task's default max. */
+export const completeTaskInputSchema = z.object({
+  score: z.number().min(0, 'A score can’t be negative.').optional(),
+  maxScore: maxScore.optional(),
+  kind: z.enum(SCORE_KINDS).default('other'),
+  note: note.optional().transform((value) => value ?? null),
+});
+export type CompleteTaskInput = z.input<typeof completeTaskInputSchema>;

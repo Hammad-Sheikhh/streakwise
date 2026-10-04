@@ -125,6 +125,20 @@ export interface TaskCompletion {
   note: string | null;
 }
 
+/** A task as the Tasks screen and MCP show it, with its state as of today. */
+export interface TaskItem {
+  task: Task;
+  /** The completion that makes it done today (this week's, for weekly tasks), or null. */
+  completion: TaskCompletion | null;
+  /** TASK-7. */
+  dueThisWeek: boolean;
+  overdue: boolean;
+  /** TASK-9: direct sub-tasks done vs total; null when it has none. */
+  subtasks: { done: number; total: number } | null;
+  /** TASK-5: Mondays of the weeks a weekly task was completed, newest first. */
+  completedWeeks: string[];
+}
+
 export const SCORE_KINDS = ['past_paper', 'quiz', 'mock_test', 'revision', 'other'] as const;
 export type ScoreKind = (typeof SCORE_KINDS)[number];
 
