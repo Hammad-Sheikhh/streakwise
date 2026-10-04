@@ -80,6 +80,8 @@ export interface SessionFilter {
   to?: string;
   nodeIds?: string[];
   source?: SessionSource;
+  /** Only the newest this many (listSessions only). */
+  limit?: number;
 }
 
 export type SettingsPatch = Partial<Pick<Settings, 'studentName' | 'neglectDays'>>;
@@ -112,6 +114,8 @@ export interface Repository {
 
   getSettings(): Promise<Settings>;
   updateSettings(patch: SettingsPatch): Promise<Settings>;
+  /** MCP-4: stamps the time of the latest Claude (MCP) tool call. */
+  recordMcpCall(at: string): Promise<void>;
 
   /** Atomically writes the seed if there are no nodes yet. Returns whether it seeded. */
   seedIfEmpty(seed: SeedData): Promise<boolean>;

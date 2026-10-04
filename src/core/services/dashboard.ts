@@ -1,12 +1,12 @@
 import type { Clock, Dashboard } from '../domain/types';
-import { daysBetween, localDate, weekStart } from '../logic/dates';
+import { localDate, weekStart } from '../logic/dates';
 import { heatmapRange } from '../logic/heatmap';
 import { neglectWarnings } from '../logic/neglect';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
 import { currentStreak, longestStreak } from '../logic/streak';
-import { syllabusPercent } from '../logic/syllabus';
 import { hiddenIds } from '../logic/tree';
 import type { Repository } from '../repo/Repository';
+import { selectUpcoming } from './deadlines';
 import { listTree } from './structure';
 
 /** Home shows the next few deadlines (DEAD-2). */
@@ -34,18 +34,6 @@ export async function getDashboard(repo: Repository, clock: Clock): Promise<Dash
       targetMinutes: track.weeklyTargetMinutes,
     }));
 
-  const upcoming = deadlines
-    .filter((d) => d.dueOn >= today && !hidden.has(d.nodeId))
-    .slice(0, DASHBOARD_DEADLINES)
-    .map((d) => {
-      const done = syllabusPercent(nodes, d.nodeId);
-      return {
-        ...d,
-        daysLeft: daysBetween(today, d.dueOn),
-        syllabusLeftPercent: done === null ? null : 100 - done,
-      };
-    });
-
   const { start, end } = heatmapRange(today);
   const heatmapDays = [...totals]
     .filter(([date]) => date >= start && date <= end)
@@ -58,7 +46,7 @@ export async function getDashboard(repo: Repository, clock: Clock): Promise<Dash
     streak: { current: currentStreak(activeDates, today), longest: longestStreak(activeDates) },
     targets,
     neglect: neglectWarnings(nodes, latestDateByNode(nodes, facts), today, settings.neglectDays),
-    deadlines: upcoming,
+    deadlines: selectUpcoming(nodes, deadlines, today).slice(0, DASHBOARD_DEADLINES),
     heatmap: { start, end, days: heatmapDays },
   };
 }

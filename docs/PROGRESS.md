@@ -1,28 +1,29 @@
 # Progress
 
-_Last updated: 2026-10-03 by Claude Code (M2 and M3 merged into develop)_
+_Last updated: 2026-10-04 by Claude Code (M4 built, PR #11 waiting for the owner)_
 
 ## Milestones
 
-| #             | Status  | PR  | Notes / deferred items                                                                                               |
-| ------------- | ------- | --- | -------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done | #1  |                                                                                                                      |
-| M1 Foundation | ✅ done | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
-| M2 Logging    | ✅ done | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
-| M3 Dashboard  | ✅ done | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
-| M4 MCP        | ⏳      |     |                                                                                                                      |
-| M5 Progress   | ⏳      |     |                                                                                                                      |
-| M6 Reports    | ⏳      |     |                                                                                                                      |
-| M7 Demo + PWA | ⏳      |     |                                                                                                                      |
-| M8 Polish     | ⏳      |     |                                                                                                                      |
+| #             | Status    | PR  | Notes / deferred items                                                                                               |
+| ------------- | --------- | --- | -------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                      |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
+| M5 Progress   | ⏳        |     |                                                                                                                      |
+| M6 Reports    | ⏳        |     |                                                                                                                      |
+| M7 Demo + PWA | ⏳        |     |                                                                                                                      |
+| M8 Polish     | ⏳        |     |                                                                                                                      |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
 | Release | Date       | Includes                                                                                                                                                                   |
 | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
+| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).   |
 
-Production builds this month (Oct 2026): **2** (~30 credits, counted conservatively).
+Production builds this month (Oct 2026): **3** (~45 credits, counted conservatively).
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -53,8 +54,11 @@ One database for everything (D15), so each migration runs once.
 - [x] Try M3 (Home dashboard, targets, deadlines) on its preview (demo steps all worked)
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
 - [x] Merge #9 (merged by Claude Code at the owner's request)
-- [ ] Say yes/no to release R1 (first live version)
-- [ ] Claude custom connector added (after R2)
+- [x] Say yes/no to release R1 (first live version): yes, released 2026-10-03 (#10)
+- [ ] Try M4 on the preview: Settings → Claude connection (https://deploy-preview-11--streakwise-ap.netlify.app/settings)
+- [ ] OK to merge #11 into `develop`
+- [ ] Say yes/no to release R2 (Claude connected; production build 4 of 8 this month)
+- [ ] Claude custom connector added (after R2), using the URL from the **live** Settings page
 
 ## Current work / next step
 
@@ -78,17 +82,26 @@ Weekly targets and Deadlines, `/api/dashboard` and `/api/deadlines`. 205 tests +
 demo mode only. The owner then tried it on the preview: all demo steps worked. Heatmap shading
 by time studied (not by number of sessions) confirmed by the owner.
 
+**R1 released 2026-10-03 (#10).** The keepalive workflow on `main` now has a live site to ping.
+
+**M4 built on `feat/mcp` (PR #11)**: MCP-1–8, MCP-9 (the 8 M4 tools), SET-4. `/mcp/:secret` on the
+official SDK v2, Settings → Claude connection, `/api/claude-connection`. 244 tests (17 MCP handler
+tests through the real SDK, both protocol versions). No migration. Checked on the deploy preview:
+wrong secret 404, GET 405, `tools/list` returns all 8 tools, `get_structure` reads the real tree;
+MCP Inspector (CLI) lists the tools with the right annotations. Only read-only tools were called on
+the shared database, but that call stamped "last MCP call" (2026-10-04), so Settings won't say
+"never".
+
 **Next:**
 
-1. Ask the owner about release **R1** (first live version, ~15 credits), now including M2 + M3.
-2. Then M4 (`feat/mcp`, MCP-1–8, MCP-9 M4 tools, SET-4), which leads to R2 (Claude connected).
-   Check the current MCP TypeScript SDK and Netlify docs first (SPEC MCP-2).
+1. Owner tries the preview, OKs merging #11, then says yes/no to **R2**.
+2. After R2: owner adds the custom connector in Claude (steps are in Settings → Claude connection,
+   checked against the Claude help article on 2026-10-04) and tests it in a chat.
+3. Then M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
 `Get-Content <file> -Raw -Encoding UTF8 | Set-Clipboard`.
-
-Note: the live site still runs R0, so the keepalive workflow (on `main`) only starts working at R1.
 
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
@@ -142,6 +155,17 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 - M3: targets are chosen from a list (0.5 h to 40 h, half-hour steps) and saved on change.
 - Tests: whole-page screen tests get 15 s (`testTimeout`) and 5 s for async queries, because the
   heatmap makes jsdom slower under a full parallel run.
+- M4: MCP SDK is **v2** (`@modelcontextprotocol/server` 2.x, owner's choice): the stable line, web
+  `Request`/`Response` via `createMcpHandler`, serves the 2025 protocol and 2026-07-28 from one URL.
+  The v1 package (`@modelcontextprotocol/sdk`) is not used.
+- M4: `MCP_SECRET` is optional in the env schema so a missing value only disables Claude; shorter
+  than 32 characters counts as "not configured" (404, and Settings says it isn't set up).
+  Production has its own value (see setup), so the live connector URL differs from previews'.
+- M4: tool parameters are snake_case (`session_id`, `include_archived`); results are camelCase JSON.
+  `get_structure` hides archived nodes unless `include_archived` is true.
+- M4: node references try, in order: id, full path, end of path, partial name (each segment
+  contained); archived nodes only match when nothing visible does.
+- M4: "last MCP call" is stamped on every tool call (not on `initialize` / `tools/list`).
 - **D15 (owner's choice): one Supabase project (`streakwise-dev`, Singapore) for every environment.**
   The owner's free project allowance was already used. Previews and the `develop` deploy touch real
   data, so test features in demo mode first and warn the owner before any test that writes to the

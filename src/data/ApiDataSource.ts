@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { meSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
+  claudeConnectionSchema,
   dashboardSchema,
   deadlineSchema,
   historyPageSchema,
@@ -162,5 +163,9 @@ export class ApiDataSource implements DataSource {
   async updateSettings(input: Parameters<DataSource['updateSettings']>[0]) {
     return (await this.request('settings', settingsResponse, { method: 'PATCH', body: input }))
       .settings;
+  }
+
+  async getClaudeConnection() {
+    return this.request('claude-connection', claudeConnectionSchema);
   }
 }

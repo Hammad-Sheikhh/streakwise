@@ -13,10 +13,16 @@ import { hiddenIds, subtreeIds } from '../logic/tree';
 import type { Repository, SessionFilter, SessionPatch } from '../repo/Repository';
 import {
   historyQuerySchema,
+  listSessionsQuerySchema,
   logSessionInputSchema,
   updateSessionInputSchema,
 } from '../schemas/inputs';
-import type { HistoryQuery, LogSessionInput, UpdateSessionInput } from '../schemas/inputs';
+import type {
+  HistoryQuery,
+  ListSessionsQuery,
+  LogSessionInput,
+  UpdateSessionInput,
+} from '../schemas/inputs';
 import { parseInput } from '../schemas/parse';
 
 // LOG and HIST: logging, editing, and listing study sessions.
@@ -142,6 +148,18 @@ export async function getHistory(
     to: addDays(start, -1),
   });
   return { days: groupByDay(sessions), nextTo };
+}
+
+/** Newest first, capped at `limit`; `truncated` says whether more sessions matched (MCP-4). */
+export async function listSessions(
+  repo: Repository,
+  rawQuery: ListSessionsQuery = {},
+): Promise<{ sessions: Session[]; truncated: boolean }> {
+  const { nodeId, limit, ...rest } = parseInput(listSessionsQuerySchema, rawQuery);
+  const filter: SessionFilter = { ...rest, limit: limit + 1 };
+  if (nodeId) filter.nodeIds = subtreeIds(await repo.listNodes(), nodeId);
+  const sessions = await repo.listSessions(filter);
+  return { sessions: sessions.slice(0, limit), truncated: sessions.length > limit };
 }
 
 /** LOG-7: the most recently used visible nodes, from recent sessions so it works on any device. */

@@ -153,6 +153,7 @@ export class InMemoryRepository implements Repository {
   async listSessions(filter: SessionFilter): Promise<Session[]> {
     return this.matching(filter)
       .sort(byNewest)
+      .slice(0, filter.limit)
       .map((s) => ({ ...s }));
   }
 
@@ -205,6 +206,10 @@ export class InMemoryRepository implements Repository {
   async updateSettings(patch: SettingsPatch): Promise<Settings> {
     Object.assign(this.settings, patch);
     return { ...this.settings };
+  }
+
+  async recordMcpCall(at: string): Promise<void> {
+    this.settings.lastMcpCallAt = at;
   }
 
   async seedIfEmpty(seed: SeedData): Promise<boolean> {
