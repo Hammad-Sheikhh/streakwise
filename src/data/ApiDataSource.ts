@@ -107,6 +107,11 @@ export class ApiDataSource implements DataSource {
     await this.request(path, okResponse, { method: 'POST', body: input });
   }
 
+  async setTopicStatus(id: string, input: Parameters<DataSource['setTopicStatus']>[1]) {
+    const path = `nodes/${encodeURIComponent(id)}/status`;
+    return (await this.request(path, nodeResponse, { method: 'POST', body: input })).node;
+  }
+
   async getHistory(query: HistoryQuery) {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(query)) {

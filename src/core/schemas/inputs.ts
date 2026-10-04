@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SESSION_SOURCES, TRACK_COLORS } from '../domain/types';
+import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
 
 // Inputs from the UI, the API, and MCP. The server validates every request with these (SPEC §B8);
 // messages are written for the owner, because the UI shows them as they are.
@@ -41,6 +41,10 @@ export const updateNodeInputSchema = z
     message: 'Nothing to change.',
   });
 export type UpdateNodeInput = z.infer<typeof updateNodeInputSchema>;
+
+/** TOP-1: a done topic can be reopened by setting it back to another status. */
+export const setTopicStatusInputSchema = z.object({ status: z.enum(TOPIC_STATUSES) });
+export type SetTopicStatusInput = z.infer<typeof setTopicStatusInputSchema>;
 
 export const moveNodeInputSchema = z.object({ direction: z.enum(['up', 'down']) });
 export type MoveNodeInput = z.infer<typeof moveNodeInputSchema>;

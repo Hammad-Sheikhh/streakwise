@@ -14,6 +14,7 @@ import type {
   HistoryQuery,
   LogSessionInput,
   MoveNodeInput,
+  SetTopicStatusInput,
   UpdateNodeInput,
   UpdateSessionInput,
   UpdateSettingsInput,
@@ -39,6 +40,7 @@ export interface DataSource {
   updateNode(id: string, input: UpdateNodeInput): Promise<TreeNode>;
   deleteNode(id: string): Promise<void>;
   moveNode(id: string, input: MoveNodeInput): Promise<void>;
+  setTopicStatus(id: string, input: SetTopicStatusInput): Promise<TreeNode>;
 
   getHistory(query: HistoryQuery): Promise<HistoryPage>;
   logSession(input: LogSessionInput): Promise<Session>;

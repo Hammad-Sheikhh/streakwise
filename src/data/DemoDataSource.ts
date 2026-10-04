@@ -79,6 +79,10 @@ export class DemoDataSource implements DataSource {
     return this.run((repo) => structure.moveNode(repo, id, input));
   }
 
+  setTopicStatus(id: string, input: Parameters<DataSource['setTopicStatus']>[1]) {
+    return this.run((repo) => structure.setTopicStatus(repo, this.clock, id, input));
+  }
+
   getHistory(query: Parameters<DataSource['getHistory']>[0]) {
     return this.run((repo) => sessions.getHistory(repo, this.clock, query));
   }

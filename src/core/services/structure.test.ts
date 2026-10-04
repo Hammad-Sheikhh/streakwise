@@ -5,7 +5,7 @@ import type { TreeNode } from '../domain/types';
 import { InMemoryRepository } from '../repo/InMemoryRepository';
 import { seedIfEmpty } from './seed';
 import { logSession } from './sessions';
-import { addNode, deleteNode, listTree, moveNode, updateNode } from './structure';
+import { addNode, deleteNode, listTree, moveNode, setTopicStatus, updateNode } from './structure';
 
 const clock = () => new Date('2026-10-03T10:00:00Z');
 function sequentialIds() {
@@ -177,5 +177,38 @@ describe('moveNode (TREE-6)', () => {
       'Improvement Exams',
       'German Language',
     ]);
+  });
+});
+
+describe('setTopicStatus (TOP-1)', () => {
+  it('marks a topic done with a timestamp, and reopening clears it', async () => {
+    const topic = await addNode(repo, newId, {
+      parentId: (await byName('Maths')).id,
+      name: 'Ch 1',
+    });
+
+    const done = await setTopicStatus(repo, clock, topic.id, { status: 'done' });
+    expect(done).toMatchObject({ topicStatus: 'done', topicDoneAt: clock().toISOString() });
+
+    const reopened = await setTopicStatus(repo, clock, topic.id, { status: 'in_progress' });
+    expect(reopened).toMatchObject({ topicStatus: 'in_progress', topicDoneAt: null });
+  });
+
+  it('only applies to topics', async () => {
+    const error = await errorOf(
+      setTopicStatus(repo, clock, (await byName('Maths')).id, { status: 'done' }),
+    );
+    expect(error).toMatchObject({ kind: 'validation', code: 'topics_only' });
+  });
+
+  it('rejects an unknown status', async () => {
+    const topic = await addNode(repo, newId, {
+      parentId: (await byName('Maths')).id,
+      name: 'Ch 2',
+    });
+    const error = await errorOf(
+      setTopicStatus(repo, clock, topic.id, { status: 'finished' as 'done' }),
+    );
+    expect(error.kind).toBe('validation');
   });
 });
