@@ -116,6 +116,33 @@ export interface Task {
   updatedAt: string;
 }
 
+export interface TaskCompletion {
+  id: string;
+  taskId: string;
+  /** The week's Monday for weekly tasks; null for one-off tasks. */
+  periodStart: string | null;
+  completedAt: string;
+  note: string | null;
+}
+
+export const SCORE_KINDS = ['past_paper', 'quiz', 'mock_test', 'revision', 'other'] as const;
+export type ScoreKind = (typeof SCORE_KINDS)[number];
+
+export interface Score {
+  id: string;
+  nodeId: string;
+  /** Set when the score was recorded by completing a scored task. */
+  taskCompletionId: string | null;
+  kind: ScoreKind;
+  title: string;
+  /** Local date. */
+  takenOn: string;
+  score: number;
+  maxScore: number;
+  note: string | null;
+  createdAt: string;
+}
+
 export interface Settings {
   /** Empty until the owner enters it (asked for on the first report). */
   studentName: string;
