@@ -64,6 +64,12 @@ export interface Deadline {
   createdAt: string;
 }
 
+export interface UpcomingDeadline extends Deadline {
+  daysLeft: number;
+  /** null when the node has no topics. */
+  syllabusLeftPercent: number | null;
+}
+
 /** Everything Home shows, from one request (DASH-1). Names and colors come from the tree. */
 export interface Dashboard {
   today: string;
@@ -74,7 +80,7 @@ export interface Dashboard {
   /** NEG-1, most neglected first. */
   neglect: { nodeId: string; days: number; neverLogged: boolean }[];
   /** DEAD-2/3: the next 3 upcoming deadlines. */
-  deadlines: (Deadline & { daysLeft: number; syllabusLeftPercent: number | null })[];
+  deadlines: UpcomingDeadline[];
   /** HEAT-1: days with sessions in the last 12 months. */
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
 }
@@ -115,6 +121,12 @@ export interface Settings {
   studentName: string;
   neglectDays: number;
   lastExportAt: string | null;
+  lastMcpCallAt: string | null;
+}
+
+/** SET-4: how to connect Claude. `url` is null when the server has no MCP secret configured. */
+export interface ClaudeConnection {
+  url: string | null;
   lastMcpCallAt: string | null;
 }
 

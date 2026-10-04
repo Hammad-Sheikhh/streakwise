@@ -235,9 +235,9 @@ export class SupabaseRepository implements Repository {
   }
 
   async listSessions(filter: SessionFilter): Promise<Session[]> {
-    const { data, error } = await this.filtered('*', filter).order('created_at', {
-      ascending: false,
-    });
+    let query = this.filtered('*', filter).order('created_at', { ascending: false });
+    if (filter.limit !== undefined) query = query.limit(filter.limit);
+    const { data, error } = await query;
     if (error) throwDbError(error);
     return z.array(sessionRow).parse(data);
   }
@@ -332,6 +332,14 @@ export class SupabaseRepository implements Repository {
       .single();
     if (error) throwDbError(error);
     return settingsRow.parse(data);
+  }
+
+  async recordMcpCall(at: string): Promise<void> {
+    const { error } = await this.db
+      .from('settings')
+      .update({ last_mcp_call_at: at })
+      .eq('id', true);
+    if (error) throwDbError(error);
   }
 
   async seedIfEmpty(seed: SeedData): Promise<boolean> {

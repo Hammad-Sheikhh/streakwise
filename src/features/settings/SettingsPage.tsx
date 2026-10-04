@@ -15,14 +15,15 @@ import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 
+import { ClaudeConnectionSection } from './ClaudeConnection';
+
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
   { path: 'targets', title: 'Weekly targets', description: 'Hours per week for each track' },
   { path: 'deadlines', title: 'Deadlines', description: 'Exams and due dates' },
 ];
 
-// SET-1: the Settings shell. Later milestones add targets, deadlines, shared links, export, and
-// the Claude connection as more sections.
+// SET-1: the Settings shell. Later milestones add shared links and export as more sections.
 export function SettingsPage() {
   const dataSource = useDataSource();
   const queryClient = useQueryClient();
@@ -74,6 +75,8 @@ export function SettingsPage() {
           ))}
         </ul>
       </section>
+
+      <ClaudeConnectionSection />
 
       <section aria-labelledby="account-heading" className="flex flex-col items-start gap-4">
         <h2 id="account-heading" className="text-lg font-medium">

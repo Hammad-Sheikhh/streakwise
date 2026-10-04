@@ -126,4 +126,11 @@ export class DemoDataSource implements DataSource {
   updateSettings(input: Parameters<DataSource['updateSettings']>[0]) {
     return this.run((repo) => settings.updateSettings(repo, input));
   }
+
+  /** DEMO-5: the Claude connection only exists for the real app. */
+  getClaudeConnection(): Promise<never> {
+    return Promise.reject(
+      new DataSourceError(404, 'demo_unavailable', 'The Claude connection is off in the demo.'),
+    );
+  }
 }

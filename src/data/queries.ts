@@ -19,6 +19,16 @@ export function useSettings() {
   return useQuery({ queryKey: [ds.mode, 'settings'], queryFn: () => ds.getSettings() });
 }
 
+/** SET-4: never requested in demo mode. */
+export function useClaudeConnection() {
+  const ds = useDataSource();
+  return useQuery({
+    queryKey: [ds.mode, 'claude-connection'],
+    queryFn: () => ds.getClaudeConnection(),
+    enabled: ds.mode === 'api',
+  });
+}
+
 export function useDashboard() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'dashboard'], queryFn: () => ds.getDashboard() });
