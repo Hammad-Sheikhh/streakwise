@@ -7,6 +7,7 @@ import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
 import * as settings from '@/core/services/settings';
 import * as structure from '@/core/services/structure';
+import * as tasks from '@/core/services/tasks';
 
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
@@ -121,6 +122,30 @@ export class DemoDataSource implements DataSource {
 
   deleteDeadline(id: string) {
     return this.run((repo) => deadlines.deleteDeadline(repo, id));
+  }
+
+  listTasks(options: Parameters<DataSource['listTasks']>[0] = {}) {
+    return this.run((repo) => tasks.listTaskItems(repo, this.clock, options));
+  }
+
+  createTask(input: Parameters<DataSource['createTask']>[0]) {
+    return this.run((repo) => tasks.createTask(repo, this.newId, input));
+  }
+
+  updateTask(id: string, input: Parameters<DataSource['updateTask']>[1]) {
+    return this.run((repo) => tasks.updateTask(repo, this.clock, id, input));
+  }
+
+  deleteTask(id: string) {
+    return this.run((repo) => tasks.deleteTask(repo, id));
+  }
+
+  completeTask(id: string, input: Parameters<DataSource['completeTask']>[1]) {
+    return this.run((repo) => tasks.completeTask(repo, this.clock, this.newId, id, input));
+  }
+
+  uncompleteTask(completionId: string) {
+    return this.run((repo) => tasks.uncompleteTask(repo, completionId));
   }
 
   getSettings() {

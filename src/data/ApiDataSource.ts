@@ -9,6 +9,9 @@ import {
   historyPageSchema,
   sessionSchema,
   settingsSchema,
+  taskCompletionSchema,
+  taskItemSchema,
+  taskSchema,
   treeNodeSchema,
 } from '@/core/schemas/domain';
 import type { HistoryQuery } from '@/core/schemas/inputs';
@@ -24,6 +27,9 @@ const settingsResponse = z.object({ settings: settingsSchema });
 const okResponse = z.object({ ok: z.literal(true) });
 const deadlineResponse = z.object({ deadline: deadlineSchema });
 const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
+const taskResponse = z.object({ task: taskSchema });
+const taskItemsResponse = z.object({ items: z.array(taskItemSchema) });
+const completionResponse = z.object({ completion: taskCompletionSchema });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -159,6 +165,35 @@ export class ApiDataSource implements DataSource {
 
   async deleteDeadline(id: string) {
     await this.request(`deadlines/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async listTasks(options: Parameters<DataSource['listTasks']>[0] = {}) {
+    const path = options.includeArchived ? 'tasks?archived=true' : 'tasks';
+    return (await this.request(path, taskItemsResponse)).items;
+  }
+
+  async createTask(input: Parameters<DataSource['createTask']>[0]) {
+    return (await this.request('tasks', taskResponse, { method: 'POST', body: input })).task;
+  }
+
+  async updateTask(id: string, input: Parameters<DataSource['updateTask']>[1]) {
+    const path = `tasks/${encodeURIComponent(id)}`;
+    return (await this.request(path, taskResponse, { method: 'PATCH', body: input })).task;
+  }
+
+  async deleteTask(id: string) {
+    await this.request(`tasks/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async completeTask(id: string, input: Parameters<DataSource['completeTask']>[1]) {
+    const path = `tasks/${encodeURIComponent(id)}/complete`;
+    return (await this.request(path, completionResponse, { method: 'POST', body: input }))
+      .completion;
+  }
+
+  async uncompleteTask(completionId: string) {
+    const path = `completions/${encodeURIComponent(completionId)}`;
+    await this.request(path, okResponse, { method: 'DELETE' });
   }
 
   async getSettings() {

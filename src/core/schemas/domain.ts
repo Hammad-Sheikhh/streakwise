@@ -8,6 +8,9 @@ import type {
   HistoryPage,
   Session,
   Settings,
+  Task,
+  TaskCompletion,
+  TaskItem,
   TreeNode,
 } from '../domain/types';
 
@@ -96,3 +99,36 @@ export const claudeConnectionSchema = z.object({
 export const apiErrorSchema = z.object({
   error: z.object({ code: z.string(), message: z.string() }),
 });
+
+export const taskSchema = z.object({
+  id: z.uuid(),
+  nodeId: z.uuid(),
+  parentTaskId: z.uuid().nullable(),
+  title: z.string().min(1).max(200),
+  description: z.string().nullable(),
+  dueOn: z.iso.date().nullable(),
+  recurrence: z.enum(['none', 'weekly']),
+  isScored: z.boolean(),
+  defaultMaxScore: z.number().positive().nullable(),
+  sortOrder: z.number().int(),
+  archivedAt: timestamp.nullable(),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}) satisfies z.ZodType<Task>;
+
+export const taskCompletionSchema = z.object({
+  id: z.uuid(),
+  taskId: z.uuid(),
+  periodStart: z.iso.date().nullable(),
+  completedAt: timestamp,
+  note: z.string().max(500).nullable(),
+}) satisfies z.ZodType<TaskCompletion>;
+
+export const taskItemSchema = z.object({
+  task: taskSchema,
+  completion: taskCompletionSchema.nullable(),
+  dueThisWeek: z.boolean(),
+  overdue: z.boolean(),
+  subtasks: z.object({ done: minutes, total: minutes }).nullable(),
+  completedWeeks: z.array(z.iso.date()),
+}) satisfies z.ZodType<TaskItem>;

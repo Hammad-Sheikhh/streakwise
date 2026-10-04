@@ -5,10 +5,16 @@ import type {
   HistoryPage,
   Session,
   Settings,
+  Task,
+  TaskCompletion,
+  TaskItem,
   TreeNode,
 } from '@/core/domain/types';
 import type {
+  CompleteTaskInput,
   CreateDeadlineInput,
+  CreateTaskInput,
+  UpdateTaskInput,
   CreateNodeInput,
   UpdateDeadlineInput,
   HistoryQuery,
@@ -54,6 +60,14 @@ export interface DataSource {
   addDeadline(input: CreateDeadlineInput): Promise<Deadline>;
   updateDeadline(id: string, input: UpdateDeadlineInput): Promise<Deadline>;
   deleteDeadline(id: string): Promise<void>;
+
+  /** TASK-1: every task with its state as of today, in display order. */
+  listTasks(options?: { includeArchived?: boolean }): Promise<TaskItem[]>;
+  createTask(input: CreateTaskInput): Promise<Task>;
+  updateTask(id: string, input: UpdateTaskInput): Promise<Task>;
+  deleteTask(id: string): Promise<void>;
+  completeTask(id: string, input: CompleteTaskInput): Promise<TaskCompletion>;
+  uncompleteTask(completionId: string): Promise<void>;
 
   getSettings(): Promise<Settings>;
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;
