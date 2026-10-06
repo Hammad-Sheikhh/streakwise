@@ -65,25 +65,6 @@ export const deadlineSchema = z.object({
 
 const minutes = z.number().int().min(0);
 
-export const dashboardSchema = z.object({
-  today: z.iso.date(),
-  todayMinutes: minutes,
-  streak: z.object({ current: minutes, longest: minutes }),
-  targets: z.array(z.object({ trackId: z.uuid(), minutes, targetMinutes: minutes.nullable() })),
-  neglect: z.array(z.object({ nodeId: z.uuid(), days: minutes, neverLogged: z.boolean() })),
-  deadlines: z.array(
-    deadlineSchema.extend({
-      daysLeft: minutes,
-      syllabusLeftPercent: z.number().min(0).max(100).nullable(),
-    }),
-  ),
-  heatmap: z.object({
-    start: z.iso.date(),
-    end: z.iso.date(),
-    days: z.array(z.object({ date: z.iso.date(), minutes })),
-  }),
-}) satisfies z.ZodType<Dashboard>;
-
 export const settingsSchema = z.object({
   studentName: z.string().max(80),
   neglectDays: z.number().int().min(1).max(14),
@@ -132,3 +113,23 @@ export const taskItemSchema = z.object({
   subtasks: z.object({ done: minutes, total: minutes }).nullable(),
   completedWeeks: z.array(z.iso.date()),
 }) satisfies z.ZodType<TaskItem>;
+
+export const dashboardSchema = z.object({
+  today: z.iso.date(),
+  todayMinutes: minutes,
+  streak: z.object({ current: minutes, longest: minutes }),
+  targets: z.array(z.object({ trackId: z.uuid(), minutes, targetMinutes: minutes.nullable() })),
+  neglect: z.array(z.object({ nodeId: z.uuid(), days: minutes, neverLogged: z.boolean() })),
+  tasksDue: z.array(taskItemSchema),
+  deadlines: z.array(
+    deadlineSchema.extend({
+      daysLeft: minutes,
+      syllabusLeftPercent: z.number().min(0).max(100).nullable(),
+    }),
+  ),
+  heatmap: z.object({
+    start: z.iso.date(),
+    end: z.iso.date(),
+    days: z.array(z.object({ date: z.iso.date(), minutes })),
+  }),
+}) satisfies z.ZodType<Dashboard>;

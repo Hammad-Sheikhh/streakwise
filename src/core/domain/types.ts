@@ -79,6 +79,8 @@ export interface Dashboard {
   targets: { trackId: string; minutes: number; targetMinutes: number | null }[];
   /** NEG-1, most neglected first. */
   neglect: { nodeId: string; days: number; neverLogged: boolean }[];
+  /** TASK-7: tasks due this week, overdue first, then by due date (weekly ones last). */
+  tasksDue: TaskItem[];
   /** DEAD-2/3: the next 3 upcoming deadlines. */
   deadlines: UpcomingDeadline[];
   /** HEAT-1: days with sessions in the last 12 months. */

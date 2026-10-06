@@ -8,6 +8,7 @@ import { addDeadline, deleteDeadline, listDeadlines, updateDeadline } from './de
 import { seedIfEmpty } from './seed';
 import { logSession } from './sessions';
 import { addNode, updateNode } from './structure';
+import { completeTask, createTask } from './tasks';
 
 // The seed is created on 2026-09-20; "now" moves per test.
 let now = new Date('2026-09-20T06:00:00Z');
@@ -123,6 +124,26 @@ describe('getDashboard (DASH-1)', () => {
     expect(heatmap.start).toBe('2025-09-29');
     expect(heatmap.end).toBe('2026-10-03');
     expect(heatmap.days).toEqual([{ date: '2026-10-03', minutes: 35 }]);
+  });
+
+  it('lists tasks due this week, overdue first and weekly ones last (TASK-7)', async () => {
+    const maths = await byName('Maths');
+    await createTask(repo, newId, { nodeId: maths.id, title: 'Sunday', dueOn: '2026-10-04' });
+    await createTask(repo, newId, { nodeId: maths.id, title: 'Late', dueOn: '2026-10-01' });
+    await createTask(repo, newId, { nodeId: maths.id, title: 'Next week', dueOn: '2026-10-05' });
+    const done = await createTask(repo, newId, {
+      nodeId: maths.id,
+      title: 'Done',
+      dueOn: '2026-10-02',
+    });
+    await completeTask(repo, clock, newId, done.id, {});
+
+    const { tasksDue } = await getDashboard(repo, clock);
+    expect(tasksDue.map((i) => [i.task.title, i.overdue])).toEqual([
+      ['Late', true],
+      ['Sunday', false],
+      ['Weekly recall / revision', false],
+    ]);
   });
 
   it('leaves archived tracks out of targets and warnings', async () => {

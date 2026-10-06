@@ -68,11 +68,18 @@ export function tasksDueThisWeek(
       due.push({ task, overdue: task.dueOn < today });
     }
   }
-  return due.sort(
-    (a, b) =>
-      Number(b.overdue) - Number(a.overdue) ||
-      (a.task.dueOn ?? NO_DUE_DATE).localeCompare(b.task.dueOn ?? NO_DUE_DATE) ||
-      a.task.sortOrder - b.task.sortOrder,
+  return due.sort(compareDue);
+}
+
+/** Display order for due tasks: overdue first, then by due date, weekly ones (no date) last. */
+export function compareDue(
+  a: { task: Pick<Task, 'dueOn' | 'sortOrder'>; overdue: boolean },
+  b: { task: Pick<Task, 'dueOn' | 'sortOrder'>; overdue: boolean },
+): number {
+  return (
+    Number(b.overdue) - Number(a.overdue) ||
+    (a.task.dueOn ?? NO_DUE_DATE).localeCompare(b.task.dueOn ?? NO_DUE_DATE) ||
+    a.task.sortOrder - b.task.sortOrder
   );
 }
 

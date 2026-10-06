@@ -39,6 +39,16 @@ export function useDeadlines() {
   return useQuery({ queryKey: [ds.mode, 'deadlines'], queryFn: () => ds.listDeadlines() });
 }
 
+/** TASK-1: archived tasks are fetched only when asked for. */
+export function useTasks(options: { includeArchived?: boolean } = {}) {
+  const ds = useDataSource();
+  const includeArchived = options.includeArchived ?? false;
+  return useQuery({
+    queryKey: [ds.mode, 'tasks', { includeArchived }],
+    queryFn: () => ds.listTasks({ includeArchived }),
+  });
+}
+
 export function useRecentNodeIds() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'recent'], queryFn: () => ds.recentNodeIds() });

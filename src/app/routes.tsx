@@ -15,6 +15,7 @@ import { DeadlinesPage } from '@/features/settings/DeadlinesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { StructurePage } from '@/features/settings/StructurePage';
 import { TargetsPage } from '@/features/settings/TargetsPage';
+import { TasksPage } from '@/features/tasks/TasksPage';
 
 // The app's pages; demo mode mounts the same pages under /demo (SPEC §B6).
 const appPages: RouteObject[] = [
@@ -29,15 +30,7 @@ const appPages: RouteObject[] = [
       { path: 'settings/structure', element: <StructurePage /> },
       { path: 'settings/targets', element: <TargetsPage /> },
       { path: 'settings/deadlines', element: <DeadlinesPage /> },
-      {
-        path: 'tasks',
-        element: (
-          <ComingSoonPage
-            title="Tasks"
-            description="Tasks and weekly to-dos arrive in a later update."
-          />
-        ),
-      },
+      { path: 'tasks', element: <TasksPage /> },
       {
         path: 'scores',
         element: (

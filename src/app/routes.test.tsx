@@ -49,7 +49,7 @@ describe('login flow (AUTH-1)', () => {
 describe('navigation (SPEC §B6)', () => {
   it('links every main screen, prefixed with /demo in demo mode', async () => {
     renderRoutes('/demo', fakeApi());
-    await screen.findByText('German Language');
+    await screen.findByRole('heading', { name: 'This week' });
     const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
     for (const path of ['/demo', '/demo/log', '/demo/history', '/demo/tasks', '/demo/more']) {
       expect(hrefs).toContain(path);
@@ -57,8 +57,8 @@ describe('navigation (SPEC §B6)', () => {
   });
 
   it('shows a placeholder for screens from later milestones', async () => {
-    renderRoutes('/tasks', fakeApi({ loggedIn: true }));
-    expect(await screen.findByRole('heading', { name: 'Tasks' })).toBeInTheDocument();
+    renderRoutes('/reports', fakeApi({ loggedIn: true }));
+    expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument();
     expect(screen.getByText(/arrive in a later update/)).toBeInTheDocument();
   });
 });

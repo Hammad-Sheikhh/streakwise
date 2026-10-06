@@ -3,11 +3,13 @@ import { localDate, weekStart } from '../logic/dates';
 import { heatmapRange } from '../logic/heatmap';
 import { neglectWarnings } from '../logic/neglect';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
+import { compareDue } from '../logic/tasks';
 import { currentStreak, longestStreak } from '../logic/streak';
 import { hiddenIds } from '../logic/tree';
 import type { Repository } from '../repo/Repository';
 import { selectUpcoming } from './deadlines';
 import { listTree } from './structure';
+import { listTaskItems } from './tasks';
 
 /** Home shows the next few deadlines (DEAD-2). */
 export const DASHBOARD_DEADLINES = 3;
@@ -15,11 +17,12 @@ export const DASHBOARD_DEADLINES = 3;
 /** DASH-1: everything Home needs, computed from one read of each table. */
 export async function getDashboard(repo: Repository, clock: Clock): Promise<Dashboard> {
   const today = localDate(clock());
-  const [nodes, facts, settings, deadlines] = await Promise.all([
+  const [nodes, facts, settings, deadlines, tasks] = await Promise.all([
     listTree(repo),
     repo.listSessionFacts(),
     repo.getSettings(),
     repo.listDeadlines(),
+    listTaskItems(repo, clock),
   ]);
   const hidden = hiddenIds(nodes);
   const totals = dailyTotals(facts);
@@ -46,6 +49,7 @@ export async function getDashboard(repo: Repository, clock: Clock): Promise<Dash
     streak: { current: currentStreak(activeDates, today), longest: longestStreak(activeDates) },
     targets,
     neglect: neglectWarnings(nodes, latestDateByNode(nodes, facts), today, settings.neglectDays),
+    tasksDue: tasks.filter((item) => item.dueThisWeek).sort(compareDue),
     deadlines: selectUpcoming(nodes, deadlines, today).slice(0, DASHBOARD_DEADLINES),
     heatmap: { start, end, days: heatmapDays },
   };
