@@ -7,8 +7,13 @@ import {
   dashboardSchema,
   deadlineSchema,
   historyPageSchema,
+  scoreSchema,
   sessionSchema,
   settingsSchema,
+  taskCompletionSchema,
+  taskItemSchema,
+  taskSchema,
+  trackOverviewSchema,
   treeNodeSchema,
 } from '@/core/schemas/domain';
 import type { HistoryQuery } from '@/core/schemas/inputs';
@@ -24,6 +29,11 @@ const settingsResponse = z.object({ settings: settingsSchema });
 const okResponse = z.object({ ok: z.literal(true) });
 const deadlineResponse = z.object({ deadline: deadlineSchema });
 const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
+const taskResponse = z.object({ task: taskSchema });
+const taskItemsResponse = z.object({ items: z.array(taskItemSchema) });
+const completionResponse = z.object({ completion: taskCompletionSchema });
+const scoreResponse = z.object({ score: scoreSchema });
+const scoresResponse = z.object({ scores: z.array(scoreSchema) });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -107,6 +117,11 @@ export class ApiDataSource implements DataSource {
     await this.request(path, okResponse, { method: 'POST', body: input });
   }
 
+  async setTopicStatus(id: string, input: Parameters<DataSource['setTopicStatus']>[1]) {
+    const path = `nodes/${encodeURIComponent(id)}/status`;
+    return (await this.request(path, nodeResponse, { method: 'POST', body: input })).node;
+  }
+
   async getHistory(query: HistoryQuery) {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(query)) {
@@ -138,6 +153,10 @@ export class ApiDataSource implements DataSource {
     return this.request('dashboard', dashboardSchema);
   }
 
+  async getTrackOverview(trackId: string) {
+    return this.request(`tracks/${encodeURIComponent(trackId)}`, trackOverviewSchema);
+  }
+
   async listDeadlines() {
     return (await this.request('deadlines', deadlinesResponse)).deadlines;
   }
@@ -154,6 +173,52 @@ export class ApiDataSource implements DataSource {
 
   async deleteDeadline(id: string) {
     await this.request(`deadlines/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async listTasks(options: Parameters<DataSource['listTasks']>[0] = {}) {
+    const path = options.includeArchived ? 'tasks?archived=true' : 'tasks';
+    return (await this.request(path, taskItemsResponse)).items;
+  }
+
+  async createTask(input: Parameters<DataSource['createTask']>[0]) {
+    return (await this.request('tasks', taskResponse, { method: 'POST', body: input })).task;
+  }
+
+  async updateTask(id: string, input: Parameters<DataSource['updateTask']>[1]) {
+    const path = `tasks/${encodeURIComponent(id)}`;
+    return (await this.request(path, taskResponse, { method: 'PATCH', body: input })).task;
+  }
+
+  async deleteTask(id: string) {
+    await this.request(`tasks/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async completeTask(id: string, input: Parameters<DataSource['completeTask']>[1]) {
+    const path = `tasks/${encodeURIComponent(id)}/complete`;
+    return (await this.request(path, completionResponse, { method: 'POST', body: input }))
+      .completion;
+  }
+
+  async uncompleteTask(completionId: string) {
+    const path = `completions/${encodeURIComponent(completionId)}`;
+    await this.request(path, okResponse, { method: 'DELETE' });
+  }
+
+  async listScores() {
+    return (await this.request('scores', scoresResponse)).scores;
+  }
+
+  async addScore(input: Parameters<DataSource['addScore']>[0]) {
+    return (await this.request('scores', scoreResponse, { method: 'POST', body: input })).score;
+  }
+
+  async updateScore(id: string, input: Parameters<DataSource['updateScore']>[1]) {
+    const path = `scores/${encodeURIComponent(id)}`;
+    return (await this.request(path, scoreResponse, { method: 'PATCH', body: input })).score;
+  }
+
+  async deleteScore(id: string) {
+    await this.request(`scores/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
   }
 
   async getSettings() {

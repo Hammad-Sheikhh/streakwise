@@ -79,10 +79,21 @@ export interface Dashboard {
   targets: { trackId: string; minutes: number; targetMinutes: number | null }[];
   /** NEG-1, most neglected first. */
   neglect: { nodeId: string; days: number; neverLogged: boolean }[];
+  /** TASK-7: tasks due this week, overdue first, then by due date (weekly ones last). */
+  tasksDue: TaskItem[];
   /** DEAD-2/3: the next 3 upcoming deadlines. */
   deadlines: UpcomingDeadline[];
   /** HEAT-1: days with sessions in the last 12 months. */
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
+}
+
+/** TRACK-1: time per node in the track (the track itself included) and its latest sessions. */
+export interface TrackOverview {
+  trackId: string;
+  today: string;
+  nodes: { nodeId: string; weekMinutes: number; totalMinutes: number }[];
+  /** Newest first. */
+  recentSessions: Session[];
 }
 
 /** One day of History (HIST-1): its sessions, newest first, and their total. */
@@ -102,7 +113,8 @@ export type TaskRecurrence = 'none' | 'weekly';
 
 export interface Task {
   id: string;
-  nodeId: string;
+  /** null = "Other": not tied to any track (0002). Such tasks can't be scored. */
+  nodeId: string | null;
   parentTaskId: string | null;
   title: string;
   description: string | null;
@@ -114,6 +126,47 @@ export interface Task {
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TaskCompletion {
+  id: string;
+  taskId: string;
+  /** The week's Monday for weekly tasks; null for one-off tasks. */
+  periodStart: string | null;
+  completedAt: string;
+  note: string | null;
+}
+
+/** A task as the Tasks screen and MCP show it, with its state as of today. */
+export interface TaskItem {
+  task: Task;
+  /** The completion that makes it done today (this week's, for weekly tasks), or null. */
+  completion: TaskCompletion | null;
+  /** TASK-7. */
+  dueThisWeek: boolean;
+  overdue: boolean;
+  /** TASK-9: direct sub-tasks done vs total; null when it has none. */
+  subtasks: { done: number; total: number } | null;
+  /** TASK-5: Mondays of the weeks a weekly task was completed, newest first. */
+  completedWeeks: string[];
+}
+
+export const SCORE_KINDS = ['past_paper', 'quiz', 'mock_test', 'revision', 'other'] as const;
+export type ScoreKind = (typeof SCORE_KINDS)[number];
+
+export interface Score {
+  id: string;
+  nodeId: string;
+  /** Set when the score was recorded by completing a scored task. */
+  taskCompletionId: string | null;
+  kind: ScoreKind;
+  title: string;
+  /** Local date. */
+  takenOn: string;
+  score: number;
+  maxScore: number;
+  note: string | null;
+  createdAt: string;
 }
 
 export interface Settings {

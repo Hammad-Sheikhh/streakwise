@@ -6,9 +6,15 @@ import type { NodePatch, Repository } from '../repo/Repository';
 import {
   createNodeInputSchema,
   moveNodeInputSchema,
+  setTopicStatusInputSchema,
   updateNodeInputSchema,
 } from '../schemas/inputs';
-import type { CreateNodeInput, MoveNodeInput, UpdateNodeInput } from '../schemas/inputs';
+import type {
+  CreateNodeInput,
+  MoveNodeInput,
+  SetTopicStatusInput,
+  UpdateNodeInput,
+} from '../schemas/inputs';
 import { parseInput } from '../schemas/parse';
 
 // TREE-1–6: the structure tree (tracks, subtasks, topics).
@@ -129,6 +135,23 @@ export async function updateNode(
     patch.archivedAt = input.archived ? (node.archivedAt ?? clock().toISOString()) : null;
   }
   return Object.keys(patch).length === 0 ? node : repo.updateNode(id, patch);
+}
+
+/** TOP-1: sets a topic's status; marking it done stamps the time (reports count it by that). */
+export async function setTopicStatus(
+  repo: Repository,
+  clock: Clock,
+  id: string,
+  rawInput: SetTopicStatusInput,
+): Promise<TreeNode> {
+  const { status } = parseInput(setTopicStatusInputSchema, rawInput);
+  const node = findNode(await repo.listNodes(), id);
+  if (node.depth !== 3) throw invalid('topics_only', 'Only topics have a status.');
+  if (node.topicStatus === status) return node;
+  return repo.updateNode(id, {
+    topicStatus: status,
+    topicDoneAt: status === 'done' ? clock().toISOString() : null,
+  });
 }
 
 /** TREE-3: only allowed when nothing in the subtree has history; otherwise archive instead. */

@@ -12,11 +12,13 @@ export function NodeLabel({
   truncate = false,
 }: {
   nodes: readonly TreeNode[];
-  nodeId: string;
+  /** null = a task with no track ("Other"). */
+  nodeId: string | null;
   className?: string;
   /** Cut long paths with "…" (for one-line chips); otherwise they wrap. */
   truncate?: boolean;
 }) {
+  if (nodeId === null) return <span className={className}>Other</span>;
   const track = trackOf(nodes, nodeId);
   const path = nodePath(nodes, nodeId);
   return (

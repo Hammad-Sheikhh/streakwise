@@ -1,3 +1,4 @@
+import type { ScoreKind, TopicStatus } from '@/core/domain/types';
 import { addDays } from '@/core/logic/dates';
 import { formatDuration } from '@/core/logic/duration';
 
@@ -35,3 +36,24 @@ export function formatRelativeDay(date: string, today: string): string {
   if (date === addDays(today, -1)) return 'Yesterday';
   return formatDay(date);
 }
+
+/** SCORE-1: how each score kind is named in the app. */
+export const SCORE_KIND_LABELS: Record<ScoreKind, string> = {
+  past_paper: 'Past paper',
+  quiz: 'Quiz',
+  mock_test: 'Mock test',
+  revision: 'Revision test',
+  other: 'Other',
+};
+
+/** "Week of Mon 5 Oct 2026", for a weekly task's completion history (TASK-5). */
+export function formatWeek(monday: string): string {
+  return `Week of ${formatDay(monday)}`;
+}
+
+/** TOP-1. */
+export const TOPIC_STATUS_LABELS: Record<TopicStatus, string> = {
+  not_started: 'Not started',
+  in_progress: 'In progress',
+  done: 'Done',
+};

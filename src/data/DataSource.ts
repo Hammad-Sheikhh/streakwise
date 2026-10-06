@@ -3,18 +3,29 @@ import type {
   Dashboard,
   Deadline,
   HistoryPage,
+  Score,
   Session,
   Settings,
+  Task,
+  TaskCompletion,
+  TaskItem,
+  TrackOverview,
   TreeNode,
 } from '@/core/domain/types';
 import type {
+  CompleteTaskInput,
   CreateDeadlineInput,
+  CreateScoreInput,
+  CreateTaskInput,
+  UpdateTaskInput,
   CreateNodeInput,
   UpdateDeadlineInput,
   HistoryQuery,
   LogSessionInput,
   MoveNodeInput,
+  SetTopicStatusInput,
   UpdateNodeInput,
+  UpdateScoreInput,
   UpdateSessionInput,
   UpdateSettingsInput,
 } from '@/core/schemas/inputs';
@@ -39,6 +50,7 @@ export interface DataSource {
   updateNode(id: string, input: UpdateNodeInput): Promise<TreeNode>;
   deleteNode(id: string): Promise<void>;
   moveNode(id: string, input: MoveNodeInput): Promise<void>;
+  setTopicStatus(id: string, input: SetTopicStatusInput): Promise<TreeNode>;
 
   getHistory(query: HistoryQuery): Promise<HistoryPage>;
   logSession(input: LogSessionInput): Promise<Session>;
@@ -48,10 +60,27 @@ export interface DataSource {
 
   getDashboard(): Promise<Dashboard>;
 
+  /** TRACK-1. */
+  getTrackOverview(trackId: string): Promise<TrackOverview>;
+
   listDeadlines(): Promise<Deadline[]>;
   addDeadline(input: CreateDeadlineInput): Promise<Deadline>;
   updateDeadline(id: string, input: UpdateDeadlineInput): Promise<Deadline>;
   deleteDeadline(id: string): Promise<void>;
+
+  /** TASK-1: every task with its state as of today, in display order. */
+  listTasks(options?: { includeArchived?: boolean }): Promise<TaskItem[]>;
+  createTask(input: CreateTaskInput): Promise<Task>;
+  updateTask(id: string, input: UpdateTaskInput): Promise<Task>;
+  deleteTask(id: string): Promise<void>;
+  completeTask(id: string, input: CompleteTaskInput): Promise<TaskCompletion>;
+  uncompleteTask(completionId: string): Promise<void>;
+
+  /** SCORE-1, SCORE-3: newest first. */
+  listScores(): Promise<Score[]>;
+  addScore(input: CreateScoreInput): Promise<Score>;
+  updateScore(id: string, input: UpdateScoreInput): Promise<Score>;
+  deleteScore(id: string): Promise<void>;
 
   getSettings(): Promise<Settings>;
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;

@@ -1,5 +1,5 @@
 import { AlertTriangle, CalendarClock, Flame, Plus } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { NodeLabel } from '@/components/NodeLabel';
 import { QueryError } from '@/components/QueryError';
@@ -14,10 +14,12 @@ import { useDataSource } from '@/data/useDataSource';
 import { formatDay, formatDaysLeft, formatTargetHours } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
+import { TaskRow } from '@/features/tasks/TaskList';
+
 import { Heatmap } from './Heatmap';
 
 // DASH-1: Home answers "How am I doing this week, and what am I neglecting?" (G2).
-// Order on mobile: neglect → today and streak → targets → (tasks, M5) → deadlines → heatmap →
+// Order on mobile: neglect → today and streak → targets → tasks due → deadlines → heatmap →
 // (this week's report, M6).
 export function HomePage() {
   const dashboard = useDashboard();
@@ -72,6 +74,7 @@ function Section({
 
 function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNode[] }) {
   const { basePath } = useDataSource();
+  const navigate = useNavigate();
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const settingsLink = (path: string, label: string) => (
     <Link to={`${basePath}/settings/${path}`} className="text-sm underline underline-offset-4">
@@ -206,6 +209,32 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
                 </li>
               );
             })}
+          </ul>
+        )}
+      </Section>
+
+      <Section
+        id="tasks-heading"
+        title="Due this week"
+        action={
+          <Link to={`${basePath}/tasks`} className="text-sm underline underline-offset-4">
+            All tasks
+          </Link>
+        }
+      >
+        {data.tasksDue.length === 0 ? (
+          <p className="rounded-lg border border-dashed p-6">Nothing due this week.</p>
+        ) : (
+          <ul className="flex flex-col divide-y rounded-lg border">
+            {data.tasksDue.map((item) => (
+              <li key={item.task.id}>
+                <TaskRow
+                  item={item}
+                  nodes={nodes}
+                  onOpen={() => void navigate(`${basePath}/tasks?filter=due`)}
+                />
+              </li>
+            ))}
           </ul>
         )}
       </Section>

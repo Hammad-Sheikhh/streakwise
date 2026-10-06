@@ -3,10 +3,13 @@ import type { Clock, IdGenerator } from '@/core/domain/types';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
+import * as scores from '@/core/services/scores';
 import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
 import * as settings from '@/core/services/settings';
 import * as structure from '@/core/services/structure';
+import * as tasks from '@/core/services/tasks';
+import * as tracks from '@/core/services/tracks';
 
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
@@ -79,6 +82,10 @@ export class DemoDataSource implements DataSource {
     return this.run((repo) => structure.moveNode(repo, id, input));
   }
 
+  setTopicStatus(id: string, input: Parameters<DataSource['setTopicStatus']>[1]) {
+    return this.run((repo) => structure.setTopicStatus(repo, this.clock, id, input));
+  }
+
   getHistory(query: Parameters<DataSource['getHistory']>[0]) {
     return this.run((repo) => sessions.getHistory(repo, this.clock, query));
   }
@@ -103,6 +110,10 @@ export class DemoDataSource implements DataSource {
     return this.run((repo) => dashboard.getDashboard(repo, this.clock));
   }
 
+  getTrackOverview(trackId: string) {
+    return this.run((repo) => tracks.getTrackOverview(repo, this.clock, trackId));
+  }
+
   listDeadlines() {
     return this.run((repo) => deadlines.listDeadlines(repo));
   }
@@ -117,6 +128,46 @@ export class DemoDataSource implements DataSource {
 
   deleteDeadline(id: string) {
     return this.run((repo) => deadlines.deleteDeadline(repo, id));
+  }
+
+  listTasks(options: Parameters<DataSource['listTasks']>[0] = {}) {
+    return this.run((repo) => tasks.listTaskItems(repo, this.clock, options));
+  }
+
+  createTask(input: Parameters<DataSource['createTask']>[0]) {
+    return this.run((repo) => tasks.createTask(repo, this.newId, input));
+  }
+
+  updateTask(id: string, input: Parameters<DataSource['updateTask']>[1]) {
+    return this.run((repo) => tasks.updateTask(repo, this.clock, id, input));
+  }
+
+  deleteTask(id: string) {
+    return this.run((repo) => tasks.deleteTask(repo, id));
+  }
+
+  completeTask(id: string, input: Parameters<DataSource['completeTask']>[1]) {
+    return this.run((repo) => tasks.completeTask(repo, this.clock, this.newId, id, input));
+  }
+
+  uncompleteTask(completionId: string) {
+    return this.run((repo) => tasks.uncompleteTask(repo, completionId));
+  }
+
+  listScores() {
+    return this.run((repo) => scores.listScores(repo));
+  }
+
+  addScore(input: Parameters<DataSource['addScore']>[0]) {
+    return this.run((repo) => scores.addScore(repo, this.clock, this.newId, input));
+  }
+
+  updateScore(id: string, input: Parameters<DataSource['updateScore']>[1]) {
+    return this.run((repo) => scores.updateScore(repo, this.clock, id, input));
+  }
+
+  deleteScore(id: string) {
+    return this.run((repo) => scores.deleteScore(repo, id));
   }
 
   getSettings() {

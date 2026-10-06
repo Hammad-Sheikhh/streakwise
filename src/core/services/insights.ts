@@ -3,12 +3,14 @@ import { daysBetween, localDate, weekStart } from '../logic/dates';
 import { neglectWarnings } from '../logic/neglect';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
 import { currentStreak, longestStreak } from '../logic/streak';
+import { compareDue } from '../logic/tasks';
 import { syllabusPercent } from '../logic/syllabus';
 import { isBehindPace, targetProgress } from '../logic/targets';
 import { hiddenIds, nodePath } from '../logic/tree';
 import type { Repository } from '../repo/Repository';
 import { selectUpcoming } from './deadlines';
 import { listTree } from './structure';
+import { listTaskItems } from './tasks';
 
 // Summaries for Claude (MCP-9 `get_progress` and `find_gaps`). Names and paths are included so the
 // results read well without a second lookup.
@@ -56,7 +58,19 @@ export interface Gaps {
   }[];
   /** Visible topics with status not_started, in tree order. */
   topicsNotStarted: { id: string; path: string }[];
+  /** TASK-7: tasks due this week, overdue first. */
+  tasksDue: {
+    id: string;
+    title: string;
+    path: string;
+    weekly: boolean;
+    dueOn: string | null;
+    overdue: boolean;
+  }[];
 }
+
+/** Tasks with no node show this as their path. */
+const OTHER = 'Other';
 
 const pathOf = (nodes: readonly TreeNode[], id: string) => nodePath(nodes, id).join(' > ');
 
@@ -113,10 +127,11 @@ export async function getProgress(repo: Repository, clock: Clock): Promise<Progr
 
 export async function findGaps(repo: Repository, clock: Clock): Promise<Gaps> {
   const today = localDate(clock());
-  const [nodes, facts, settings] = await Promise.all([
+  const [nodes, facts, settings, tasks] = await Promise.all([
     listTree(repo),
     repo.listSessionFacts(),
     repo.getSettings(),
+    listTaskItems(repo, clock),
   ]);
   const hidden = hiddenIds(nodes);
   const visible = nodes.filter((n) => !hidden.has(n.id));
@@ -157,5 +172,16 @@ export async function findGaps(repo: Repository, clock: Clock): Promise<Gaps> {
     topicsNotStarted: visible
       .filter((n) => n.depth === 3 && n.topicStatus === 'not_started')
       .map((n) => ({ id: n.id, path: pathOf(nodes, n.id) })),
+    tasksDue: tasks
+      .filter((item) => item.dueThisWeek)
+      .sort(compareDue)
+      .map(({ task, overdue }) => ({
+        id: task.id,
+        title: task.title,
+        path: task.nodeId === null ? OTHER : pathOf(nodes, task.nodeId),
+        weekly: task.recurrence === 'weekly',
+        dueOn: task.dueOn,
+        overdue,
+      })),
   };
 }

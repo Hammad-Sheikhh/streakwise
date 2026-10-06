@@ -34,9 +34,33 @@ export function useDashboard() {
   return useQuery({ queryKey: [ds.mode, 'dashboard'], queryFn: () => ds.getDashboard() });
 }
 
+/** TRACK-1. */
+export function useTrackOverview(trackId: string) {
+  const ds = useDataSource();
+  return useQuery({
+    queryKey: [ds.mode, 'track', trackId],
+    queryFn: () => ds.getTrackOverview(trackId),
+  });
+}
+
 export function useDeadlines() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'deadlines'], queryFn: () => ds.listDeadlines() });
+}
+
+/** TASK-1: archived tasks are fetched only when asked for. */
+export function useTasks(options: { includeArchived?: boolean } = {}) {
+  const ds = useDataSource();
+  const includeArchived = options.includeArchived ?? false;
+  return useQuery({
+    queryKey: [ds.mode, 'tasks', { includeArchived }],
+    queryFn: () => ds.listTasks({ includeArchived }),
+  });
+}
+
+export function useScores() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'scores'], queryFn: () => ds.listScores() });
 }
 
 export function useRecentNodeIds() {
@@ -99,4 +123,4 @@ export function useDataMutation<TInput, TResult>(
 }
 
 /** Everything a session change can affect: lists, recent shortcuts, and topic statuses. */
-export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard'];
+export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard', 'track'];
