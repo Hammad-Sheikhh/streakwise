@@ -64,6 +64,20 @@ describe('Log form (LOG-2–5)', () => {
     expect((await api.listTree()).some((n) => n.name === 'Algebra' && n.depth === 3)).toBe(true);
   });
 
+  it('adds a new track from the track picker and selects it', async () => {
+    const { user, api } = await openLog();
+    await user.selectOptions(screen.getByLabelText('Track'), '+ New track…');
+    await user.type(screen.getByLabelText('New track name'), 'Piano{Enter}');
+
+    await waitFor(() =>
+      expect(
+        within(screen.getByLabelText('Track')).getByRole('option', { name: 'Piano' }),
+      ).toHaveProperty('selected', true),
+    );
+    expect(screen.queryByLabelText('New track name')).not.toBeInTheDocument();
+    expect((await api.listTree()).some((n) => n.name === 'Piano' && n.depth === 1)).toBe(true);
+  });
+
   it('fills hours and minutes from the duration chips (LOG-4)', async () => {
     const { user } = await openLog();
     await user.click(screen.getByRole('button', { name: '45m' }));
