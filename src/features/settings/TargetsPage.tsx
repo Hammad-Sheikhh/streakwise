@@ -7,13 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { visibleNodes } from '@/core/logic/tree';
 import { useDataMutation, useTree } from '@/data/queries';
-import { formatTargetHours } from '@/lib/format';
+import { formatTargetHours, TARGET_OPTIONS } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 import { BackToSettings } from './BackToSettings';
 
 /** 0.5 h to 40 h in half-hour steps (TGT-1). */
-const TARGET_OPTIONS = Array.from({ length: 80 }, (_, i) => (i + 1) * 30);
 
 // TGT-1: a weekly target in hours for each track; "No target" shows time only on Home.
 export function TargetsPage() {

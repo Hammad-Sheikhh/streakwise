@@ -2,6 +2,7 @@ import { useId, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { NativeSelect } from '@/components/NativeSelect';
+import { NewTrackDialog } from '@/components/NewTrackDialog';
 import { NodeLabel } from '@/components/NodeLabel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +28,7 @@ export interface LogFormValues {
 
 const DURATION_CHIPS = [15, 30, 45, 60, 90, 120];
 
-/** The track picker's "+ New track…" choice. */
+/** The track picker's "+ Add new track…" choice, which opens the new track's settings. */
 const NEW_TRACK = 'new-track';
 
 interface Props {
@@ -103,7 +104,6 @@ export function LogForm({
   const [newTopicOpen, setNewTopicOpen] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
   const [newTrackOpen, setNewTrackOpen] = useState(false);
-  const [newTrackName, setNewTrackName] = useState('');
 
   // Only visible nodes can be picked, plus the session's own path when editing an archived one.
   const pickable = useMemo(() => {
@@ -156,20 +156,13 @@ export function LogForm({
     },
   );
 
-  const addTrack = useDataMutation(
-    (ds, name: string) => ds.addNode({ parentId: null, name }),
-    ['tree'],
-    {
-      onSuccess: (track) => {
-        // Not selectNode: the tree in hand doesn't have the new track yet.
-        setTrackId(track.id);
-        setSubtaskId('');
-        setTopicId('');
-        setNewTrackOpen(false);
-        setNewTrackName('');
-      },
-    },
-  );
+  // Not selectNode: the tree in hand doesn't have the new track yet.
+  function trackCreated(track: TreeNode) {
+    setTrackId(track.id);
+    setSubtaskId('');
+    setTopicId('');
+    setNewTrackOpen(false);
+  }
 
   function selectNode(id: string) {
     const [track = '', subtask = '', topic = ''] = pathIds(nodes, id);
@@ -229,11 +222,11 @@ export function LogForm({
           <Label htmlFor={`${ids}-track`}>Track</Label>
           <NativeSelect
             id={`${ids}-track`}
-            value={newTrackOpen ? NEW_TRACK : trackId}
+            value={trackId}
             onChange={(e) => {
-              const value = e.target.value;
-              setNewTrackOpen(value === NEW_TRACK);
-              selectNode(value === NEW_TRACK ? '' : value);
+              // "Add new track" opens its settings; the current choice stays until it's created.
+              if (e.target.value === NEW_TRACK) setNewTrackOpen(true);
+              else selectNode(e.target.value);
             }}
             {...describe('node')}
           >
@@ -243,41 +236,10 @@ export function LogForm({
                 {n.name}
               </option>
             ))}
-            <option value={NEW_TRACK}>+ New track…</option>
+            <option value={NEW_TRACK}>+ Add new track…</option>
           </NativeSelect>
           {errorText('node')}
         </div>
-        {newTrackOpen && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={`${ids}-new-track`}>New track name</Label>
-            <div className="flex gap-2">
-              <Input
-                id={`${ids}-new-track`}
-                className="h-11"
-                maxLength={60}
-                placeholder="e.g. Piano"
-                autoFocus
-                value={newTrackName}
-                onChange={(e) => setNewTrackName(e.target.value)}
-                onKeyDown={(e) => {
-                  // Enter adds the track instead of submitting the whole form.
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (newTrackName.trim()) addTrack.mutate(newTrackName.trim());
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                className="h-11"
-                disabled={!newTrackName.trim() || addTrack.isPending}
-                onClick={() => addTrack.mutate(newTrackName.trim())}
-              >
-                Add
-              </Button>
-            </div>
-          </div>
-        )}
         {subtasks.length > 0 && (
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${ids}-subtask`}>Subtask (optional)</Label>
@@ -358,6 +320,12 @@ export function LogForm({
             )}
           </div>
         )}
+        <NewTrackDialog
+          nodes={nodes}
+          open={newTrackOpen}
+          onOpenChange={setNewTrackOpen}
+          onCreated={trackCreated}
+        />
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
