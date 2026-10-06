@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (R2 released; Claude connector works; next M5)_
+_Last updated: 2026-10-06 by Claude Code (M5 built, PR #16 waiting for the owner's check)_
 
 ## Milestones
 
@@ -11,17 +11,17 @@ _Last updated: 2026-10-06 by Claude Code (R2 released; Claude connector works; n
 | M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
 | M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
-| M5 Progress   | ⏳        |     |                                                                                                                      |
+| M5 Progress   | 🔍 review | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
 | M6 Reports    | ⏳        |     |                                                                                                                      |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
-| Release | Date       | Includes                                                                                                                                                                   |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
-| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).   |
+| Release | Date       | Includes                                                                                                                                                                                               |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month.                             |
+| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).                               |
 | R2      | 2026-10-06 | M4 Claude connection, MCP `/.well-known` fix, owner-task rule (#15, merge commit). Owner approved. Live check: `/api/health` ok, `/api/claude-connection` 401, `/mcp/wrong` 404, `/.well-known/*` 404. |
 
 Production builds this month (Oct 2026): **4** (~60 credits, counted conservatively).
@@ -60,6 +60,8 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge #11 into `develop` (owner confirmed 2026-10-06)
 - [x] Say yes/no to release R2: yes, released 2026-10-06 (#15)
 - [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
+- [ ] Try M5 on the PR #16 preview, in demo mode first (`/demo/tasks`, `/demo/scores`, `/demo/tracks`)
+- [ ] OK to merge #16 into `develop`
 
 ## Current work / next step
 
@@ -100,7 +102,16 @@ after the owner confirms, 2026-10-06).
 **Next:**
 
 1. Done: R2 released 2026-10-06; owner added the Claude connector and confirmed it works.
-2. M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
+2. M5 built on `feat/progress`, PR #16 (CI must be green). The branch was rebuilt on `develop`
+   on 2026-10-06 (part 1's 6 code commits kept, 3 stale PROGRESS commits dropped); the old branch
+   is kept locally as `backup/progress-old` and can be deleted after #16 merges.
+   What's in it: Tasks screen (TASK-1–9) and "Due this week" on Home; Scores screen (SCORE-1–5:
+   chart, trends, table); `/tracks` and `/tracks/:id` (TRACK-1) with topic status controls and
+   syllabus % (TOP-1/2); `/api/scores`, `/api/scores/:id`, `/api/tracks/:id`; Claude tools
+   `set_topic_status`, `list_tasks`, `add_task`, `complete_task`, `log_score`; tasks in `find_gaps`.
+   297 tests; checked in a browser on `/demo` (mobile + desktop, light + dark). No migration.
+   **Not yet checked against the real database** (`SupabaseRepository` task/score methods).
+3. After the owner's check and OK: merge #16, then M6 (`feat/reports`), then release R3.
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
@@ -109,7 +120,6 @@ https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the fi
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
 ## Open questions for the owner
-
 
 ## Decisions made during the build
 
@@ -170,6 +180,18 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 - M4: node references try, in order: id, full path, end of path, partial name (each segment
   contained); archived nodes only match when nothing visible does.
 - M4: "last MCP call" is stamped on every tool call (not on `initialize` / `tools/list`).
+- M5: a task's score uses the task title; its kind defaults to "revision" for weekly tasks and
+  "other" for one-off ones (the score dialog lets the owner change it). The completion note is
+  also the score's note. Sub-task progress counts direct sub-tasks only.
+- M5: SCORE-5 "default views" = each track's chart opens on the kind it records most (latest wins
+  a tie), instead of matching track names, so renaming a track doesn't break it. With the usual
+  habits it gives past papers for Improvement, quizzes for Certification, revision for German.
+- M5: SCORE-4 trend = average of the last 3 results minus the 3 before them; with fewer than 4
+  results, the oldest is "before" and the rest are "last". Shown from 2 results on.
+- M5: the score chart is hand-drawn SVG (no chart library, keeps the bundle at ~211 KB gzipped).
+  Line colors are a fixed 8-color palette (validated for color blindness, separate dark steps);
+  a line keeps its color when filters change. The results table is the accessible view.
+- M5: deleting a score that came from a task leaves the task completed.
 - **D15 (owner's choice): one Supabase project (`streakwise-dev`, Singapore) for every environment.**
   The owner's free project allowance was already used. Previews and the `develop` deploy touch real
   data, so test features in demo mode first and warn the owner before any test that writes to the
