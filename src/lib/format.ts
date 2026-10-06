@@ -25,6 +25,9 @@ export function formatDaysLeft(days: number): string {
   return `in ${days} days`;
 }
 
+/** TGT-1: weekly targets from 0.5h to 40h, in half-hour steps (minutes). */
+export const TARGET_OPTIONS = Array.from({ length: 80 }, (_, i) => (i + 1) * 30);
+
 /** Weekly targets are shown in hours, e.g. 480 → "8h", 90 → "1.5h". */
 export function formatTargetHours(minutes: number): string {
   return `${minutes / 60}h`;

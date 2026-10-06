@@ -63,7 +63,7 @@ function assertUniqueName(
 }
 
 /** New tracks get the first palette color no visible track uses yet (TREE-4). */
-function nextTrackColor(nodes: readonly TreeNode[]): TrackColor {
+export function nextTrackColor(nodes: readonly TreeNode[]): TrackColor {
   const hidden = hiddenIds(nodes);
   const used = new Set(nodes.filter((n) => n.depth === 1 && !hidden.has(n.id)).map((n) => n.color));
   const tracks = nodes.filter((n) => n.depth === 1).length;

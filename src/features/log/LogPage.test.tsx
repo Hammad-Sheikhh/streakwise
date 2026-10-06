@@ -64,18 +64,37 @@ describe('Log form (LOG-2–5)', () => {
     expect((await api.listTree()).some((n) => n.name === 'Algebra' && n.depth === 3)).toBe(true);
   });
 
-  it('adds a new track from the track picker and selects it', async () => {
+  it('opens a new track’s settings from the track picker and selects it', async () => {
     const { user, api } = await openLog();
-    await user.selectOptions(screen.getByLabelText('Track'), '+ New track…');
-    await user.type(screen.getByLabelText('New track name'), 'Piano{Enter}');
+    await user.selectOptions(screen.getByLabelText('Track'), '+ Add new track…');
+
+    const dialog = await screen.findByRole('dialog', { name: 'New track' });
+    await user.click(within(dialog).getByRole('button', { name: 'Create track' }));
+    expect(within(dialog).getByText('Enter a name.')).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText('Name'), 'Piano');
+    await user.click(within(dialog).getByRole('button', { name: 'rose' }));
+    await user.selectOptions(
+      within(dialog).getByLabelText('Weekly target (optional)'),
+      '2h a week',
+    );
+    await user.type(within(dialog).getByLabelText(/Subtasks/), 'Theory{Enter}Practice');
+    await user.click(within(dialog).getByRole('button', { name: 'Create track' }));
 
     await waitFor(() =>
       expect(
         within(screen.getByLabelText('Track')).getByRole('option', { name: 'Piano' }),
       ).toHaveProperty('selected', true),
     );
-    expect(screen.queryByLabelText('New track name')).not.toBeInTheDocument();
-    expect((await api.listTree()).some((n) => n.name === 'Piano' && n.depth === 1)).toBe(true);
+    expect(await screen.findByLabelText('Subtask (optional)')).toBeInTheDocument();
+    // Creating the track didn't submit the Log form behind it.
+    expect(screen.queryByText('Enter between 1 minute and 24 hours.')).not.toBeInTheDocument();
+    const tree = await api.listTree();
+    const piano = tree.find((n) => n.name === 'Piano');
+    expect(piano).toMatchObject({ depth: 1, color: 'rose', weeklyTargetMinutes: 120 });
+    expect(tree.filter((n) => n.parentId === piano?.id).map((n) => n.name)).toEqual([
+      'Theory',
+      'Practice',
+    ]);
   });
 
   it('fills hours and minutes from the duration chips (LOG-4)', async () => {
