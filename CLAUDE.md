@@ -8,6 +8,13 @@
    owner to type /clear and then: "Read CLAUDE.md and docs/PROGRESS.md, then continue."
 5. If you must stop unexpectedly, push unfinished work anyway as `chore: WIP …` and note it in PROGRESS.md.
 
+## Owner's manual tasks
+- Never mark a task the owner must do by hand as done (`[x]`) in docs/PROGRESS.md until the owner
+  confirms in chat that they did it. Ask "Have you done X?" first; don't assume from context.
+- Tasks not yet confirmed stay as `[ ]` under "Owner's manual steps" so the next session knows them.
+- At the start of every session, and again before stopping, remind the owner of every open `[ ]` task
+  (one line each) and ask whether any are done. Keep reminding until each one is confirmed.
+
 ## The owner
 - Not technical, on Windows (PowerShell). Explain each step in 1–2 plain sentences; define jargon once.
 - Ask before big decisions (stack, scope, data model, anything that costs money or Netlify credits).
