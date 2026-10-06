@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-04 by Claude Code (M4 built, PR #11 waiting for the owner)_
+_Last updated: 2026-10-06 by Claude Code (M4 + MCP sign-in fix merged into develop; R2 waiting for the owner)_
 
 ## Milestones
 
@@ -92,9 +92,14 @@ MCP Inspector (CLI) lists the tools with the right annotations. Only read-only t
 the shared database, but that call stamped "last MCP call" (2026-10-04), so Settings won't say
 "never".
 
+**Merged into `develop`:** #11 (M4, 2026-10-04), #13 (MCP fix: `/.well-known/*` answers 404 so
+Claude connects without asking to sign in, 2026-10-06), #14 (CLAUDE.md rule: tick owner tasks only
+after the owner confirms, 2026-10-06).
+
 **Next:**
 
-1. Owner tries the preview, OKs merging #11, then says yes/no to **R2**.
+1. Owner tries M4 on the `develop` deploy (https://develop--streakwise-ap.netlify.app/settings),
+   then says yes/no to **R2**.
 2. After R2: owner adds the custom connector in Claude (steps are in Settings → Claude connection,
    checked against the Claude help article on 2026-10-04) and tests it in a chat.
 3. Then M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
@@ -106,6 +111,8 @@ https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the fi
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
 ## Open questions for the owner
+
+- #11 was merged on 2026-10-04: did the owner OK that merge? (Its task stays `[ ]` until confirmed.)
 
 ## Decisions made during the build
 
