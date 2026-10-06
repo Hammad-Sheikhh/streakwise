@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (M5 built, PR #16 waiting for the owner's check)_
+_Last updated: 2026-10-06 by Claude Code (M5 merged into develop; owner must run 0002; next M6)_
 
 ## Milestones
 
@@ -11,7 +11,7 @@ _Last updated: 2026-10-06 by Claude Code (M5 built, PR #16 waiting for the owner
 | M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
 | M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
-| M5 Progress   | 🔍 review | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
 | M6 Reports    | ⏳        |     |                                                                                                                      |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
@@ -32,9 +32,10 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration          | Applied                                                  |
-| ------------------ | -------------------------------------------------------- |
-| `0001_initial.sql` | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
+| Migration                     | Applied                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                 |
+| `0002_tasks_without_node.sql` | ⏳ not yet run (needed for "Other" tasks; must be run before release R3) |
 
 ## Owner's manual steps
 
@@ -60,8 +61,11 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge #11 into `develop` (owner confirmed 2026-10-06)
 - [x] Say yes/no to release R2: yes, released 2026-10-06 (#15)
 - [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
-- [ ] Try M5 on the PR #16 preview, in demo mode first (`/demo/tasks`, `/demo/scores`, `/demo/tracks`)
-- [ ] OK to merge #16 into `develop`
+- [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
+- [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
+- [ ] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
+- [ ] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
+      https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
 
 ## Current work / next step
 
@@ -102,16 +106,14 @@ after the owner confirms, 2026-10-06).
 **Next:**
 
 1. Done: R2 released 2026-10-06; owner added the Claude connector and confirmed it works.
-2. M5 built on `feat/progress`, PR #16 (CI must be green). The branch was rebuilt on `develop`
-   on 2026-10-06 (part 1's 6 code commits kept, 3 stale PROGRESS commits dropped); the old branch
-   is kept locally as `backup/progress-old` and can be deleted after #16 merges.
-   What's in it: Tasks screen (TASK-1–9) and "Due this week" on Home; Scores screen (SCORE-1–5:
-   chart, trends, table); `/tracks` and `/tracks/:id` (TRACK-1) with topic status controls and
-   syllabus % (TOP-1/2); `/api/scores`, `/api/scores/:id`, `/api/tracks/:id`; Claude tools
-   `set_topic_status`, `list_tasks`, `add_task`, `complete_task`, `log_score`; tasks in `find_gaps`.
-   297 tests; checked in a browser on `/demo` (mobile + desktop, light + dark). No migration.
-   **Not yet checked against the real database** (`SupabaseRepository` task/score methods).
-3. After the owner's check and OK: merge #16, then M6 (`feat/reports`), then release R3.
+2. M5 merged into `develop` as #16 (2026-10-06), with the owner's later requests: tasks can be
+   for "Other" (no track; can't be scored; migration `0002`, D16), the task form's For list has
+   "+ New track…", and the Tracks screen has an Add track form. #17 added the CLAUDE.md rule to
+   explain every owner task in detail. 302 tests. Until the owner runs `0002`, choosing "Other"
+   on the real database fails with an error toast; everything else works.
+   `backup/progress-old` (local only) can be deleted.
+3. Next: M6 (`feat/reports`: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`), then release R3
+   (M5 + M6) after the owner says yes. `0002` must be run before R3 goes live.
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
