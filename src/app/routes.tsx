@@ -11,6 +11,7 @@ import { HomePage } from '@/features/dashboard/HomePage';
 import { DemoLayout } from '@/features/demo/DemoLayout';
 import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogPage } from '@/features/log/LogPage';
+import { ScoresPage } from '@/features/scores/ScoresPage';
 import { DeadlinesPage } from '@/features/settings/DeadlinesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { StructurePage } from '@/features/settings/StructurePage';
@@ -31,15 +32,7 @@ const appPages: RouteObject[] = [
       { path: 'settings/targets', element: <TargetsPage /> },
       { path: 'settings/deadlines', element: <DeadlinesPage /> },
       { path: 'tasks', element: <TasksPage /> },
-      {
-        path: 'scores',
-        element: (
-          <ComingSoonPage
-            title="Scores"
-            description="Past papers, quizzes, and charts arrive in a later update."
-          />
-        ),
-      },
+      { path: 'scores', element: <ScoresPage /> },
       {
         path: 'tracks',
         element: (
