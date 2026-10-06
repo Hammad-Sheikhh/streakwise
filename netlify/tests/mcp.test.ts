@@ -128,19 +128,24 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
     }
   });
 
-  it('lists the M4 tools with descriptions, schemas, and annotations', async () => {
+  it('lists the tools with descriptions, schemas, and annotations', async () => {
     const reply = await rpc('tools/list');
     const tools = (reply.result as { tools: Record<string, unknown>[] }).tools;
     const byTool = Object.fromEntries(tools.map((t) => [t.name as string, t]));
     expect(Object.keys(byTool).sort()).toEqual([
       'add_node',
+      'add_task',
+      'complete_task',
       'delete_session',
       'find_gaps',
       'get_progress',
       'get_structure',
       'list_deadlines',
       'list_sessions',
+      'list_tasks',
+      'log_score',
       'log_session',
+      'set_topic_status',
     ]);
     for (const tool of tools) {
       expect(String(tool.description).length).toBeGreaterThan(40);
@@ -152,8 +157,15 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'get_progress',
       'find_gaps',
       'list_deadlines',
+      'list_tasks',
     ]) {
       expect(byTool[name]?.annotations).toMatchObject({ readOnlyHint: true });
+    }
+    for (const name of ['add_task', 'complete_task', 'log_score', 'set_topic_status']) {
+      expect(byTool[name]?.annotations).toMatchObject({
+        readOnlyHint: false,
+        destructiveHint: false,
+      });
     }
     expect(byTool.delete_session?.annotations).toMatchObject({ destructiveHint: true });
     expect(byTool.log_session?.annotations).toMatchObject({
@@ -400,5 +412,117 @@ describe('get_progress, find_gaps, list_deadlines', () => {
 
     const all = await call('list_deadlines', { include_past: true });
     expect(all.data.deadlines.map((d: { daysLeft: number }) => d.daysLeft)).toEqual([-13, 30]);
+  });
+});
+
+describe('M5 tools: topics, tasks, and scores', () => {
+  it('sets a topic’s status and refuses non-topics', async () => {
+    const maths = await byName('Maths');
+    await addNode(setup.repo, setup.deps.newId, { parentId: maths.id, name: 'Chapter 3' });
+
+    const done = await call('set_topic_status', { topic: 'maths > chapter 3', status: 'done' });
+    expect(done.data.topic).toMatchObject({
+      path: 'Improvement Exams > Maths > Chapter 3',
+      status: 'done',
+    });
+    const reopened = await call('set_topic_status', { topic: 'chapter 3', status: 'in_progress' });
+    expect(reopened.data.topic.status).toBe('in_progress');
+
+    const wrong = await call('set_topic_status', { topic: 'maths', status: 'done' });
+    expect(wrong.isError).toBe(true);
+    expect(wrong.data.error.code).toBe('topics_only');
+  });
+
+  it('adds tasks and sub-tasks, lists them by status, and completes a scored one', async () => {
+    const added = await call('add_task', {
+      title: 'Past paper 2023',
+      node: 'maths',
+      due_date: '2026-10-02',
+      scored: true,
+      default_max_score: 80,
+    });
+    expect(added.isError).toBe(false);
+    expect(added.data.task).toMatchObject({
+      path: 'Improvement Exams > Maths',
+      dueOn: '2026-10-02',
+      scored: true,
+      done: false,
+    });
+    const child = await call('add_task', {
+      title: 'Section A',
+      node: 'maths',
+      parent_task_id: added.data.task.id,
+    });
+    expect(child.data.task.parentTaskId).toBe(added.data.task.id);
+
+    const invalid = await call('add_task', {
+      title: 'Weekly',
+      node: 'maths',
+      weekly: true,
+      due_date: 'today',
+    });
+    expect(invalid.isError).toBe(true);
+
+    const due = await call('list_tasks', { status: 'due_this_week' });
+    expect(due.data.tasks.map((t: { title: string }) => t.title)).toContain('Past paper 2023');
+    const inMaths = await call('list_tasks', { node: 'Improvement Exams' });
+    expect(inMaths.data.tasks).toHaveLength(2);
+
+    const missingScore = await call('complete_task', { task_id: added.data.task.id });
+    expect(missingScore.data.error.code).toBe('score_required');
+
+    const completed = await call('complete_task', {
+      task_id: added.data.task.id,
+      score: 60,
+      kind: 'past_paper',
+    });
+    expect(completed.data.task.done).toBe(true);
+    expect(completed.data.score).toMatchObject({ score: 60, maxScore: 80, percent: 75 });
+
+    const again = await call('complete_task', { task_id: added.data.task.id, score: 60 });
+    expect(again.isError).toBe(true);
+
+    const done = await call('list_tasks', { status: 'done' });
+    expect(done.data.tasks).toHaveLength(1);
+  });
+
+  it('records a score, validating the date and the maximum', async () => {
+    const saved = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Grammar quiz',
+      score: 9,
+      max_score: 12,
+      date: 'yesterday',
+    });
+    expect(saved.data.score).toMatchObject({
+      path: 'Improvement Exams > English',
+      percent: 75,
+      kind: 'quiz',
+    });
+    const over = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Too high',
+      score: 13,
+      max_score: 12,
+    });
+    expect(over.isError).toBe(true);
+    const future = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Future',
+      score: 1,
+      max_score: 12,
+      date: '2099-01-01',
+    });
+    expect(future.data.error.code).toBe('future_date');
+  });
+
+  it('adds tasks due this week to find_gaps', async () => {
+    const gaps = await call('find_gaps');
+    expect(gaps.data.tasksDue).toEqual([
+      expect.objectContaining({ title: 'Weekly recall / revision', weekly: true, overdue: false }),
+    ]);
   });
 });

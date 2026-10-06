@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SESSION_SOURCES } from '../domain/types';
+import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES } from '../domain/types';
 import { listLimitSchema, MAX_NOTE_LENGTH, MAX_SESSION_MINUTES } from './inputs';
 
 // MCP-8: input schemas for the Claude (MCP) tools. Descriptions are written for an AI reader; the
@@ -81,4 +81,89 @@ export const addNodeToolSchema = z.object({
 export const listDeadlinesToolSchema = z.object({
   include_past: z.boolean().default(false).describe('Also include deadlines that have passed.'),
   limit,
+});
+
+export const setTopicStatusToolSchema = z.object({
+  topic: nodeRef.describe(`The topic (level 3). ${nodeRef.description}`),
+  status: z
+    .enum(TOPIC_STATUSES)
+    .describe('not_started, in_progress, or done. A done topic can be reopened.'),
+});
+
+export const listTasksToolSchema = z.object({
+  node: nodeRef
+    .optional()
+    .describe(`Only tasks on this node or anything under it. ${nodeRef.description}`),
+  status: z
+    .enum(['open', 'done', 'due_this_week', 'all'])
+    .default('open')
+    .describe(
+      '"open" (not done; weekly tasks not done this week), "done", "due_this_week" (weekly tasks ' +
+        'not done this week plus one-off tasks due by Sunday, overdue included), or "all". ' +
+        'Default "open".',
+    ),
+  include_archived: z.boolean().default(false).describe('Also include archived tasks.'),
+  limit,
+});
+
+const maxScore = z.number().positive().max(100_000);
+
+export const addTaskToolSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120).describe('Task title (1–120 characters).'),
+    node: nodeRef.describe(`What the task is for. ${nodeRef.description}`),
+    parent_task_id: z
+      .uuid()
+      .optional()
+      .describe('Makes it a sub-task of this task (id from list_tasks). Sub-tasks nest freely.'),
+    description: z.string().trim().max(2000).optional().describe('Optional details.'),
+    weekly: z
+      .boolean()
+      .default(false)
+      .describe('true = due every week (Mon–Sun) until done that week; no due date allowed.'),
+    due_date: dateRef
+      .optional()
+      .describe(`Optional due date for a one-off task. ${dateRef.description}`),
+    scored: z
+      .boolean()
+      .default(false)
+      .describe('true = completing it records a score (needs default_max_score).'),
+    default_max_score: maxScore.optional().describe('Usual maximum score, for scored tasks.'),
+  })
+  .refine((t) => !(t.weekly && t.due_date), {
+    message: 'Weekly tasks can’t have a due date.',
+    path: ['due_date'],
+  })
+  .refine((t) => !t.scored || t.default_max_score !== undefined, {
+    message: 'Scored tasks need default_max_score.',
+    path: ['default_max_score'],
+  });
+
+export const completeTaskToolSchema = z.object({
+  task_id: z.uuid().describe('The task id, from list_tasks or add_task.'),
+  score: z
+    .number()
+    .min(0)
+    .optional()
+    .describe('Required for scored tasks, not allowed otherwise. Must be ≤ the maximum.'),
+  max_score: maxScore
+    .optional()
+    .describe('Maximum score; defaults to the task’s default_max_score.'),
+  kind: z
+    .enum(SCORE_KINDS)
+    .default('other')
+    .describe('Kind of the score recorded for a scored task. Default "other".'),
+  note: z.string().trim().max(MAX_NOTE_LENGTH).optional().describe('Optional short note.'),
+});
+
+export const logScoreToolSchema = z.object({
+  node: nodeRef.describe(`What the score is for. ${nodeRef.description}`),
+  kind: z.enum(SCORE_KINDS).describe('past_paper, quiz, mock_test, revision, or other.'),
+  title: z.string().trim().min(1).max(120).describe('e.g. "2023 Paper 1".'),
+  score: z.number().min(0).describe('Points scored (≥ 0, ≤ max_score).'),
+  max_score: maxScore.describe('Maximum possible points (> 0).'),
+  date: dateRef
+    .default('today')
+    .describe(`When it was taken; not in the future. ${dateRef.description} Default today.`),
+  note: z.string().trim().max(MAX_NOTE_LENGTH).optional().describe('Optional short note.'),
 });
