@@ -3,6 +3,7 @@ import type {
   Dashboard,
   Deadline,
   HistoryPage,
+  Score,
   Session,
   Settings,
   Task,
@@ -13,6 +14,7 @@ import type {
 import type {
   CompleteTaskInput,
   CreateDeadlineInput,
+  CreateScoreInput,
   CreateTaskInput,
   UpdateTaskInput,
   CreateNodeInput,
@@ -22,6 +24,7 @@ import type {
   MoveNodeInput,
   SetTopicStatusInput,
   UpdateNodeInput,
+  UpdateScoreInput,
   UpdateSessionInput,
   UpdateSettingsInput,
 } from '@/core/schemas/inputs';
@@ -68,6 +71,12 @@ export interface DataSource {
   deleteTask(id: string): Promise<void>;
   completeTask(id: string, input: CompleteTaskInput): Promise<TaskCompletion>;
   uncompleteTask(completionId: string): Promise<void>;
+
+  /** SCORE-1, SCORE-3: newest first. */
+  listScores(): Promise<Score[]>;
+  addScore(input: CreateScoreInput): Promise<Score>;
+  updateScore(id: string, input: UpdateScoreInput): Promise<Score>;
+  deleteScore(id: string): Promise<void>;
 
   getSettings(): Promise<Settings>;
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;

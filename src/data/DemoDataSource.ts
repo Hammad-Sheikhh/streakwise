@@ -3,6 +3,7 @@ import type { Clock, IdGenerator } from '@/core/domain/types';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
+import * as scores from '@/core/services/scores';
 import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
 import * as settings from '@/core/services/settings';
@@ -146,6 +147,22 @@ export class DemoDataSource implements DataSource {
 
   uncompleteTask(completionId: string) {
     return this.run((repo) => tasks.uncompleteTask(repo, completionId));
+  }
+
+  listScores() {
+    return this.run((repo) => scores.listScores(repo));
+  }
+
+  addScore(input: Parameters<DataSource['addScore']>[0]) {
+    return this.run((repo) => scores.addScore(repo, this.clock, this.newId, input));
+  }
+
+  updateScore(id: string, input: Parameters<DataSource['updateScore']>[1]) {
+    return this.run((repo) => scores.updateScore(repo, this.clock, id, input));
+  }
+
+  deleteScore(id: string) {
+    return this.run((repo) => scores.deleteScore(repo, id));
   }
 
   getSettings() {

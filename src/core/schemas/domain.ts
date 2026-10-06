@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-import { SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
+import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
 import type {
   ClaudeConnection,
   Dashboard,
   Deadline,
   HistoryPage,
+  Score,
   Session,
   Settings,
   Task,
@@ -113,6 +114,19 @@ export const taskItemSchema = z.object({
   subtasks: z.object({ done: minutes, total: minutes }).nullable(),
   completedWeeks: z.array(z.iso.date()),
 }) satisfies z.ZodType<TaskItem>;
+
+export const scoreSchema = z.object({
+  id: z.uuid(),
+  nodeId: z.uuid(),
+  taskCompletionId: z.uuid().nullable(),
+  kind: z.enum(SCORE_KINDS),
+  title: z.string().min(1).max(200),
+  takenOn: z.iso.date(),
+  score: z.number().min(0),
+  maxScore: z.number().positive(),
+  note: z.string().max(500).nullable(),
+  createdAt: timestamp,
+}) satisfies z.ZodType<Score>;
 
 export const dashboardSchema = z.object({
   today: z.iso.date(),

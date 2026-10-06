@@ -49,6 +49,11 @@ export function useTasks(options: { includeArchived?: boolean } = {}) {
   });
 }
 
+export function useScores() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'scores'], queryFn: () => ds.listScores() });
+}
+
 export function useRecentNodeIds() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'recent'], queryFn: () => ds.recentNodeIds() });

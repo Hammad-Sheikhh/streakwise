@@ -7,6 +7,7 @@ import {
   dashboardSchema,
   deadlineSchema,
   historyPageSchema,
+  scoreSchema,
   sessionSchema,
   settingsSchema,
   taskCompletionSchema,
@@ -30,6 +31,8 @@ const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
 const taskResponse = z.object({ task: taskSchema });
 const taskItemsResponse = z.object({ items: z.array(taskItemSchema) });
 const completionResponse = z.object({ completion: taskCompletionSchema });
+const scoreResponse = z.object({ score: scoreSchema });
+const scoresResponse = z.object({ scores: z.array(scoreSchema) });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -194,6 +197,23 @@ export class ApiDataSource implements DataSource {
   async uncompleteTask(completionId: string) {
     const path = `completions/${encodeURIComponent(completionId)}`;
     await this.request(path, okResponse, { method: 'DELETE' });
+  }
+
+  async listScores() {
+    return (await this.request('scores', scoresResponse)).scores;
+  }
+
+  async addScore(input: Parameters<DataSource['addScore']>[0]) {
+    return (await this.request('scores', scoreResponse, { method: 'POST', body: input })).score;
+  }
+
+  async updateScore(id: string, input: Parameters<DataSource['updateScore']>[1]) {
+    const path = `scores/${encodeURIComponent(id)}`;
+    return (await this.request(path, scoreResponse, { method: 'PATCH', body: input })).score;
+  }
+
+  async deleteScore(id: string) {
+    await this.request(`scores/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
   }
 
   async getSettings() {

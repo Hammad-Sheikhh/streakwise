@@ -221,3 +221,43 @@ export const completeTaskInputSchema = z.object({
   note: note.optional().transform((value) => value ?? null),
 });
 export type CompleteTaskInput = z.input<typeof completeTaskInputSchema>;
+
+const scoreTitle = z
+  .string()
+  .trim()
+  .min(1, 'Enter a title.')
+  .max(120, 'Titles can be at most 120 characters.');
+const scoreValue = z.number().min(0, 'A score can’t be negative.').max(100_000);
+
+/** SCORE-1. The service also checks that the date isn't in the future. */
+export const createScoreInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the score is for.'),
+    kind: z.enum(SCORE_KINDS),
+    title: scoreTitle,
+    takenOn: localDateSchema,
+    score: scoreValue,
+    maxScore,
+    note: note.optional().transform((value) => value ?? null),
+  })
+  .refine((s) => s.score <= s.maxScore, {
+    message: 'The score can’t be more than the maximum.',
+    path: ['score'],
+  });
+export type CreateScoreInput = z.input<typeof createScoreInputSchema>;
+
+/** SCORE-1. The combined result is checked again by the service (score ≤ max, date). */
+export const updateScoreInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the score is for.').optional(),
+    kind: z.enum(SCORE_KINDS).optional(),
+    title: scoreTitle.optional(),
+    takenOn: localDateSchema.optional(),
+    score: scoreValue.optional(),
+    maxScore: maxScore.optional(),
+    note: note.optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Nothing to change.',
+  });
+export type UpdateScoreInput = z.input<typeof updateScoreInputSchema>;
