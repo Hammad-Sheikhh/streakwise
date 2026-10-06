@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (R2 released; owner to try M4 live and add the Claude connector)_
+_Last updated: 2026-10-06 by Claude Code (R2 released; Claude connector works; next M5)_
 
 ## Milestones
 
@@ -56,10 +56,10 @@ One database for everything (D15), so each migration runs once.
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
 - [x] Merge #9 (merged by Claude Code at the owner's request)
 - [x] Say yes/no to release R1 (first live version): yes, released 2026-10-03 (#10)
-- [ ] Try M4 on the live site: Settings → Claude connection (https://streakwise-ap.netlify.app/settings)
+- [x] Try M4 on the live site: Settings → Claude connection (owner used it to add the connector, 2026-10-06)
 - [x] OK to merge #11 into `develop` (owner confirmed 2026-10-06)
 - [x] Say yes/no to release R2: yes, released 2026-10-06 (#15)
-- [ ] Claude custom connector added (after R2), using the URL from the **live** Settings page
+- [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
 
 ## Current work / next step
 
@@ -99,10 +99,8 @@ after the owner confirms, 2026-10-06).
 
 **Next:**
 
-1. R2 released 2026-10-06. Owner tries Settings → Claude connection on the live site.
-2. Owner adds the custom connector in Claude (steps are in Settings → Claude connection,
-   checked against the Claude help article on 2026-10-04) and tests it in a chat.
-3. Then M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
+1. Done: R2 released 2026-10-06; owner added the Claude connector and confirmed it works.
+2. M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
