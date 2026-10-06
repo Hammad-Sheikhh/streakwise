@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (M4 + MCP sign-in fix merged into develop; R2 waiting for the owner)_
+_Last updated: 2026-10-06 by Claude Code (R2 released; owner to try M4 live and add the Claude connector)_
 
 ## Milestones
 
@@ -22,8 +22,9 @@ _Last updated: 2026-10-06 by Claude Code (M4 + MCP sign-in fix merged into devel
 | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
 | R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).   |
+| R2      | 2026-10-06 | M4 Claude connection, MCP `/.well-known` fix, owner-task rule (#15, merge commit). Owner approved. Live check: `/api/health` ok, `/api/claude-connection` 401, `/mcp/wrong` 404, `/.well-known/*` 404. |
 
-Production builds this month (Oct 2026): **3** (~45 credits, counted conservatively).
+Production builds this month (Oct 2026): **4** (~60 credits, counted conservatively).
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -55,9 +56,9 @@ One database for everything (D15), so each migration runs once.
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
 - [x] Merge #9 (merged by Claude Code at the owner's request)
 - [x] Say yes/no to release R1 (first live version): yes, released 2026-10-03 (#10)
-- [ ] Try M4 on the preview: Settings → Claude connection (https://deploy-preview-11--streakwise-ap.netlify.app/settings)
-- [ ] OK to merge #11 into `develop`
-- [ ] Say yes/no to release R2 (Claude connected; production build 4 of 8 this month)
+- [ ] Try M4 on the live site: Settings → Claude connection (https://streakwise-ap.netlify.app/settings)
+- [x] OK to merge #11 into `develop` (owner confirmed 2026-10-06)
+- [x] Say yes/no to release R2: yes, released 2026-10-06 (#15)
 - [ ] Claude custom connector added (after R2), using the URL from the **live** Settings page
 
 ## Current work / next step
@@ -98,9 +99,8 @@ after the owner confirms, 2026-10-06).
 
 **Next:**
 
-1. Owner tries M4 on the `develop` deploy (https://develop--streakwise-ap.netlify.app/settings),
-   then says yes/no to **R2**.
-2. After R2: owner adds the custom connector in Claude (steps are in Settings → Claude connection,
+1. R2 released 2026-10-06. Owner tries Settings → Claude connection on the live site.
+2. Owner adds the custom connector in Claude (steps are in Settings → Claude connection,
    checked against the Claude help article on 2026-10-04) and tests it in a chat.
 3. Then M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
 
@@ -112,7 +112,6 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- #11 was merged on 2026-10-04: did the owner OK that merge? (Its task stays `[ ]` until confirmed.)
 
 ## Decisions made during the build
 
