@@ -13,6 +13,7 @@ import {
   taskCompletionSchema,
   taskItemSchema,
   taskSchema,
+  trackOverviewSchema,
   treeNodeSchema,
 } from '@/core/schemas/domain';
 import type { HistoryQuery } from '@/core/schemas/inputs';
@@ -150,6 +151,10 @@ export class ApiDataSource implements DataSource {
 
   async getDashboard() {
     return this.request('dashboard', dashboardSchema);
+  }
+
+  async getTrackOverview(trackId: string) {
+    return this.request(`tracks/${encodeURIComponent(trackId)}`, trackOverviewSchema);
   }
 
   async listDeadlines() {

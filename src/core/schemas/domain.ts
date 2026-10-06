@@ -12,6 +12,7 @@ import type {
   Task,
   TaskCompletion,
   TaskItem,
+  TrackOverview,
   TreeNode,
 } from '../domain/types';
 
@@ -65,6 +66,13 @@ export const deadlineSchema = z.object({
 }) satisfies z.ZodType<Deadline>;
 
 const minutes = z.number().int().min(0);
+
+export const trackOverviewSchema = z.object({
+  trackId: z.uuid(),
+  today: z.iso.date(),
+  nodes: z.array(z.object({ nodeId: z.uuid(), weekMinutes: minutes, totalMinutes: minutes })),
+  recentSessions: z.array(sessionSchema),
+}) satisfies z.ZodType<TrackOverview>;
 
 export const settingsSchema = z.object({
   studentName: z.string().max(80),

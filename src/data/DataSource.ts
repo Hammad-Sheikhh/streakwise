@@ -9,6 +9,7 @@ import type {
   Task,
   TaskCompletion,
   TaskItem,
+  TrackOverview,
   TreeNode,
 } from '@/core/domain/types';
 import type {
@@ -58,6 +59,9 @@ export interface DataSource {
   recentNodeIds(): Promise<string[]>;
 
   getDashboard(): Promise<Dashboard>;
+
+  /** TRACK-1. */
+  getTrackOverview(trackId: string): Promise<TrackOverview>;
 
   listDeadlines(): Promise<Deadline[]>;
   addDeadline(input: CreateDeadlineInput): Promise<Deadline>;

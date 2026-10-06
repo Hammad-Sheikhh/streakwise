@@ -34,6 +34,15 @@ export function useDashboard() {
   return useQuery({ queryKey: [ds.mode, 'dashboard'], queryFn: () => ds.getDashboard() });
 }
 
+/** TRACK-1. */
+export function useTrackOverview(trackId: string) {
+  const ds = useDataSource();
+  return useQuery({
+    queryKey: [ds.mode, 'track', trackId],
+    queryFn: () => ds.getTrackOverview(trackId),
+  });
+}
+
 export function useDeadlines() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'deadlines'], queryFn: () => ds.listDeadlines() });
@@ -114,4 +123,4 @@ export function useDataMutation<TInput, TResult>(
 }
 
 /** Everything a session change can affect: lists, recent shortcuts, and topic statuses. */
-export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard'];
+export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard', 'track'];

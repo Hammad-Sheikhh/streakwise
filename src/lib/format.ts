@@ -1,4 +1,4 @@
-import type { ScoreKind } from '@/core/domain/types';
+import type { ScoreKind, TopicStatus } from '@/core/domain/types';
 import { addDays } from '@/core/logic/dates';
 import { formatDuration } from '@/core/logic/duration';
 
@@ -50,3 +50,10 @@ export const SCORE_KIND_LABELS: Record<ScoreKind, string> = {
 export function formatWeek(monday: string): string {
   return `Week of ${formatDay(monday)}`;
 }
+
+/** TOP-1. */
+export const TOPIC_STATUS_LABELS: Record<TopicStatus, string> = {
+  not_started: 'Not started',
+  in_progress: 'In progress',
+  done: 'Done',
+};

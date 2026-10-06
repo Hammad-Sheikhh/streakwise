@@ -9,6 +9,7 @@ import * as sessions from '@/core/services/sessions';
 import * as settings from '@/core/services/settings';
 import * as structure from '@/core/services/structure';
 import * as tasks from '@/core/services/tasks';
+import * as tracks from '@/core/services/tracks';
 
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
@@ -107,6 +108,10 @@ export class DemoDataSource implements DataSource {
 
   getDashboard() {
     return this.run((repo) => dashboard.getDashboard(repo, this.clock));
+  }
+
+  getTrackOverview(trackId: string) {
+    return this.run((repo) => tracks.getTrackOverview(repo, this.clock, trackId));
   }
 
   listDeadlines() {

@@ -87,6 +87,15 @@ export interface Dashboard {
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
 }
 
+/** TRACK-1: time per node in the track (the track itself included) and its latest sessions. */
+export interface TrackOverview {
+  trackId: string;
+  today: string;
+  nodes: { nodeId: string; weekMinutes: number; totalMinutes: number }[];
+  /** Newest first. */
+  recentSessions: Session[];
+}
+
 /** One day of History (HIST-1): its sessions, newest first, and their total. */
 export interface HistoryDay {
   date: string;

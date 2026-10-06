@@ -17,6 +17,8 @@ import { SettingsPage } from '@/features/settings/SettingsPage';
 import { StructurePage } from '@/features/settings/StructurePage';
 import { TargetsPage } from '@/features/settings/TargetsPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
+import { TrackPage } from '@/features/tracks/TrackPage';
+import { TracksPage } from '@/features/tracks/TracksPage';
 
 // The app's pages; demo mode mounts the same pages under /demo (SPEC §B6).
 const appPages: RouteObject[] = [
@@ -33,12 +35,8 @@ const appPages: RouteObject[] = [
       { path: 'settings/deadlines', element: <DeadlinesPage /> },
       { path: 'tasks', element: <TasksPage /> },
       { path: 'scores', element: <ScoresPage /> },
-      {
-        path: 'tracks',
-        element: (
-          <ComingSoonPage title="Tracks" description="Track pages arrive in a later update." />
-        ),
-      },
+      { path: 'tracks', element: <TracksPage /> },
+      { path: 'tracks/:id', element: <TrackPage /> },
       {
         path: 'reports',
         element: (
