@@ -655,7 +655,7 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D13 | Feature PRs squash-merged into `develop`; release PRs merged into `main` with a merge commit | Clean history, and release PRs that don't conflict |
 | D14 | R2 (M0–M4) is the minimum useful version | Exams come first; the core goal is met early |
 | D15 | One Supabase project for every environment (owner's choice, 2026-10-03). Previews and the `develop` deploy use the real database; features are tested in demo mode first, and Claude Code warns the owner before any test that writes to the database. `MCP_SECRET` still differs between production and other contexts. | The owner's Supabase account already uses its free project allowance; a second project isn't available for free |
-| D16 | Tasks can be for **Other** (no track; `tasks.node_id` nullable, migration `0002`); "Other" tasks can't be scored. The task form's "For" list also offers **+ New track…**, and the Tracks screen has an Add track form (owner's request, 2026-10-06). | To-dos outside the study structure, and adding tracks where they're needed |
+| D16 | Tasks can be for **Other** (no track; `tasks.node_id` nullable, migration `0002`); "Other" tasks can't be scored. The task form's "For" list also offers **+ New track…**, the Tracks screen has an Add track form, and the Log screen's Track picker offers **+ New track…** (owner's requests, 2026-10-06). | To-dos outside the study structure, and adding tracks where they're needed |
 
 ## B16. Out of scope
 
