@@ -64,6 +64,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
 - [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
 - [x] Try "+ New track…" on the Log screen (PR #18 preview) and OK to merge #18 (owner, 2026-10-06; merged)
+- [ ] Try "+ Add new track…" on the Log screen (PR #19 preview, demo mode: opens the new track's settings) and say OK to merge #19
 - [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
 - [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
