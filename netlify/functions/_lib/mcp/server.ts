@@ -135,7 +135,7 @@ function taskView(nodes: readonly TreeNode[], item: TaskItem) {
     title: task.title,
     description: task.description,
     nodeId: task.nodeId,
-    path: pathOf(nodes, task.nodeId),
+    path: task.nodeId === null ? 'Other' : pathOf(nodes, task.nodeId),
     parentTaskId: task.parentTaskId,
     weekly: task.recurrence === 'weekly',
     dueOn: task.dueOn,
@@ -451,7 +451,7 @@ export function buildMcpServer(deps: ServerDeps): McpServer {
           node === undefined ? null : new Set(subtreeIds(nodes, resolveNodeRef(nodes, node).id));
         let items = (
           await listTaskItems(repo, clock, { includeArchived: include_archived })
-        ).filter((item) => !inNode || inNode.has(item.task.nodeId));
+        ).filter((item) => !inNode || (item.task.nodeId !== null && inNode.has(item.task.nodeId)));
         if (status === 'open') items = items.filter((i) => i.completion === null);
         if (status === 'done') items = items.filter((i) => i.completion !== null);
         if (status === 'due_this_week') items = items.filter((i) => i.dueThisWeek).sort(compareDue);
@@ -478,9 +478,9 @@ export function buildMcpServer(deps: ServerDeps): McpServer {
     (input) =>
       run('add_task', async () => {
         const nodes = await repo.listNodes();
-        const target = resolveNodeRef(nodes, input.node);
+        const nodeId = input.node === undefined ? null : resolveNodeRef(nodes, input.node).id;
         const created = await createTask(repo, newId, {
-          nodeId: target.id,
+          nodeId,
           parentTaskId: input.parent_task_id ?? null,
           title: input.title,
           description: input.description ?? null,

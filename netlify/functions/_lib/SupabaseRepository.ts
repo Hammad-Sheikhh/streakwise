@@ -139,7 +139,7 @@ const numeric = z.coerce.number();
 const taskRow = z
   .object({
     id: z.string(),
-    node_id: z.string(),
+    node_id: z.string().nullable(),
     parent_task_id: z.string().nullable(),
     title: z.string(),
     description: z.string().nullable(),

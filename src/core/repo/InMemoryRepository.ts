@@ -1,4 +1,4 @@
-import { conflict, notFound } from '../domain/errors';
+import { conflict, invalid, notFound } from '../domain/errors';
 import type {
   Clock,
   Deadline,
@@ -33,6 +33,8 @@ import type {
 
 const byNewest = (a: Session, b: Session) =>
   b.studiedOn.localeCompare(a.studiedOn) || b.createdAt.localeCompare(a.createdAt);
+
+const SCORED_NEEDS_NODE = 'Scored tasks need a track or subject.';
 
 export class InMemoryRepository implements Repository {
   private nodes: TreeNode[] = [];
@@ -122,7 +124,7 @@ export class InMemoryRepository implements Repository {
     }
     const inUse =
       this.sessions.some((s) => ids.has(s.nodeId)) ||
-      this.tasks.some((t) => ids.has(t.nodeId)) ||
+      this.tasks.some((t) => t.nodeId !== null && ids.has(t.nodeId)) ||
       this.scores.some((s) => ids.has(s.nodeId)) ||
       this.deadlines.some((d) => ids.has(d.nodeId));
     if (inUse) throw conflict('node_in_use');
@@ -260,8 +262,11 @@ export class InMemoryRepository implements Repository {
   }
 
   async insertTask(input: NewTask): Promise<Task> {
-    this.findNode(input.nodeId);
+    if (input.nodeId !== null) this.findNode(input.nodeId);
     if (input.parentTaskId !== null) this.findTask(input.parentTaskId);
+    // Like tasks_scored_needs_node (0002).
+    if (input.isScored && input.nodeId === null)
+      throw invalid('scored_needs_node', SCORED_NEEDS_NODE);
     const now = this.stamp();
     const task: Task = { ...input, archivedAt: null, createdAt: now, updatedAt: now };
     this.tasks.push(task);
@@ -270,7 +275,10 @@ export class InMemoryRepository implements Repository {
 
   async updateTask(id: string, patch: TaskPatch): Promise<Task> {
     const task = this.findTask(id);
-    if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
+    if (patch.nodeId !== undefined && patch.nodeId !== null) this.findNode(patch.nodeId);
+    const next = { ...task, ...patch };
+    if (next.isScored && next.nodeId === null)
+      throw invalid('scored_needs_node', SCORED_NEEDS_NODE);
     Object.assign(task, patch, { updatedAt: this.stamp() });
     return { ...task };
   }

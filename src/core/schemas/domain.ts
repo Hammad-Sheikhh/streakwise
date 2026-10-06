@@ -92,7 +92,7 @@ export const apiErrorSchema = z.object({
 
 export const taskSchema = z.object({
   id: z.uuid(),
-  nodeId: z.uuid(),
+  nodeId: z.uuid().nullable(),
   parentTaskId: z.uuid().nullable(),
   title: z.string().min(1).max(200),
   description: z.string().nullable(),

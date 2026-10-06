@@ -13,7 +13,7 @@ import { compareDue } from '@/core/logic/tasks';
 import { useTasks, useTree } from '@/data/queries';
 import { cn } from '@/lib/utils';
 
-import { buildTaskTree, groupTasks } from './grouping';
+import { buildTaskTree, groupTasks, OTHER_ID } from './grouping';
 import type { TaskTreeItem } from './grouping';
 import { NewTaskDialog, TaskDetailsDialog } from './TaskDialogs';
 import { TaskRow, TaskTreeRows } from './TaskList';
@@ -189,20 +189,20 @@ function GroupedList({
   return (
     <div className="flex flex-col gap-4">
       {groups.map(({ track, nodes: nodeGroups }) => (
-        <details key={track.id} open className="group rounded-lg border">
+        <details key={track?.id ?? OTHER_ID} open className="group rounded-lg border">
           <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-            {track.color && (
+            {track?.color && (
               <span
                 aria-hidden="true"
                 className={cn('size-3 shrink-0 rounded-full', trackSwatchClass[track.color])}
               />
             )}
-            <h2>{track.name}</h2>
+            <h2>{track?.name ?? 'Other'}</h2>
           </summary>
           <div className="flex flex-col gap-3 border-t pb-2">
             {nodeGroups.map((group) => (
               <section key={group.nodeId} className="flex flex-col">
-                {group.nodeId !== track.id && (
+                {track && group.nodeId !== track.id && (
                   <h3 className="px-4 pt-3 text-sm text-muted-foreground">
                     <NodeLabel nodes={nodes} nodeId={group.nodeId} />
                   </h3>

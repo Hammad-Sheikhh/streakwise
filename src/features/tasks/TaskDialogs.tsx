@@ -16,7 +16,7 @@ import { useDataMutation } from '@/data/queries';
 import { formatDay, formatWeek } from '@/lib/format';
 
 import { TaskForm } from './TaskForm';
-import { EMPTY_TASK, TASK_KEYS, toTaskInput } from './taskValues';
+import { EMPTY_TASK, FOR_OTHER, TASK_KEYS, toTaskInput } from './taskValues';
 import type { TaskValues } from './taskValues';
 
 /** TASK-2: a new task, or a sub-task of `parent` (which then suggests its node). */
@@ -35,7 +35,9 @@ export function NewTaskDialog({
 }) {
   const create = useDataMutation(
     (ds, values: TaskValues) =>
-      ds.createTask({ ...toTaskInput(values), parentTaskId: parent?.id ?? null }),
+      toTaskInput(ds, values).then((input) =>
+        ds.createTask({ ...input, parentTaskId: parent?.id ?? null }),
+      ),
     TASK_KEYS,
     {
       onSuccess: (task) => {
@@ -58,7 +60,10 @@ export function NewTaskDialog({
         {open && (
           <TaskForm
             nodes={nodes}
-            initial={{ ...EMPTY_TASK, nodeId: parent?.nodeId ?? defaultNodeId ?? '' }}
+            initial={{
+              ...EMPTY_TASK,
+              nodeId: parent ? (parent.nodeId ?? FOR_OTHER) : (defaultNodeId ?? ''),
+            }}
             submitLabel="Add task"
             pending={create.isPending}
             onSubmit={(values) => create.mutate(values)}
@@ -97,7 +102,8 @@ export function TaskDetailsDialog({
     onOpenChange(isOpen);
   };
   const update = useDataMutation(
-    (ds, values: TaskValues) => ds.updateTask(task.id, toTaskInput(values)),
+    (ds, values: TaskValues) =>
+      toTaskInput(ds, values).then((input) => ds.updateTask(task.id, input)),
     TASK_KEYS,
     {
       onSuccess: () => {
@@ -141,7 +147,8 @@ export function TaskDetailsDialog({
             initial={{
               title: task.title,
               description: task.description ?? '',
-              nodeId: task.nodeId,
+              nodeId: task.nodeId ?? FOR_OTHER,
+              newTrackName: '',
               recurrence: task.recurrence,
               dueOn: task.dueOn ?? '',
               isScored: task.isScored,

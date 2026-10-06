@@ -28,6 +28,14 @@ async function setup() {
 }
 
 describe('Track page (TRACK-1, TOP-1, TOP-2)', () => {
+  it('adds a new track from the Tracks screen', async () => {
+    const user = userEvent.setup();
+    renderRoutes('/tracks', fakeApi({ loggedIn: true }));
+    await user.type(await screen.findByLabelText('New track'), 'Piano');
+    await user.click(screen.getByRole('button', { name: 'Add track' }));
+    expect(await screen.findByRole('link', { name: /Piano/ })).toBeInTheDocument();
+  });
+
   it('lists tracks with links to their pages', async () => {
     const user = userEvent.setup();
     const { api, exams } = await setup();

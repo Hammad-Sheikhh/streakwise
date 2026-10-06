@@ -113,7 +113,8 @@ export type TaskRecurrence = 'none' | 'weekly';
 
 export interface Task {
   id: string;
-  nodeId: string;
+  /** null = "Other": not tied to any track (0002). Such tasks can't be scored. */
+  nodeId: string | null;
   parentTaskId: string | null;
   title: string;
   description: string | null;

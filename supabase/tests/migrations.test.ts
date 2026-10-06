@@ -229,6 +229,21 @@ describe('migrations', () => {
       expect((await db.query('select * from task_completions')).rows).toEqual([]);
       expect((await db.query('select * from scores')).rows).toEqual([]);
     });
+
+    it('allows tasks without a node ("Other"), but not scored ones (0002)', async () => {
+      const other = '00000000-0000-4000-8000-000000000009';
+      await db.query(`insert into tasks (id, node_id, title) values ($1, null, 'Renew card')`, [
+        other,
+      ]);
+      expect(
+        await errorOf(
+          db.query(
+            `insert into tasks (node_id, title, is_scored, default_max_score)
+             values (null, 'Scored', true, 10)`,
+          ),
+        ),
+      ).toMatch(/tasks_scored_needs_node/);
+    });
   });
 
   describe('seed_if_empty', () => {

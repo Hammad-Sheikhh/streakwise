@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { TreeNode } from '@/core/domain/types';
 import { hiddenIds } from '@/core/logic/tree';
 
+import { FOR_NEW_TRACK, FOR_OTHER } from './taskValues';
 import type { TaskValues } from './taskValues';
 
 // TASK-2: title, optional description, node, either an optional due date or weekly recurrence,
@@ -32,11 +33,21 @@ export function TaskForm({
   const hidden = hiddenIds(nodes);
   const options = nodes.filter((n) => !hidden.has(n.id) || n.id === initial.nodeId);
   const max = Number(values.defaultMaxScore);
+  const isOther = values.nodeId === FOR_OTHER;
+  const isNewTrack = values.nodeId === FOR_NEW_TRACK;
+  const newName = values.newTrackName.trim();
   const errors = {
     title: values.title.trim() ? null : 'Enter a title.',
     nodeId: values.nodeId ? null : 'Choose what it’s for.',
+    newTrackName: !isNewTrack
+      ? null
+      : !newName
+        ? 'Enter a name for the new track.'
+        : nodes.some((n) => n.depth === 1 && n.name.toLowerCase() === newName.toLowerCase())
+          ? 'A track with that name already exists. Choose it from the list.'
+          : null,
     defaultMaxScore:
-      !values.isScored || (values.defaultMaxScore.trim() !== '' && max > 0)
+      isOther || !values.isScored || (values.defaultMaxScore.trim() !== '' && max > 0)
         ? null
         : 'Enter the usual maximum score.',
   };
@@ -101,9 +112,29 @@ export function TaskForm({
               {n.name}
             </option>
           ))}
+          <option value={FOR_OTHER}>Other (no track)</option>
+          <option value={FOR_NEW_TRACK}>+ New track…</option>
         </NativeSelect>
         {error('nodeId')}
       </div>
+      {isNewTrack && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${id}-new-track`}>New track name</Label>
+          <Input
+            id={`${id}-new-track`}
+            className="h-11"
+            maxLength={60}
+            placeholder="e.g. Driving test"
+            value={values.newTrackName}
+            onChange={(e) => set({ newTrackName: e.target.value })}
+            {...field('newTrackName')}
+          />
+          {error('newTrackName')}
+          <p className="text-sm text-muted-foreground">
+            It’s added to your tracks when you save. Add subtasks later in Settings → Structure.
+          </p>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${id}-repeat`}>Repeats</Label>
@@ -129,17 +160,23 @@ export function TaskForm({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          id={`${id}-scored`}
-          type="checkbox"
-          className="size-5 accent-primary"
-          checked={values.isScored}
-          onChange={(e) => set({ isScored: e.target.checked })}
-        />
-        <Label htmlFor={`${id}-scored`}>Record a score when it’s done</Label>
-      </div>
-      {values.isScored && (
+      {isOther ? (
+        <p className="text-sm text-muted-foreground">
+          Tasks under Other can’t record a score, because every score belongs to a track.
+        </p>
+      ) : (
+        <div className="flex items-center gap-2">
+          <input
+            id={`${id}-scored`}
+            type="checkbox"
+            className="size-5 accent-primary"
+            checked={values.isScored}
+            onChange={(e) => set({ isScored: e.target.checked })}
+          />
+          <Label htmlFor={`${id}-scored`}>Record a score when it’s done</Label>
+        </div>
+      )}
+      {values.isScored && !isOther && (
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${id}-max`}>Usual maximum score</Label>
           <Input

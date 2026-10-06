@@ -3,6 +3,9 @@ import { trackOf } from '@/core/logic/tree';
 
 // TASK-1: tasks grouped by track, then by node, each group holding a nested task tree.
 
+/** The node-group key for tasks with no node. */
+export const OTHER_ID = 'other';
+
 export interface TaskTreeItem {
   item: TaskItem;
   /** 1 for a top-level task. */
@@ -16,7 +19,8 @@ export interface TaskNodeGroup {
 }
 
 export interface TaskTrackGroup {
-  track: TreeNode;
+  /** null = "Other": tasks not tied to any track. */
+  track: TreeNode | null;
   nodes: TaskNodeGroup[];
 }
 
@@ -39,16 +43,18 @@ export function buildTaskTree(items: readonly TaskItem[]): TaskTreeItem[] {
   return (byParent.get(null) ?? []).map((item) => build(item, 1));
 }
 
-/** Top-level tasks grouped by track and node, in the structure's display order. */
+/** Top-level tasks grouped by track and node, in the structure's order; "Other" comes last. */
 export function groupTasks(
   nodes: readonly TreeNode[],
   roots: readonly TaskTreeItem[],
 ): TaskTrackGroup[] {
   const position = new Map(nodes.map((n, index) => [n.id, index]));
   const byNode = new Map<string, TaskTreeItem[]>();
+  const other: TaskTreeItem[] = [];
   for (const root of roots) {
     const nodeId = root.item.task.nodeId;
-    byNode.set(nodeId, [...(byNode.get(nodeId) ?? []), root]);
+    if (nodeId === null) other.push(root);
+    else byNode.set(nodeId, [...(byNode.get(nodeId) ?? []), root]);
   }
 
   const tracks = new Map<string, TaskTrackGroup>();
@@ -62,5 +68,7 @@ export function groupTasks(
     group.nodes.push({ nodeId, tasks: byNode.get(nodeId) ?? [] });
     tracks.set(track.id, group);
   }
-  return [...tracks.values()];
+  const groups = [...tracks.values()];
+  if (other.length > 0) groups.push({ track: null, nodes: [{ nodeId: OTHER_ID, tasks: other }] });
+  return groups;
 }

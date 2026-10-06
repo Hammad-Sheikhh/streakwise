@@ -104,4 +104,35 @@ describe('Tasks screen (TASK-1–9)', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Yes, delete' }));
     await waitFor(async () => expect(await api.listTasks()).toHaveLength(1));
   });
+
+  it('adds a task under Other and one for a new track', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi({ loggedIn: true });
+    renderRoutes('/tasks', api);
+
+    await user.click(await screen.findByRole('button', { name: 'Add task' }));
+    let dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Title'), 'Renew library card');
+    await user.selectOptions(within(dialog).getByLabelText('For'), 'Other (no track)');
+    expect(
+      within(dialog).queryByLabelText('Record a score when it’s done'),
+    ).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Add task' }));
+    expect(await screen.findByRole('heading', { name: 'Other' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Renew library card' })).toBeInTheDocument();
+
+    await waitFor(() => expect(document.body.style.pointerEvents).not.toBe('none'));
+    await user.click(screen.getByRole('button', { name: 'Add task' }));
+    dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Title'), 'Book the test');
+    await user.selectOptions(within(dialog).getByLabelText('For'), '+ New track…');
+    await user.click(within(dialog).getByRole('button', { name: 'Add task' }));
+    expect(within(dialog).getByText('Enter a name for the new track.')).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText('New track name'), 'Driving');
+    await user.click(within(dialog).getByRole('button', { name: 'Add task' }));
+
+    expect(await screen.findByRole('heading', { name: 'Driving' })).toBeInTheDocument();
+    const tracks = (await api.listTree()).filter((n) => n.depth === 1).map((n) => n.name);
+    expect(tracks).toContain('Driving');
+  });
 });

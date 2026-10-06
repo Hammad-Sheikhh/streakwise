@@ -26,7 +26,9 @@ function findTask(tasks: readonly Task[], id: string): Task {
   return task;
 }
 
-async function assertVisibleNode(repo: Repository, nodeId: string): Promise<void> {
+/** "Other" (no node) is always allowed; a node must exist and not be archived. */
+async function assertVisibleNode(repo: Repository, nodeId: string | null): Promise<void> {
+  if (nodeId === null) return;
   const nodes = await repo.listNodes();
   if (!nodes.some((n) => n.id === nodeId)) throw notFound('node_not_found');
   if (hiddenIds(nodes).has(nodeId)) {
@@ -121,6 +123,12 @@ export async function updateTask(
   if (result.recurrence === 'weekly' && result.dueOn !== null) {
     throw invalid('weekly_due_date', 'Weekly tasks don’t have a due date.');
   }
+  if (result.isScored && result.nodeId === null) {
+    throw invalid(
+      'scored_needs_node',
+      'Scored tasks need a track or subject, so the score has somewhere to go.',
+    );
+  }
   if (result.isScored && result.defaultMaxScore === null) {
     throw invalid('max_required', 'Enter the usual maximum score.');
   }
@@ -155,6 +163,9 @@ export async function completeTask(
     const maxScore = input.maxScore ?? task.defaultMaxScore;
     if (input.score === undefined) throw invalid('score_required', 'Enter the score.');
     if (maxScore === null) throw invalid('max_required', 'Enter the maximum score.');
+    if (task.nodeId === null) {
+      throw invalid('scored_needs_node', 'Give this task a track or subject before scoring it.');
+    }
     if (input.score > maxScore) {
       throw invalid('score_above_max', 'The score can’t be more than the maximum.');
     }

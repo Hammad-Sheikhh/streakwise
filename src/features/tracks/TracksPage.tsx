@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';
 
+import { AddTrackForm } from '@/components/AddTrackForm';
 import { QueryError } from '@/components/QueryError';
 import { trackSwatchClass } from '@/components/trackColors';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,16 +26,13 @@ export function TracksPage() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Tracks</h1>
+      <div className="rounded-lg border p-4">
+        <AddTrackForm />
+      </div>
       {tree.isPending && <Skeleton className="h-40 w-full" />}
       {tree.isError && <QueryError error={tree.error} onRetry={() => void tree.refetch()} />}
       {tree.data && tracks.length === 0 && (
-        <p className="rounded-lg border border-dashed p-6">
-          No tracks yet. Add one in{' '}
-          <Link to={`${basePath}/settings/structure`} className="underline">
-            Settings → Structure
-          </Link>
-          .
-        </p>
+        <p className="rounded-lg border border-dashed p-6">No tracks yet. Add one above.</p>
       )}
       {tracks.length > 0 && (
         <ul className="flex flex-col divide-y rounded-lg border">

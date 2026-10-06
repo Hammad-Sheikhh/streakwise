@@ -46,6 +46,23 @@ beforeEach(async () => {
 });
 
 describe('createTask (TASK-2, TASK-3)', () => {
+  it('creates "Other" tasks with no node, which can’t be scored', async () => {
+    const other = await createTask(repo, newId, { nodeId: null, title: 'Renew library card' });
+    expect(other.nodeId).toBeNull();
+    const scored = await errorOf(
+      createTask(repo, newId, { nodeId: null, title: 'Quiz', isScored: true, defaultMaxScore: 10 }),
+    );
+    expect(scored.kind).toBe('validation');
+    const scoredTask = await createTask(repo, newId, {
+      nodeId: maths.id,
+      title: 'Quiz',
+      isScored: true,
+      defaultMaxScore: 10,
+    });
+    const moved = await errorOf(updateTask(repo, clock, scoredTask.id, { nodeId: null }));
+    expect(moved.code).toBe('scored_needs_node');
+  });
+
   it('creates one-off tasks and nested sub-tasks with defaults', async () => {
     const parent = await createTask(repo, newId, { nodeId: maths.id, title: '  Chapter 3  ' });
     expect(parent).toMatchObject({

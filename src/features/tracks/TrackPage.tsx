@@ -108,7 +108,7 @@ function TrackContent({
   // SCORE-5: the chart opens on the kind this track records most.
   const kind = chosenKind ?? defaultKind(trackScores) ?? '';
   const taskRoots = buildTaskTree(
-    (tasks.data ?? []).filter((item) => inTrack.has(item.task.nodeId)),
+    (tasks.data ?? []).filter((item) => item.task.nodeId !== null && inTrack.has(item.task.nodeId)),
   );
   const upcoming = (deadlines.data ?? []).filter(
     (d) => inTrack.has(d.nodeId) && d.dueOn >= overview.today,

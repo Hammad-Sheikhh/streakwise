@@ -177,7 +177,8 @@ const maxScore = z.number().positive('The maximum must be more than 0.').max(100
 /** TASK-2: either a due date or weekly recurrence; scored tasks need a default maximum. */
 export const createTaskInputSchema = z
   .object({
-    nodeId: z.uuid('Choose what the task is for.'),
+    /** null = "Other" (no track). */
+    nodeId: z.uuid('Choose what the task is for.').nullable(),
     parentTaskId: z.uuid().nullable().default(null),
     title: taskTitle,
     description: taskDescription.optional().transform((value) => value ?? null),
@@ -193,13 +194,17 @@ export const createTaskInputSchema = z
   .refine((t) => !t.isScored || t.defaultMaxScore !== null, {
     message: 'Enter the usual maximum score.',
     path: ['defaultMaxScore'],
+  })
+  .refine((t) => !t.isScored || t.nodeId !== null, {
+    message: 'Scored tasks need a track or subject, so the score has somewhere to go.',
+    path: ['isScored'],
   });
 export type CreateTaskInput = z.input<typeof createTaskInputSchema>;
 
 /** TASK-8. The combined result is checked again by the service (weekly vs due date, scored max). */
 export const updateTaskInputSchema = z
   .object({
-    nodeId: z.uuid('Choose what the task is for.').optional(),
+    nodeId: z.uuid('Choose what the task is for.').nullable().optional(),
     title: taskTitle.optional(),
     description: taskDescription.optional(),
     dueOn: localDateSchema.nullable().optional(),

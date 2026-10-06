@@ -69,6 +69,9 @@ export interface Gaps {
   }[];
 }
 
+/** Tasks with no node show this as their path. */
+const OTHER = 'Other';
+
 const pathOf = (nodes: readonly TreeNode[], id: string) => nodePath(nodes, id).join(' > ');
 
 export async function getProgress(repo: Repository, clock: Clock): Promise<Progress> {
@@ -175,7 +178,7 @@ export async function findGaps(repo: Repository, clock: Clock): Promise<Gaps> {
       .map(({ task, overdue }) => ({
         id: task.id,
         title: task.title,
-        path: pathOf(nodes, task.nodeId),
+        path: task.nodeId === null ? OTHER : pathOf(nodes, task.nodeId),
         weekly: task.recurrence === 'weekly',
         dueOn: task.dueOn,
         overdue,

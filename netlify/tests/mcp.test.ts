@@ -519,6 +519,11 @@ describe('M5 tools: topics, tasks, and scores', () => {
     expect(future.data.error.code).toBe('future_date');
   });
 
+  it('adds an "Other" task when no node is given', async () => {
+    const other = await call('add_task', { title: 'Renew library card' });
+    expect(other.data.task).toMatchObject({ nodeId: null, path: 'Other', scored: false });
+  });
+
   it('adds tasks due this week to find_gaps', async () => {
     const gaps = await call('find_gaps');
     expect(gaps.data.tasksDue).toEqual([

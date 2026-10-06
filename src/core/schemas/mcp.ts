@@ -111,7 +111,12 @@ const maxScore = z.number().positive().max(100_000);
 export const addTaskToolSchema = z
   .object({
     title: z.string().trim().min(1).max(120).describe('Task title (1–120 characters).'),
-    node: nodeRef.describe(`What the task is for. ${nodeRef.description}`),
+    node: nodeRef
+      .optional()
+      .describe(
+        `What the task is for. Leave out for a task not tied to any track ("Other"; it can't ` +
+          `be scored). ${nodeRef.description}`,
+      ),
     parent_task_id: z
       .uuid()
       .optional()

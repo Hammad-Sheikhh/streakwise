@@ -81,7 +81,7 @@ describe('groupTasks (TASK-1)', () => {
       item('t4', 'maths'),
     ]);
     const groups = groupTasks(nodes, roots);
-    expect(groups.map((g) => g.track.id)).toEqual(['german', 'exams']);
+    expect(groups.map((g) => g.track?.id)).toEqual(['german', 'exams']);
     expect(groups[1]?.nodes.map((n) => n.nodeId)).toEqual(['exams', 'maths', 'ch3']);
   });
 });

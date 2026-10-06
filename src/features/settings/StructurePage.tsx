@@ -1,13 +1,11 @@
 import { ArrowDown, ArrowLeft, ArrowUp, Settings2 } from 'lucide-react';
 import { useId, useState } from 'react';
-import type { FormEvent } from 'react';
 import { Link } from 'react-router';
 
 import { QueryError } from '@/components/QueryError';
 import { trackSwatchClass } from '@/components/trackColors';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TreeNode } from '@/core/domain/types';
@@ -15,6 +13,8 @@ import { hiddenIds, sortSiblings, trackOf } from '@/core/logic/tree';
 import { useDataMutation, useTree } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 import { cn } from '@/lib/utils';
+
+import { AddTrackForm } from '@/components/AddTrackForm';
 
 import { LEVEL_NAMES } from './levels';
 import { NodeDialog } from './NodeDialog';
@@ -172,39 +172,5 @@ export function StructurePage() {
         />
       )}
     </>
-  );
-}
-
-function AddTrackForm() {
-  const id = useId();
-  const [name, setName] = useState('');
-  const add = useDataMutation(
-    (ds, value: string) => ds.addNode({ parentId: null, name: value }),
-    ['tree'],
-    { onSuccess: () => setName('') },
-  );
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (name.trim()) add.mutate(name.trim());
-  }
-
-  return (
-    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
-      <Label htmlFor={`${id}-track`}>New track</Label>
-      <div className="flex gap-2">
-        <Input
-          id={`${id}-track`}
-          className="h-11"
-          maxLength={60}
-          placeholder="e.g. Piano"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Button type="submit" className="h-11" disabled={!name.trim() || add.isPending}>
-          Add track
-        </Button>
-      </div>
-    </form>
   );
 }
