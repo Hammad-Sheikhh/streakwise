@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (M5 merged into develop; owner must run 0002; next M6)_
+_Last updated: 2026-10-06 by Claude Code (M5 + #18 merged into develop; 0002 run; next M6)_
 
 ## Milestones
 
@@ -32,10 +32,10 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration                     | Applied                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                 |
-| `0002_tasks_without_node.sql` | ⏳ not yet run (needed for "Other" tasks; must be run before release R3) |
+| Migration                     | Applied                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
+| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                        |
 
 ## Owner's manual steps
 
@@ -63,9 +63,9 @@ One database for everything (D15), so each migration runs once.
 - [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
 - [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
 - [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
-- [ ] Try "+ New track…" on the Log screen (PR #18 preview, demo mode) and say OK to merge #18
-- [ ] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
-- [ ] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
+- [x] Try "+ New track…" on the Log screen (PR #18 preview) and OK to merge #18 (owner, 2026-10-06; merged)
+- [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
+- [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
 
 ## Current work / next step
@@ -110,8 +110,8 @@ after the owner confirms, 2026-10-06).
 2. M5 merged into `develop` as #16 (2026-10-06), with the owner's later requests: tasks can be
    for "Other" (no track; can't be scored; migration `0002`, D16), the task form's For list has
    "+ New track…", and the Tracks screen has an Add track form. #17 added the CLAUDE.md rule to
-   explain every owner task in detail. 302 tests. Until the owner runs `0002`, choosing "Other"
-   on the real database fails with an error toast; everything else works.
+   explain every owner task in detail. 302 tests. `0002` was run by the owner (2026-10-06) and the owner
+   tried "Other" and "+ New track…" on the develop site. #18 added "+ New track…" to the Log screen.
    `backup/progress-old` (local only) can be deleted.
 3. Next: M6 (`feat/reports`: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`), then release R3
    (M5 + M6) after the owner says yes. `0002` must be run before R3 goes live.
