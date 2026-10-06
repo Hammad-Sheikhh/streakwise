@@ -64,7 +64,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
 - [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
 - [x] Try "+ New track…" on the Log screen (PR #18 preview) and OK to merge #18 (owner, 2026-10-06; merged)
-- [ ] Try "+ Add new track…" on the Log screen (PR #19 preview, demo mode: opens the new track's settings) and say OK to merge #19
+- [x] Try "+ Add new track…" on the Log screen (PR #19) and OK to merge #19 (owner, 2026-10-06; merged)
 - [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
 - [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
@@ -112,7 +112,8 @@ after the owner confirms, 2026-10-06).
    for "Other" (no track; can't be scored; migration `0002`, D16), the task form's For list has
    "+ New track…", and the Tracks screen has an Add track form. #17 added the CLAUDE.md rule to
    explain every owner task in detail. 302 tests. `0002` was run by the owner (2026-10-06) and the owner
-   tried "Other" and "+ New track…" on the develop site. #18 added "+ New track…" to the Log screen.
+   tried "Other" and "+ New track…" on the develop site. #18 added "+ New track…" to the Log screen; #19 made it open a New track window (name, color,
+   weekly target, subtasks) and select the track.
    `backup/progress-old` (local only) can be deleted.
 3. Next: M6 (`feat/reports`: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`), then release R3
    (M5 + M6) after the owner says yes. `0002` must be run before R3 goes live.
