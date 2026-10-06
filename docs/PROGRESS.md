@@ -63,6 +63,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
 - [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
 - [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
+- [ ] Try "+ New track…" on the Log screen (PR #18 preview, demo mode) and say OK to merge #18
 - [ ] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
 - [ ] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
