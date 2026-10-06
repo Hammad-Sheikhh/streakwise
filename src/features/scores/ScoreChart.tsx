@@ -93,7 +93,7 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
     coords: line.points.map((p) => ({ ...p, cx: x(p.date), cy: y(p.percent) })),
   }));
 
-  // Direct labels at each line's last point, nudged apart so they don't overlap.
+  // Direct labels in the right margin, level with each line’s last point, nudged apart.
   const labels = directLabels
     ? plotted
         .map((line) => ({ line, y: line.coords.at(-1)?.cy ?? 0 }))
@@ -208,7 +208,7 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
           {labels.map(({ line, y: labelY }) => (
             <text
               key={line.nodeId}
-              x={(line.coords.at(-1)?.cx ?? 0) + 10}
+              x={MARGIN.left + plotWidth + 10}
               y={labelY}
               dominantBaseline="middle"
               className="fill-foreground text-xs"
