@@ -153,6 +153,7 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'delete_session',
       'find_gaps',
       'get_progress',
+      'get_report',
       'get_structure',
       'list_deadlines',
       'list_sessions',
@@ -172,6 +173,7 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'find_gaps',
       'list_deadlines',
       'list_tasks',
+      'get_report',
     ]) {
       expect(byTool[name]?.annotations).toMatchObject({ readOnlyHint: true });
     }

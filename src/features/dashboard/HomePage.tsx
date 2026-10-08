@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarClock, Flame, Plus } from 'lucide-react';
+import { AlertTriangle, CalendarClock, FileText, Flame, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 
 import { NodeLabel } from '@/components/NodeLabel';
@@ -20,7 +20,7 @@ import { Heatmap } from './Heatmap';
 
 // DASH-1: Home answers "How am I doing this week, and what am I neglecting?" (G2).
 // Order on mobile: neglect → today and streak → targets → tasks due → deadlines → heatmap →
-// (this week's report, M6).
+// this week's report. A backup reminder (SET-3) sits at the end when one is due.
 export function HomePage() {
   const dashboard = useDashboard();
   const tree = useTree();
@@ -288,6 +288,22 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
           historyPath={`${basePath}/history`}
         />
       </Section>
+
+      <Button asChild variant="outline" className="h-11 self-start">
+        <Link to={`${basePath}/reports`}>
+          <FileText aria-hidden="true" /> This week’s report
+        </Link>
+      </Button>
+
+      {data.backupDue && (
+        <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
+          Time for a backup: download your data in{' '}
+          <Link to={`${basePath}/settings`} className="underline underline-offset-4">
+            Settings → Your data
+          </Link>
+          .
+        </p>
+      )}
 
       {data.targets.length > 0 && data.heatmap.days.length === 0 && (
         <Button asChild className="h-11 self-start">

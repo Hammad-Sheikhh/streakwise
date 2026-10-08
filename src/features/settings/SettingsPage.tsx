@@ -16,14 +16,16 @@ import { useDataSource } from '@/data/useDataSource';
 
 import { AccountSection } from './AccountSection';
 import { ClaudeConnectionSection } from './ClaudeConnection';
+import { ExportSection } from './ExportSection';
 
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
   { path: 'targets', title: 'Weekly targets', description: 'Hours per week for each track' },
   { path: 'deadlines', title: 'Deadlines', description: 'Exams and due dates' },
+  { path: 'shared-links', title: 'Shared links', description: 'Report links you’ve shared' },
 ];
 
-// SET-1: the Settings shell. Later milestones add shared links and export as more sections.
+// SET-1: the Settings shell, with shared links (SHARE-3) and export (SET-2/3).
 export function SettingsPage() {
   const dataSource = useDataSource();
   const settings = useSettings();
@@ -64,6 +66,8 @@ export function SettingsPage() {
           ))}
         </ul>
       </section>
+
+      <ExportSection />
 
       <ClaudeConnectionSection />
 

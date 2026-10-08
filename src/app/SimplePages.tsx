@@ -3,16 +3,6 @@ import { Link } from 'react-router';
 
 import { useDataSource } from '@/data/useDataSource';
 
-/** A screen whose milestone hasn't been built yet, so the navigation never leads nowhere. */
-export function ComingSoonPage({ title, description }: { title: string; description: string }) {
-  return (
-    <>
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-muted-foreground">{description}</p>
-    </>
-  );
-}
-
 /** Mobile "More": the screens that don't fit in the bottom nav (SPEC §B6). */
 export function MorePage() {
   const { basePath } = useDataSource();

@@ -1,11 +1,14 @@
 import type {
   ClaudeConnection,
   Dashboard,
+  DataExport,
   Deadline,
   HistoryPage,
+  Report,
   Score,
   Session,
   Settings,
+  SharedReportLink,
   Task,
   TaskCompletion,
   TaskItem,
@@ -16,6 +19,7 @@ import type {
   CompleteTaskInput,
   CreateDeadlineInput,
   CreateScoreInput,
+  CreateShareInput,
   CreateTaskInput,
   UpdateTaskInput,
   CreateNodeInput,
@@ -23,6 +27,7 @@ import type {
   HistoryQuery,
   LogSessionInput,
   MoveNodeInput,
+  ReportQuery,
   SetTopicStatusInput,
   UpdateNodeInput,
   UpdateScoreInput,
@@ -89,6 +94,15 @@ export interface DataSource {
   updateSettings(input: UpdateSettingsInput): Promise<Settings>;
   /** SET-4. Not available in demo mode (DEMO-5). */
   getClaudeConnection(): Promise<ClaudeConnection>;
+
+  /** REP-9: built by the shared `buildReport`. */
+  buildReport(query: ReportQuery): Promise<Report>;
+  /** SHARE-1, SHARE-3. Not available in demo mode (DEMO-5). */
+  createShare(input: CreateShareInput): Promise<SharedReportLink>;
+  listShares(): Promise<SharedReportLink[]>;
+  revokeShare(id: string): Promise<SharedReportLink>;
+  /** SET-2: everything, and records the export time. */
+  exportData(): Promise<DataExport>;
 }
 
 /** A failed request, with the API's error code and a message that is safe to show. */

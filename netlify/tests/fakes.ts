@@ -197,6 +197,7 @@ export const LOGIN = { email: TEST_EMAIL, password: TEST_PASSWORD };
 export function testDeps(overrides: Partial<ServerDeps> = {}) {
   let now = new Date('2026-10-03T10:00:00Z');
   let id = 0;
+  let slug = 0;
   const clock = () => now;
   const loginAttempts = new InMemoryLoginAttemptStore();
   const accounts = new InMemoryAccountStore(() => new InMemoryRepository(clock));
@@ -213,8 +214,19 @@ export function testDeps(overrides: Partial<ServerDeps> = {}) {
     auth,
     accounts,
     loginAttempts,
+    shares: {
+      // Looks through every user's in-memory data, like the database's cross-user lookup.
+      async findBySlug(slug) {
+        for (const repo of accounts.repos.values()) {
+          const share = await repo.findSharedReport(slug);
+          if (share) return share;
+        }
+        return null;
+      },
+    },
     clock,
     newId: () => `00000000-0000-4000-8000-${String(++id).padStart(12, '0')}`,
+    newSlug: () => `test-slug-${String(++slug).padStart(24, '0')}`,
     ...overrides,
   };
   return {

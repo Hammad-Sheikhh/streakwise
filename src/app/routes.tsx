@@ -3,7 +3,7 @@ import type { RouteObject } from 'react-router';
 
 import { AppLayout } from '@/app/AppLayout';
 import { RequireAuth } from '@/app/RequireAuth';
-import { ComingSoonPage, MorePage } from '@/app/SimplePages';
+import { MorePage } from '@/app/SimplePages';
 import type { DataSource } from '@/data/DataSource';
 import { DataSourceProvider } from '@/data/DataSourceContext';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
@@ -17,6 +17,7 @@ import { LogPage } from '@/features/log/LogPage';
 import { ScoresPage } from '@/features/scores/ScoresPage';
 import { DeadlinesPage } from '@/features/settings/DeadlinesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
+import { SharedLinksPage } from '@/features/settings/SharedLinksPage';
 import { StructurePage } from '@/features/settings/StructurePage';
 import { TargetsPage } from '@/features/settings/TargetsPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
@@ -40,15 +41,14 @@ const appPages: RouteObject[] = [
       { path: 'scores', element: <ScoresPage /> },
       { path: 'tracks', element: <TracksPage /> },
       { path: 'tracks/:id', element: <TrackPage /> },
+      // Reports are lazy-loaded (SPEC §B11: performance).
       {
         path: 'reports',
-        element: (
-          <ComingSoonPage
-            title="Reports"
-            description="Printable and shareable reports arrive in a later update."
-          />
-        ),
+        lazy: async () => ({
+          Component: (await import('@/features/reports/ReportsPage')).ReportsPage,
+        }),
       },
+      { path: 'settings/shared-links', element: <SharedLinksPage /> },
     ],
   },
 ];
@@ -66,6 +66,13 @@ export function createRoutes(apiDataSource: DataSource): RouteObject[] {
         { path: 'signup', element: <SignUpPage /> },
         { path: 'forgot-password', element: <ForgotPasswordPage /> },
         { path: 'reset-password', element: <ResetPasswordPage /> },
+        // SHARE-2: public, no login, no app navigation.
+        {
+          path: 'r/:slug',
+          lazy: async () => ({
+            Component: (await import('@/features/share/SharedReportPage')).SharedReportPage,
+          }),
+        },
         { element: <RequireAuth />, children: appPages },
       ],
     },

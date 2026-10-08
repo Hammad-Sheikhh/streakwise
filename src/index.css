@@ -149,3 +149,30 @@
     @apply font-sans;
   }
 }
+
+/* REP-6, SPEC §B10.3: reports print on A4 portrait, black on white (even in dark mode), with no
+   navigation or buttons. Elements hide themselves with Tailwind's `print:hidden`. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+  :root {
+    color-scheme: light;
+    --background: #fff;
+    --foreground: #000;
+    --card: #fff;
+    --card-foreground: #000;
+    --muted: #f5f5f5;
+    --muted-foreground: #525252;
+    --border: #d4d4d4;
+  }
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}

@@ -16,6 +16,7 @@ import {
   deleteSessionToolSchema,
   findGapsToolSchema,
   getProgressToolSchema,
+  getReportToolSchema,
   getStructureToolSchema,
   listDeadlinesToolSchema,
   listSessionsToolSchema,
@@ -26,6 +27,7 @@ import {
 } from '../../../../src/core/schemas/mcp';
 import { upcomingDeadlines } from '../../../../src/core/services/deadlines';
 import { findGaps, getProgress } from '../../../../src/core/services/insights';
+import { buildReport } from '../../../../src/core/services/reports';
 import { addScore } from '../../../../src/core/services/scores';
 import { deleteSession, listSessions, logSession } from '../../../../src/core/services/sessions';
 import { addNode, listTree, setTopicStatus } from '../../../../src/core/services/structure';
@@ -64,6 +66,10 @@ freely; parents are never completed automatically. A scored task records a score
 
 Scores record results (past_paper, quiz, mock_test, revision, other) as score out of max_score on
 any node; percent = score / max x 100.
+
+Reports summarise a period (today, yesterday, this week, last week, or up to 92 custom days): time
+per track and subtask with % of weekly target, topics, completed tasks, scores, neglected items, and
+upcoming deadlines. Notes are left out unless asked for.
 
 Lists return at most 50 items by default (up to 200 with "limit") and say "truncated": true when
 more exist. Confirm with the student before deleting anything.`;
@@ -559,6 +565,30 @@ export function buildMcpServer(deps: UserDeps): McpServer {
           note: input.note ?? null,
         });
         return { score: scoreView(nodes, saved) };
+      }),
+  );
+
+  server.registerTool(
+    'get_report',
+    {
+      title: 'Get a study report',
+      description:
+        'A summary of one period: totals (time, sessions, active days, streak), time per track ' +
+        'and subtask with % of the weekly target (week periods), topics studied and marked done, ' +
+        'tasks completed with scores, scores recorded, neglected nodes at the end of the period, ' +
+        'and the next 3 deadlines. Durations are minutes. The same data as the app’s Reports screen.',
+      inputSchema: getReportToolSchema,
+      annotations: READ_ONLY,
+    },
+    ({ period, from, to, include_notes }) =>
+      run('get_report', async () => {
+        const today = localDate(clock());
+        return buildReport(repo, clock, {
+          period,
+          from: from === undefined ? undefined : resolveDateRef(from, today),
+          to: to === undefined ? undefined : resolveDateRef(to, today),
+          includeNotes: include_notes,
+        });
       }),
   );
 
