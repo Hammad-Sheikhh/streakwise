@@ -41,7 +41,7 @@ describe('Log form (LOG-2–5)', () => {
     const { user, api } = await openLog();
     expect(screen.queryByLabelText('Subtask (optional)')).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Track'), 'Improvement Exams');
+    await user.selectOptions(screen.getByLabelText('Track'), 'School Subjects');
     const subtask = screen.getByLabelText('Subtask (optional)');
     expect(
       within(subtask)
@@ -135,8 +135,8 @@ describe('Log form (LOG-2–5)', () => {
 describe('logging a session (LOG-1, LOG-6, LOG-7, LOG-9, LOG-10)', () => {
   it('saves, returns Home, and offers Undo', async () => {
     const { user, api, router } = await openLog();
-    await user.selectOptions(screen.getByLabelText('Track'), 'German Language');
-    await user.selectOptions(screen.getByLabelText('Subtask (optional)'), 'Class');
+    await user.selectOptions(screen.getByLabelText('Track'), 'Exam Prep');
+    await user.selectOptions(screen.getByLabelText('Subtask (optional)'), 'Practice');
     await user.click(screen.getByRole('button', { name: '30m' }));
     await user.type(screen.getByLabelText('Note (optional)'), 'Dative case');
     await user.click(screen.getByRole('button', { name: 'Save session' }));
@@ -144,13 +144,13 @@ describe('logging a session (LOG-1, LOG-6, LOG-7, LOG-9, LOG-10)', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/'));
     const [day] = (await api.getHistory({})).days;
     expect(day?.sessions[0]).toMatchObject({
-      nodeId: await nodeId(api, 'Class'),
+      nodeId: await nodeId(api, 'Practice'),
       studiedOn: TODAY,
       minutes: 30,
       note: 'Dative case',
     });
 
-    expect(await screen.findByText('Logged 30m · Class')).toBeInTheDocument();
+    expect(await screen.findByText('Logged 30m · Practice')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(async () => expect((await api.getHistory({})).days).toHaveLength(0));
   });
@@ -160,7 +160,7 @@ describe('logging a session (LOG-1, LOG-6, LOG-7, LOG-9, LOG-10)', () => {
     const maths = await nodeId(api, 'Maths');
     renderRoutes(`/log?node=${maths}`, api);
     await formLoaded();
-    expect(screen.getByLabelText('Track')).toHaveDisplayValue('Improvement Exams');
+    expect(screen.getByLabelText('Track')).toHaveDisplayValue('School Subjects');
     expect(screen.getByLabelText('Subtask (optional)')).toHaveDisplayValue('Maths');
   });
 
@@ -170,7 +170,7 @@ describe('logging a session (LOG-1, LOG-6, LOG-7, LOG-9, LOG-10)', () => {
     const user = userEvent.setup();
     renderRoutes('/log', api);
 
-    const shortcut = await screen.findByRole('button', { name: 'Improvement Exams › English' });
+    const shortcut = await screen.findByRole('button', { name: 'School Subjects › English' });
     await user.click(shortcut);
     expect(screen.getByLabelText('Subtask (optional)')).toHaveDisplayValue('English');
   });

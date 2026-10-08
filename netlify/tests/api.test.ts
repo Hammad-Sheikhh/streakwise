@@ -125,16 +125,16 @@ describe('/api/nodes', () => {
     expect(blank.status).toBe(400);
 
     const duplicate = await api.nodes(
-      api.request('POST', '/api/nodes', { parentId: null, name: 'german language' }),
+      api.request('POST', '/api/nodes', { parentId: null, name: 'exam prep' }),
       context,
     );
     expect(duplicate.status).toBe(409);
     expect(await errorCode(duplicate)).toBe('duplicate');
 
-    const german = await api.byName('German Language');
+    const examPrep = await api.byName('Exam Prep');
     const inUse = await api.node(
-      api.request('DELETE', `/api/nodes/${german.id}`),
-      api.withId(german.id),
+      api.request('DELETE', `/api/nodes/${examPrep.id}`),
+      api.withId(examPrep.id),
     );
     expect(inUse.status).toBe(409);
     expect(await errorCode(inUse)).toBe('node_in_use');

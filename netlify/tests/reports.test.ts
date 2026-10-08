@@ -62,9 +62,9 @@ describe('/api/reports (REP-9)', () => {
     const { report } = (await res.json()) as { report: Report };
     expect(report.period).toMatchObject({ from: '2026-09-28', to: '2026-10-04', isWeek: true });
     expect(report.tracks.map((tr) => tr.name)).toEqual([
-      'German Language',
-      'Improvement Exams',
-      'Claude Certification',
+      'Exam Prep',
+      'School Subjects',
+      'Online Course',
     ]);
   });
 

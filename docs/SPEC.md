@@ -29,13 +29,13 @@
 A private study tracker that works on your phone and laptop. You log your study time yourself
 (there's no timer) under your three tracks:
 
-- **German Language**: self-study and your class
-- **Improvement Exams**: Maths and English
-- **Claude Certification**: your institute course
+- **Exam Prep**: flashcards and your class
+- **School Subjects**: Maths and English
+- **Online Course**: your institute course
 
 Each track has **subtasks** (like Maths), and each subtask can have **topics** (like Chapter 3).
 You can also create to-do **tasks** anywhere, with sub-tasks nested as deep as you like. One
-example is a weekly German revision that you give yourself a score on.
+example is a weekly self-test that you give yourself a score on.
 
 The app then shows you:
 - how much you studied today and this week, compared with weekly goals you set
@@ -69,7 +69,7 @@ Visitors to your portfolio get a **demo with made-up data**, so your real data s
 - Three tracks with three levels each (track → subtask → topic). Tasks can nest as deep as you want.
 - You log time by hand. There's no timer.
 - Weekly goals are set per track. A warning appears after 3 days without study.
-- Scores: past papers (Improvement), institute quizzes (Certification), and weekly recall/revision (German).
+- Scores: past papers, quizzes, mock tests, and weekly self-tests.
 - Reports are in English and formal enough for teachers and parents. Your private notes are hidden
   from reports unless you switch them on.
 - Reports can be shared as a link, like a Claude artifact link.
@@ -173,16 +173,16 @@ a title, a date, a score, a maximum, a node, a note, and an optional link to a t
 Seeding runs **automatically on the first successful login when the `nodes` table is empty**, and it is idempotent.
 
 ```
-German Language        color: amber
-├─ Self-study
-└─ Class
-Improvement Exams      color: blue
+Exam Prep          color: amber
+├─ Flashcards
+└─ Practice
+School Subjects    color: blue
 ├─ Maths
 └─ English
-Claude Certification   color: violet
+Online Course      color: violet
 ```
 
-- One task: "Weekly recall / revision" on German Language, weekly, scored, default max 20.
+- One task: "Weekly self-test" on Exam Prep, weekly, scored, default max 20.
 - Settings: student name empty (the app asks for it the first time a report is made); neglect threshold 3.
 - No topics, targets, or deadlines. No personal information anywhere in the seed.
 
@@ -252,7 +252,7 @@ Claude Certification   color: violet
 | DASH-1 | MUST | Home on mobile, top to bottom: (1) neglect warnings, if any; (2) today's total and current streak; (3) weekly target progress per track; (4) tasks due this week; (5) next 3 deadlines; (6) heatmap; (7) a link to this week's report. Desktop may use two columns in the same priority order. All data comes from one dashboard request. Sections that depend on later milestones (tasks in M5, the report link in M6) appear when those milestones land. |
 | TGT-1 | MUST | Each track can have a weekly target in hours (0.5 h steps; empty means no target). |
 | TGT-2 | MUST | Each track shows a progress bar for this week (§B9.4) with a label like "3h 20m / 8h". Tracks without a target show their time only. |
-| NEG-1 | MUST | Neglect warnings follow §B9.5, e.g. "English — 4 days untouched" or "Claude Certification — never logged". Tapping a warning opens Log with that node preselected. |
+| NEG-1 | MUST | Neglect warnings follow §B9.5, e.g. "English — 4 days untouched" or "Online Course — never logged". Tapping a warning opens Log with that node preselected. |
 | NEG-2 | COULD | Mute warnings for a specific node. |
 | STRK-1 | MUST | Current streak (§B9.6). |
 | STRK-2 | SHOULD | Longest streak. |
@@ -291,7 +291,7 @@ Claude Certification   color: violet
 | SCORE-2 | MUST | A line chart of percentage over time, with one line per subtask (or per track when the score is at track level). Filterable by track and kind. |
 | SCORE-3 | MUST | A results table, newest first. |
 | SCORE-4 | SHOULD | A trend indicator per line: the average of the last 3 results vs the previous 3 (▲/▼ with the difference in percentage points). |
-| SCORE-5 | SHOULD | Default views: Improvement → past papers; Certification → quizzes; German → revision. |
+| SCORE-5 | SHOULD | Default views: each track's chart opens on the score kind it records most. |
 
 ### B5.9 Track pages (TRACK)
 | ID | Priority | Requirement |
@@ -352,7 +352,7 @@ Claude Certification   color: violet
 | MCP-2 | MUST | Uses the official MCP TypeScript SDK with the Streamable HTTP transport, stateless, inside a Netlify Function. Check the current SDK docs and any current Netlify guidance on hosting MCP servers, and verify with MCP Inspector before connecting Claude. |
 | MCP-3 | MUST | The server's `instructions` explain tracks/subtasks/topics, tasks, scores, the time zone, and that durations are in minutes. |
 | MCP-4 | MUST | Tools call the core services directly (not over HTTP) and return compact JSON text. Lists are capped (default 50, max 200) with a `truncated` flag. Each call updates the "last MCP call" time. |
-| MCP-5 | MUST | Node references accept an id, or a path like `Improvement Exams > Maths > Chapter 3` (case-insensitive, `>`-separated; a unique partial name like `maths` also works). An ambiguous or unknown reference returns an error listing up to 5 closest matches. |
+| MCP-5 | MUST | Node references accept an id, or a path like `School Subjects > Maths > Chapter 3` (case-insensitive, `>`-separated; a unique partial name like `maths` also works). An ambiguous or unknown reference returns an error listing up to 5 closest matches. |
 | MCP-6 | MUST | Dates accept `today`, `yesterday`, or `YYYY-MM-DD`, interpreted in Asia/Karachi. |
 | MCP-7 | MUST | Sessions created through MCP have `source = 'claude'`. |
 | MCP-8 | MUST | Every tool has a Zod input schema, a description written for an AI reader, and correct annotations (`readOnlyHint` for reads, `destructiveHint` for deletes). |
@@ -474,13 +474,13 @@ The structure looks like this (the data is illustrative):
 
 Total: 14h 30m · 6 of 7 days · streak 9 days
 
-*German Language* — 6h 10m of 8h (77%)
-Self-study 4h 40m · Class 1h 30m
-*Improvement Exams* — 5h 20m of 6h (89%)
+*Exam Prep* — 6h 10m of 8h (77%)
+Flashcards 4h 40m · Practice 1h 30m
+*School Subjects* — 5h 20m of 6h (89%)
 Maths 3h 50m · English 1h 30m
-*Claude Certification* — 3h of 4h (75%)
+*Online Course* — 3h of 4h (75%)
 
-Completed: Maths Ch. 3 · Weekly recall 18/20
+Completed: Maths Ch. 3 · Weekly self-test 18/20
 Needs attention: English (4 days)
 Coming up: Maths exam in 41 days (62% of syllabus left)
 ```
@@ -674,6 +674,7 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D15 | One Supabase project for every environment (owner's choice, 2026-10-03). Previews and the `develop` deploy use the real database; features are tested in demo mode first, and Claude Code warns the owner before any test that writes to the database. `MCP_SECRET` still differs between production and other contexts. | The owner's Supabase account already uses its free project allowance; a second project isn't available for free |
 | D16 | Tasks can be for **Other** (no track; `tasks.node_id` nullable, migration `0002`); "Other" tasks can't be scored. The task form's "For" list also offers **+ New track…**, the Tracks screen has an Add track form, and the Log screen's Track picker offers **+ New track…** (owner's requests, 2026-10-06). | To-dos outside the study structure, and adding tracks where they're needed |
 | D17 | **Accounts for other people (owner's request, 2026-10-08)**, replacing D1 and D7: open sign-up with email + password via **Supabase Auth** (a developer's advice the owner chose), confirmation and reset emails through Brevo SMTP sent from the owner's Gmail (no domain; owner accepted that some emails may land in spam), per-user data with `user_id` on every table (migration `0003`, backward compatible with the deployed code; `0004` after R3 removes the old single-user parts), one Claude link per user, existing data claimed by the owner with the old passcode. Built now as M5A, before M6. | Other people asked to use the app |
+| D18 | **General sample tracks (owner's request, 2026-10-09):** the seed for new accounts and the demo use Exam Prep (Flashcards, Practice), School Subjects (Maths, English), and Online Course, with a scored "Weekly self-test". The owner's own track names appear nowhere in the code, docs, or tests. Existing accounts keep their data. | The app is public; the starter tracks should suit any student, multitasker, or high achiever, and not reveal the owner's studies |
 
 ## B16. Out of scope
 

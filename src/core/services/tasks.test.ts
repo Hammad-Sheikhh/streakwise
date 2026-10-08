@@ -131,7 +131,7 @@ describe('completeTask / uncompleteTask (TASK-4, TASK-6)', () => {
   });
 
   it('records a linked score for a scored task and removes it on uncomplete', async () => {
-    const [weekly] = await repo.listTasks(); // the seeded "Weekly recall / revision", max 20
+    const [weekly] = await repo.listTasks(); // the seeded "Weekly self-test", max 20
     if (!weekly) throw new Error('seed has no task');
 
     const missing = await errorOf(completeTask(repo, clock, newId, weekly.id, {}));

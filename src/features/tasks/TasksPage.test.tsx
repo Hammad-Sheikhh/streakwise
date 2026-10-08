@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 import { fakeApi } from '@/test/fakeApi';
 import { renderRoutes } from '@/test/renderRoutes';
 
-// The seed has one task: "Weekly recall / revision" on German Language, weekly, scored out of 20.
-const WEEKLY = 'Weekly recall / revision (this week)';
+// The seed has one task: "Weekly self-test" on Exam Prep, weekly, scored out of 20.
+const WEEKLY = 'Weekly self-test (this week)';
 
 describe('Tasks screen (TASK-1–9)', () => {
   it('groups tasks by track and completes a scored weekly task with a score', async () => {
@@ -14,7 +14,7 @@ describe('Tasks screen (TASK-1–9)', () => {
     const api = fakeApi({ loggedIn: true });
     renderRoutes('/tasks', api);
 
-    expect(await screen.findByRole('heading', { name: 'German Language' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Exam Prep' })).toBeInTheDocument();
     const checkbox = await screen.findByRole('checkbox', { name: WEEKLY });
     await user.click(checkbox);
 

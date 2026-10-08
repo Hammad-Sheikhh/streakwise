@@ -26,14 +26,14 @@ function node(id: string, parentId: string | null, name: string, archived = fals
 
 const UUID = '0b0e4c1e-1111-4222-8333-444455556666';
 const nodes: TreeNode[] = [
-  node('A', null, 'Improvement Exams'),
+  node('A', null, 'School Subjects'),
   node('m', 'A', 'Maths'),
   node('mc', 'm', 'Chapter 3'),
   node('e', 'A', 'English'),
   node('ec', 'e', 'Chapter 3'),
-  node('B', null, 'German Language'),
-  node('s', 'B', 'Self-study'),
-  node('c', 'B', 'Class'),
+  node('B', null, 'Exam Prep'),
+  node('s', 'B', 'Flashcards'),
+  node('c', 'B', 'Practice'),
   node('o', 'B', 'Old Maths Notes', true),
   { ...node('x', 'B', 'By id'), id: UUID },
 ];
@@ -54,7 +54,7 @@ describe('resolveNodeRef (MCP-5)', () => {
   });
 
   it('accepts a full path, case-insensitively, with loose spacing', () => {
-    expect(resolveNodeRef(nodes, 'improvement exams>MATHS >  chapter 3').id).toBe('mc');
+    expect(resolveNodeRef(nodes, 'school subjects>MATHS >  chapter 3').id).toBe('mc');
   });
 
   it('accepts the end of a path', () => {
@@ -67,8 +67,8 @@ describe('resolveNodeRef (MCP-5)', () => {
   });
 
   it('accepts a unique partial name', () => {
-    expect(resolveNodeRef(nodes, 'self').id).toBe('s');
-    expect(resolveNodeRef(nodes, 'german').id).toBe('B');
+    expect(resolveNodeRef(nodes, 'flash').id).toBe('s');
+    expect(resolveNodeRef(nodes, 'exam').id).toBe('B');
   });
 
   it('finds archived nodes only when nothing visible matches', () => {
@@ -78,15 +78,15 @@ describe('resolveNodeRef (MCP-5)', () => {
   it('lists the candidates when a reference is ambiguous', () => {
     const error = failure('chapter 3');
     expect(error.code).toBe('node_ambiguous');
-    expect(error.message).toContain('"Improvement Exams > Maths > Chapter 3" (id mc)');
-    expect(error.message).toContain('"Improvement Exams > English > Chapter 3" (id ec)');
+    expect(error.message).toContain('"School Subjects > Maths > Chapter 3" (id mc)');
+    expect(error.message).toContain('"School Subjects > English > Chapter 3" (id ec)');
   });
 
   it('suggests up to 5 close matches for an unknown reference', () => {
     const error = failure('Engish');
     expect(error.kind).toBe('not_found');
     expect(error.message).toMatch(
-      /^Nothing matches "Engish"\. Closest: "Improvement Exams > English"/,
+      /^Nothing matches "Engish"\. Closest: "School Subjects > English"/,
     );
     expect(error.message.match(/\(id /g)).toHaveLength(5);
     expect(error.message).not.toContain('Old Maths Notes');

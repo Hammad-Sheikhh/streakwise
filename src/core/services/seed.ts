@@ -5,25 +5,25 @@ import type { Repository, SeedData } from '../repo/Repository';
 // are no nodes. The same definition seeds the demo's in-memory store. No personal data here.
 
 export function buildSeed(newId: IdGenerator): SeedData {
-  const german = newId();
-  const exams = newId();
-  const claude = newId();
+  const examPrep = newId();
+  const subjects = newId();
+  const course = newId();
 
   return {
     nodes: [
-      { id: german, parentId: null, name: 'German Language', color: 'amber', sortOrder: 0 },
-      { id: newId(), parentId: german, name: 'Self-study', color: null, sortOrder: 0 },
-      { id: newId(), parentId: german, name: 'Class', color: null, sortOrder: 1 },
-      { id: exams, parentId: null, name: 'Improvement Exams', color: 'blue', sortOrder: 1 },
-      { id: newId(), parentId: exams, name: 'Maths', color: null, sortOrder: 0 },
-      { id: newId(), parentId: exams, name: 'English', color: null, sortOrder: 1 },
-      { id: claude, parentId: null, name: 'Claude Certification', color: 'violet', sortOrder: 2 },
+      { id: examPrep, parentId: null, name: 'Exam Prep', color: 'amber', sortOrder: 0 },
+      { id: newId(), parentId: examPrep, name: 'Flashcards', color: null, sortOrder: 0 },
+      { id: newId(), parentId: examPrep, name: 'Practice', color: null, sortOrder: 1 },
+      { id: subjects, parentId: null, name: 'School Subjects', color: 'blue', sortOrder: 1 },
+      { id: newId(), parentId: subjects, name: 'Maths', color: null, sortOrder: 0 },
+      { id: newId(), parentId: subjects, name: 'English', color: null, sortOrder: 1 },
+      { id: course, parentId: null, name: 'Online Course', color: 'violet', sortOrder: 2 },
     ],
     tasks: [
       {
         id: newId(),
-        nodeId: german,
-        title: 'Weekly recall / revision',
+        nodeId: examPrep,
+        title: 'Weekly self-test',
         recurrence: 'weekly',
         isScored: true,
         defaultMaxScore: 20,

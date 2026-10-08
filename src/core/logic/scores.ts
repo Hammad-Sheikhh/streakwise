@@ -81,8 +81,8 @@ export function scoreLines(nodes: readonly TreeNode[], scores: readonly Score[])
 
 /**
  * SCORE-5: the kind a track's chart opens on, which is the kind it records most (the latest one
- * wins a tie). With the usual habits that gives past papers for Improvement, quizzes for
- * Certification, and revision tests for German. null (all kinds) when it has no scores.
+ * wins a tie). For example, a track used for past papers opens on past papers, one used for
+ * quizzes on quizzes. null (all kinds) when it has no scores.
  */
 export function defaultKind(scores: readonly Score[]): ScoreKind | null {
   const counts = new Map<ScoreKind, number>();

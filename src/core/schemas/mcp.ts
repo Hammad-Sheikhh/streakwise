@@ -13,7 +13,7 @@ const nodeRef = z
   .min(1)
   .max(300)
   .describe(
-    'A node id, or a path such as "Improvement Exams > Maths > Chapter 3" (case-insensitive, ' +
+    'A node id, or a path such as "School Subjects > Maths > Chapter 3" (case-insensitive, ' +
       '">"-separated). The end of a path or a unique partial name such as "maths" also works.',
   );
 

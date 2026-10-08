@@ -41,10 +41,10 @@ beforeEach(async () => {
 
 describe('getDashboard (DASH-1)', () => {
   it('totals today, this week per track, and streaks', async () => {
-    const german = await byName('German Language');
-    await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 480 });
-    await log('Self-study', '2026-10-03', 45);
-    await log('Class', '2026-10-02', 60);
+    const examPrep = await byName('Exam Prep');
+    await updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 480 });
+    await log('Flashcards', '2026-10-03', 45);
+    await log('Practice', '2026-10-02', 60);
     await log('Maths', '2026-10-01', 30);
     await log('Maths', '2026-09-27', 120); // last week: not in this week's total
 
@@ -53,9 +53,9 @@ describe('getDashboard (DASH-1)', () => {
     expect(dashboard.todayMinutes).toBe(45);
     expect(dashboard.streak).toEqual({ current: 3, longest: 3 });
     expect(dashboard.targets).toEqual([
-      { trackId: german.id, minutes: 105, targetMinutes: 480 },
-      { trackId: (await byName('Improvement Exams')).id, minutes: 30, targetMinutes: null },
-      { trackId: (await byName('Claude Certification')).id, minutes: 0, targetMinutes: null },
+      { trackId: examPrep.id, minutes: 105, targetMinutes: 480 },
+      { trackId: (await byName('School Subjects')).id, minutes: 30, targetMinutes: null },
+      { trackId: (await byName('Online Course')).id, minutes: 0, targetMinutes: null },
     ]);
   });
 
@@ -71,10 +71,10 @@ describe('getDashboard (DASH-1)', () => {
   });
 
   it('lists neglected tracks and subtasks with the configured threshold (NEG-1)', async () => {
-    await log('Self-study', '2026-10-03');
-    await log('Class', '2026-10-03');
+    await log('Flashcards', '2026-10-03');
+    await log('Practice', '2026-10-03');
     await log('Maths', '2026-09-29');
-    await log('Claude Certification', '2026-10-02');
+    await log('Online Course', '2026-10-02');
 
     const dashboard = await getDashboard(repo, clock);
     const names = await Promise.all(
@@ -85,7 +85,7 @@ describe('getDashboard (DASH-1)', () => {
     );
     expect(names).toEqual([
       ['English', 13, true],
-      ['Improvement Exams', 4, false],
+      ['School Subjects', 4, false],
       ['Maths', 4, false],
     ]);
 
@@ -104,8 +104,8 @@ describe('getDashboard (DASH-1)', () => {
     await add('Past exam', '2026-10-02');
     await add('Maths exam', '2026-11-13');
     await add('Mock', '2026-10-03');
-    const german = await byName('German Language');
-    await add('A1 test', '2026-10-20', german.id);
+    const examPrep = await byName('Exam Prep');
+    await add('A1 test', '2026-10-20', examPrep.id);
     await add('Far away', '2027-01-01');
 
     const { deadlines } = await getDashboard(repo, clock);
@@ -142,12 +142,12 @@ describe('getDashboard (DASH-1)', () => {
     expect(tasksDue.map((i) => [i.task.title, i.overdue])).toEqual([
       ['Late', true],
       ['Sunday', false],
-      ['Weekly recall / revision', false],
+      ['Weekly self-test', false],
     ]);
   });
 
   it('leaves archived tracks out of targets and warnings', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     await updateNode(repo, clock, exams.id, { archived: true });
     const dashboard = await getDashboard(repo, clock);
     expect(dashboard.targets.map((t) => t.trackId)).not.toContain(exams.id);
@@ -157,15 +157,15 @@ describe('getDashboard (DASH-1)', () => {
 
 describe('weekly targets (TGT-1)', () => {
   it('accepts half-hour steps on tracks only; 0 clears the target', async () => {
-    const german = await byName('German Language');
+    const examPrep = await byName('Exam Prep');
     expect(
-      (await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 90 })).weeklyTargetMinutes,
+      (await updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 90 })).weeklyTargetMinutes,
     ).toBe(90);
     expect(
-      (await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 0 })).weeklyTargetMinutes,
+      (await updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 0 })).weeklyTargetMinutes,
     ).toBeNull();
     await expect(
-      updateNode(repo, clock, german.id, { weeklyTargetMinutes: 45 }),
+      updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 45 }),
     ).rejects.toMatchObject({ kind: 'validation' });
     const maths = await byName('Maths');
     await expect(

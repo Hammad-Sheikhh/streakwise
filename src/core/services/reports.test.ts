@@ -96,13 +96,13 @@ describe('resolvePeriod (REP-1–3)', () => {
 
 describe('buildReport (REP-4, REP-9)', () => {
   it('totals the week with time per track and subtask and % of target', async () => {
-    await updateNode(repo, clock, (await byName('German Language')).id, {
+    await updateNode(repo, clock, (await byName('Exam Prep')).id, {
       weeklyTargetMinutes: 480,
     });
     await updateSettings(repo, { studentName: 'Demo Student' });
-    await log('Self-study', '2026-09-28', 60);
-    await log('Class', '2026-09-29', 90);
-    await log('Self-study', '2026-10-03', 30);
+    await log('Flashcards', '2026-09-28', 60);
+    await log('Practice', '2026-09-29', 90);
+    await log('Flashcards', '2026-10-03', 30);
     await log('Maths', '2026-10-02', 45);
     await log('Maths', '2026-09-27', 120); // last week
 
@@ -118,30 +118,30 @@ describe('buildReport (REP-4, REP-9)', () => {
       streak: 2, // Fri, Sat (Thu has nothing)
     });
     expect(report.tracks[0]).toEqual({
-      name: 'German Language',
+      name: 'Exam Prep',
       color: 'amber',
       minutes: 180,
       targetMinutes: 480,
       targetPercent: 38,
       subtasks: [
-        { name: 'Self-study', minutes: 90 },
-        { name: 'Class', minutes: 90 },
+        { name: 'Flashcards', minutes: 90 },
+        { name: 'Practice', minutes: 90 },
       ],
     });
     expect(report.tracks[1]).toMatchObject({
-      name: 'Improvement Exams',
+      name: 'School Subjects',
       minutes: 45,
       targetMinutes: null,
       subtasks: [{ name: 'Maths', minutes: 45 }],
     });
-    expect(report.tracks[2]).toMatchObject({ name: 'Claude Certification', minutes: 0 });
+    expect(report.tracks[2]).toMatchObject({ name: 'Online Course', minutes: 0 });
   });
 
   it('leaves out targets for periods that are not weeks', async () => {
-    await updateNode(repo, clock, (await byName('German Language')).id, {
+    await updateNode(repo, clock, (await byName('Exam Prep')).id, {
       weeklyTargetMinutes: 480,
     });
-    await log('Self-study', '2026-10-03', 60);
+    await log('Flashcards', '2026-10-03', 60);
     const report = await buildReport(repo, clock, { period: 'today' });
     expect(report.tracks[0]).toMatchObject({
       minutes: 60,
@@ -163,14 +163,14 @@ describe('buildReport (REP-4, REP-9)', () => {
 
     const thisWeek = await buildReport(repo, clock, { period: 'this_week' });
     expect(thisWeek.topicsStudied).toEqual([
-      { path: 'Improvement Exams > Maths > Chapter 2', minutes: 40 },
+      { path: 'School Subjects > Maths > Chapter 2', minutes: 40 },
     ]);
     expect(thisWeek.topicsDone).toEqual([
-      { path: 'Improvement Exams > Maths > Chapter 2', doneOn: '2026-10-03' },
+      { path: 'School Subjects > Maths > Chapter 2', doneOn: '2026-10-03' },
     ]);
     const lastWeek = await buildReport(repo, clock, { period: 'last_week' });
     expect(lastWeek.topicsDone).toEqual([
-      { path: 'Improvement Exams > Maths > Chapter 1', doneOn: '2026-09-25' },
+      { path: 'School Subjects > Maths > Chapter 1', doneOn: '2026-09-25' },
     ]);
   });
 
@@ -202,38 +202,38 @@ describe('buildReport (REP-4, REP-9)', () => {
     const report = await buildReport(repo, clock, { period: 'this_week' });
     expect(report.tasksCompleted).toEqual([
       {
-        title: 'Weekly recall / revision',
-        path: 'German Language',
+        title: 'Weekly self-test',
+        path: 'Exam Prep',
         completedOn: '2026-10-03',
         score: { score: 18, maxScore: 20, percent: 90 },
       },
     ]);
     expect(report.scores.map((s) => [s.date, s.title, s.percent])).toEqual([
       ['2026-09-30', '2023 Paper 1', 77.5],
-      ['2026-10-03', 'Weekly recall / revision', 90],
+      ['2026-10-03', 'Weekly self-test', 90],
     ]);
   });
 
   it('judges neglect and the streak at the end of a past period', async () => {
-    await log('Self-study', '2026-09-24');
-    await log('Self-study', '2026-09-25');
-    await log('Class', '2026-09-26');
+    await log('Flashcards', '2026-09-24');
+    await log('Flashcards', '2026-09-25');
+    await log('Practice', '2026-09-26');
     await log('Maths', '2026-10-03'); // after last week: must not count
 
     const report = await buildReport(repo, clock, { period: 'last_week' });
     expect(report.totals).toMatchObject({ days: 7, activeDays: 3, streak: 3 });
     // As of Sun 27 Sep: Maths and English were never studied (created 20 Sep: 7 days).
     expect(report.neglected).toEqual([
-      { path: 'Improvement Exams', days: 7, neverLogged: true },
-      { path: 'Improvement Exams > Maths', days: 7, neverLogged: true },
-      { path: 'Improvement Exams > English', days: 7, neverLogged: true },
-      { path: 'Claude Certification', days: 7, neverLogged: true },
+      { path: 'School Subjects', days: 7, neverLogged: true },
+      { path: 'School Subjects > Maths', days: 7, neverLogged: true },
+      { path: 'School Subjects > English', days: 7, neverLogged: true },
+      { path: 'Online Course', days: 7, neverLogged: true },
     ]);
   });
 
   it('includes notes only when asked (REP-5)', async () => {
-    await log('Self-study', '2026-10-01', 30, 'Dative case');
-    await log('Class', '2026-10-02', 30);
+    await log('Flashcards', '2026-10-01', 30, 'Dative case');
+    await log('Practice', '2026-10-02', 30);
     const without = await buildReport(repo, clock, { period: 'this_week' });
     expect(without.includesNotes).toBe(false);
     expect(without.notes).toEqual([]);
@@ -243,7 +243,7 @@ describe('buildReport (REP-4, REP-9)', () => {
     expect(withNotes.notes).toEqual([
       {
         date: '2026-10-01',
-        path: 'German Language > Self-study',
+        path: 'Exam Prep > Flashcards',
         minutes: 30,
         note: 'Dative case',
       },
@@ -263,15 +263,15 @@ describe('buildReport (REP-4, REP-9)', () => {
     }
     const report = await buildReport(repo, clock, { period: 'last_week' });
     expect(report.deadlines.map((d) => [d.title, d.daysLeft, d.path])).toEqual([
-      ['A', 7, 'Improvement Exams > Maths'],
-      ['B', 29, 'Improvement Exams > Maths'],
-      ['C', 59, 'Improvement Exams > Maths'],
+      ['A', 7, 'School Subjects > Maths'],
+      ['B', 29, 'School Subjects > Maths'],
+      ['C', 59, 'School Subjects > Maths'],
     ]);
   });
 
   it('keeps archived tracks only when they have time in the period', async () => {
-    const claude = await byName('Claude Certification');
-    await log('Claude Certification', '2026-10-01', 20);
+    const claude = await byName('Online Course');
+    await log('Online Course', '2026-10-01', 20);
     await updateNode(repo, clock, claude.id, { archived: true });
     expect((await buildReport(repo, clock, { period: 'this_week' })).tracks).toHaveLength(3);
     expect((await buildReport(repo, clock, { period: 'last_week' })).tracks).toHaveLength(2);

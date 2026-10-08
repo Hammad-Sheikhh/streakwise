@@ -19,18 +19,18 @@ function sampleReport(overrides: Partial<Report> = {}): Report {
     totals: { minutes: 870, sessions: 12, activeDays: 6, days: 7, streak: 9 },
     tracks: [
       {
-        name: 'German Language',
+        name: 'Exam Prep',
         color: 'amber',
         minutes: 370,
         targetMinutes: 480,
         targetPercent: 77,
         subtasks: [
-          { name: 'Self-study', minutes: 280 },
-          { name: 'Class', minutes: 90 },
+          { name: 'Flashcards', minutes: 280 },
+          { name: 'Practice', minutes: 90 },
         ],
       },
       {
-        name: 'Claude Certification',
+        name: 'Online Course',
         color: 'violet',
         minutes: 180,
         targetMinutes: 240,
@@ -46,12 +46,12 @@ function sampleReport(overrides: Partial<Report> = {}): Report {
         subtasks: [],
       },
     ],
-    topicsStudied: [{ path: 'Improvement Exams > Maths > Ch. 3', minutes: 60 }],
-    topicsDone: [{ path: 'Improvement Exams > Maths > Ch. 3', doneOn: '2026-10-02' }],
+    topicsStudied: [{ path: 'School Subjects > Maths > Ch. 3', minutes: 60 }],
+    topicsDone: [{ path: 'School Subjects > Maths > Ch. 3', doneOn: '2026-10-02' }],
     tasksCompleted: [
       {
-        title: 'Weekly recall',
-        path: 'German Language',
+        title: 'Weekly self-test',
+        path: 'Exam Prep',
         completedOn: '2026-10-03',
         score: { score: 18, maxScore: 20, percent: 90 },
       },
@@ -59,7 +59,7 @@ function sampleReport(overrides: Partial<Report> = {}): Report {
     scores: [
       {
         date: '2026-10-03',
-        path: 'German Language',
+        path: 'Exam Prep',
         kind: 'revision',
         title: 'Weekly | recall',
         score: 18,
@@ -67,11 +67,11 @@ function sampleReport(overrides: Partial<Report> = {}): Report {
         percent: 90,
       },
     ],
-    neglected: [{ path: 'Improvement Exams > English', days: 4, neverLogged: false }],
+    neglected: [{ path: 'School Subjects > English', days: 4, neverLogged: false }],
     deadlines: [
       {
         title: 'Maths exam',
-        path: 'Improvement Exams > Maths',
+        path: 'School Subjects > Maths',
         dueOn: '2026-11-13',
         daysLeft: 41,
         syllabusLeftPercent: 62,
@@ -100,11 +100,11 @@ describe('reportAsWhatsApp (REP-7, §B10.1)', () => {
         '',
         'Total: 14h 30m · 6 of 7 days · streak 9 days',
         '',
-        '*German Language* — 6h 10m of 8h (77%)',
-        'Self-study 4h 40m · Class 1h 30m',
-        '*Claude Certification* — 3h of 4h (75%)',
+        '*Exam Prep* — 6h 10m of 8h (77%)',
+        'Flashcards 4h 40m · Practice 1h 30m',
+        '*Online Course* — 3h of 4h (75%)',
         '',
-        'Completed: Maths Ch. 3 · Weekly recall 18/20',
+        'Completed: Maths Ch. 3 · Weekly self-test 18/20',
         'Needs attention: English (4 days)',
         'Coming up: Maths exam in 41 days (62% of syllabus left)',
       ].join('\n'),
@@ -170,11 +170,11 @@ describe('reportAsMarkdown (REP-8, §B10.2)', () => {
       expect(md).toContain(heading);
     }
     expect(md).not.toContain('## Notes');
-    expect(md).toContain('| German Language | Self-study | 4h 40m | | |');
-    expect(md).toContain('| German Language | (all) | 6h 10m | 8h | 77% |');
+    expect(md).toContain('| Exam Prep | Flashcards | 4h 40m | | |');
+    expect(md).toContain('| Exam Prep | (all) | 6h 10m | 8h | 77% |');
     // Pipes in titles don't break the table.
     expect(md).toContain('Weekly \\| recall');
-    expect(md).toContain('- Improvement Exams > English: not studied for 4 days');
+    expect(md).toContain('- School Subjects > English: not studied for 4 days');
     expect(md.trimEnd().endsWith('what should I prioritise next?')).toBe(true);
   });
 
@@ -183,10 +183,10 @@ describe('reportAsMarkdown (REP-8, §B10.2)', () => {
       sampleReport({
         includesNotes: true,
         notes: [
-          { date: '2026-10-01', path: 'German Language > Self-study', minutes: 30, note: 'Dative' },
+          { date: '2026-10-01', path: 'Exam Prep > Flashcards', minutes: 30, note: 'Dative' },
         ],
       }),
     );
-    expect(md).toContain('## Notes\n- Thu 1 Oct 2026 · German Language > Self-study · 30m: Dative');
+    expect(md).toContain('## Notes\n- Thu 1 Oct 2026 · Exam Prep > Flashcards · 30m: Dative');
   });
 });

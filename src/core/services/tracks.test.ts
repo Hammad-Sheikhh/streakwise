@@ -29,14 +29,14 @@ beforeEach(async () => {
 
 describe('getTrackOverview (TRACK-1)', () => {
   it('rolls up time this week and all time, and lists the latest sessions', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     const maths = await byName('Maths');
     const chapter = await addNode(repo, newId, { parentId: maths.id, name: 'Chapter 3' });
     const log = (nodeId: string, studiedOn: string, minutes: number) =>
       logSession(repo, clock, newId, { nodeId, studiedOn, minutes });
     await log(chapter.id, '2026-10-02', 45);
     await log(maths.id, '2026-09-20', 60);
-    await log((await byName('Class')).id, '2026-10-02', 30); // another track
+    await log((await byName('Practice')).id, '2026-10-02', 30); // another track
 
     const overview = await getTrackOverview(repo, clock, exams.id);
     const time = new Map(overview.nodes.map((n) => [n.nodeId, n]));
@@ -53,7 +53,7 @@ describe('getTrackOverview (TRACK-1)', () => {
       const studiedOn = `2026-09-${String(day).padStart(2, '0')}`;
       await logSession(repo, clock, newId, { nodeId: maths.id, studiedOn, minutes: 10 });
     }
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     const overview = await getTrackOverview(repo, clock, exams.id);
     expect(overview.recentSessions).toHaveLength(TRACK_RECENT_SESSIONS);
     expect(overview.recentSessions[0]?.studiedOn).toBe('2026-09-12');

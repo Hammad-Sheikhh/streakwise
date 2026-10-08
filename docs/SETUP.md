@@ -294,7 +294,7 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
    don't guess menu paths.
 3. Test together in a Claude chat:
    - "What tracks do I have?"
-   - "Log 30 minutes of German self-study for today."
+   - "Log 30 minutes of Exam Prep flashcards for today."
    - "How am I doing this week, and what am I neglecting?"
 
    Confirm the session appears in the app with the "via Claude" badge.

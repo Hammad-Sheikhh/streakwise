@@ -174,7 +174,7 @@ describe('migrations', () => {
       await insertTree(db);
       await db.query(
         `insert into tasks (id, node_id, title, recurrence, is_scored, default_max_score)
-         values ($1, $2, 'Weekly recall', 'weekly', true, 20)`,
+         values ($1, $2, 'Weekly self-test', 'weekly', true, 20)`,
         [ids.task, ids.track],
       );
     });
@@ -380,7 +380,7 @@ describe('migrations', () => {
       await insertTree(db);
       await db.query(
         `insert into tasks (id, node_id, title, recurrence, is_scored, default_max_score)
-         values ($1, $2, 'Weekly recall', 'weekly', true, 20)`,
+         values ($1, $2, 'Weekly self-test', 'weekly', true, 20)`,
         [ids.task, ids.track],
       );
       await db.query(`insert into tasks (node_id, parent_task_id, title) values ($1, $2, 'Sub')`, [

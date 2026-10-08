@@ -15,13 +15,13 @@ async function nodeId(api: FakeApi, name: string): Promise<string> {
 
 async function seedScores(api: FakeApi) {
   const maths = await nodeId(api, 'Maths');
-  const german = await nodeId(api, 'Self-study');
+  const examPrep = await nodeId(api, 'Flashcards');
   const add = (id: string, kind: ScoreKind, takenOn: string, score: number) =>
     api.addScore({ nodeId: id, kind, title: `${kind} ${takenOn}`, takenOn, score, maxScore: 50 });
   await add(maths, 'past_paper', '2026-09-01', 25);
   await add(maths, 'past_paper', '2026-09-10', 30);
   await add(maths, 'quiz', '2026-09-12', 40);
-  await add(german, 'revision', '2026-09-15', 45);
+  await add(examPrep, 'revision', '2026-09-15', 45);
 }
 
 describe('Scores screen (SCORE-1–5)', () => {
@@ -61,12 +61,12 @@ describe('Scores screen (SCORE-1–5)', () => {
 
     const legend = await screen.findByRole('list', { name: 'Legend' });
     expect(within(legend).getByText('Maths')).toBeInTheDocument();
-    expect(within(legend).getByText('Self-study')).toBeInTheDocument();
+    expect(within(legend).getByText('Flashcards')).toBeInTheDocument();
     // Maths: 50% then (60%, 80%) → up 20 points.
     expect(within(legend).getByText('Trend: up 20 percentage points')).toBeInTheDocument();
 
-    // SCORE-5: Improvement Exams records past papers most, so it opens on them.
-    await user.selectOptions(screen.getByLabelText('Track'), 'Improvement Exams');
+    // SCORE-5: School Subjects records past papers most, so it opens on them.
+    await user.selectOptions(screen.getByLabelText('Track'), 'School Subjects');
     expect(screen.getByLabelText('Kind')).toHaveValue('past_paper');
     const results = screen.getByRole('region', { name: 'Results' });
     expect(within(results).getAllByRole('row')).toHaveLength(3); // header + 2 past papers

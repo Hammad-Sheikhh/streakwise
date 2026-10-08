@@ -17,13 +17,13 @@ describe('seedIfEmpty', () => {
 
     const tree = await listTree(repo);
     expect(tree.map((n) => `${'  '.repeat(n.depth - 1)}${n.name}`)).toEqual([
-      'German Language',
-      '  Self-study',
-      '  Class',
-      'Improvement Exams',
+      'Exam Prep',
+      '  Flashcards',
+      '  Practice',
+      'School Subjects',
       '  Maths',
       '  English',
-      'Claude Certification',
+      'Online Course',
     ]);
     expect(tree.filter((n) => n.depth === 1).map((n) => n.color)).toEqual([
       'amber',
@@ -33,7 +33,7 @@ describe('seedIfEmpty', () => {
 
     const [task] = await repo.listTasks();
     expect(task).toMatchObject({
-      title: 'Weekly recall / revision',
+      title: 'Weekly self-test',
       nodeId: tree[0]?.id,
       recurrence: 'weekly',
       isScored: true,
