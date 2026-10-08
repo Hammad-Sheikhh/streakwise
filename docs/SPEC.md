@@ -197,6 +197,22 @@ Claude Certification   color: violet
 | AUTH-4 | MUST | Logout (in Settings) clears the cookie. |
 | AUTH-5 | MUST | 5 wrong attempts from one IP within 15 minutes locks login from that IP for 15 minutes. IPs are stored only as salted hashes. |
 
+### B5.1a Accounts (ACCT) — added by D17, replaces the passcode (AUTH-1, AUTH-2)
+| ID | Priority | Requirement |
+|---|---|---|
+| ACCT-1 | MUST | Accounts live in **Supabase Auth**, called only by Netlify Functions (D5 still holds: the browser never talks to Supabase). Anyone can sign up at `/signup` with name, email and a password of at least 8 characters. |
+| ACCT-2 | MUST | When email sending is set up, a new account must confirm its email before it can log in. The confirmation link opens `/auth/confirm` on our site (token-hash flow), never a Supabase page. |
+| ACCT-3 | MUST | `/login` has email + password, "Forgot password?", "Create an account", and "Try the demo". A correct login sets httpOnly, Secure, SameSite=Strict cookies holding the Supabase session; the server refreshes it as needed, so a device stays logged in until logout (or 30 days unused). Wrong details show one calm message that doesn't reveal whether the email exists. |
+| ACCT-4 | MUST | Forgot password emails a one-time reset link that opens `/reset-password` on our site, where a new password is chosen. The response never reveals whether the email has an account. |
+| ACCT-5 | MUST | Every data row (nodes, sessions, tasks, completions, scores, deadlines, shared reports, settings) belongs to one user (`user_id`), and every server read and write is limited to the logged-in user. The database itself refuses rows that point at another user's rows (composite foreign keys). |
+| ACCT-6 | MUST | A new account gets the standard seed (§B4) on its first login. |
+| ACCT-7 | MUST | Claiming existing data: while unclaimed rows (from before accounts) exist and `APP_PASSCODE` is set, the login page's "I have the old passcode" option accepts the passcode once, then asks the owner to create (or log into) an account; all unclaimed rows and the old settings move to it atomically. After that, the passcode is no longer accepted. |
+| ACCT-8 | MUST | Each user has their own Claude link `/mcp/<token>`. Only a hash of the token is stored, so Settings → Claude connection shows the link right after "Create link" / "Make a new link" (the old link stops working). The link reaches only that user's data. |
+| ACCT-9 | MUST | Settings → Account shows the email, and offers change password, log out, and delete account (typing DELETE to confirm; deletes all of the user's data). |
+| ACCT-10 | MUST | Abuse limits: AUTH-5's lockout applies to login (per hashed IP), and sign-up and reset requests are limited per hashed IP (5 per hour). |
+| ACCT-11 | MUST | Emails (confirmation, reset) are sent by Supabase through custom SMTP (Brevo, sender = the owner's verified address); templates are in `docs/email-templates/`. Without SMTP set up, the app still works: confirmation is off and the owner can't send reset emails. |
+| ACCT-12 | SHOULD | Demo mode is unchanged and never touches accounts. |
+
 ### B5.2 Structure (TREE)
 | ID | Priority | Requirement |
 |---|---|---|
@@ -596,7 +612,8 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | M3 | `feat/dashboard` | DASH-1, TGT-1–2, NEG-1–2, STRK-1–2, HEAT-1–4, DEAD-1–3 | — | — |
 | M4 | `feat/mcp` | MCP-1–8, MCP-9 (M4 tools), SET-4 | Connect Claude after R2 | **R2:** Claude connected (minimum useful version, §B14.6) |
 | M5 | `feat/progress` | TOP-1–2, TASK-1–10, SCORE-1–5, TRACK-1, MCP-9 (M5 tools), tasks added to `find_gaps` | — | — |
-| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3** |
+| M5A | `feat/accounts` | ACCT-1–12 (accounts with Supabase Auth, per-user data, per-user Claude link; D17) | Brevo account + Supabase SMTP and email templates; run `0003`; replace the Claude connector | **R3** (M5 + M5A), after the owner says yes |
+| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3b** |
 | M7 | `feat/demo-pwa` | DEMO-1–5 complete (sample data, banner, disabled features), PWA-1–3, end-to-end suite | — | — |
 | M8 | `chore/polish` | Accessibility and performance pass, empty states, README, screenshots, architecture.md | Final checklist (§B17) | **R4:** v1.0.0 |
 
@@ -656,10 +673,11 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D14 | R2 (M0–M4) is the minimum useful version | Exams come first; the core goal is met early |
 | D15 | One Supabase project for every environment (owner's choice, 2026-10-03). Previews and the `develop` deploy use the real database; features are tested in demo mode first, and Claude Code warns the owner before any test that writes to the database. `MCP_SECRET` still differs between production and other contexts. | The owner's Supabase account already uses its free project allowance; a second project isn't available for free |
 | D16 | Tasks can be for **Other** (no track; `tasks.node_id` nullable, migration `0002`); "Other" tasks can't be scored. The task form's "For" list also offers **+ New track…**, the Tracks screen has an Add track form, and the Log screen's Track picker offers **+ New track…** (owner's requests, 2026-10-06). | To-dos outside the study structure, and adding tracks where they're needed |
+| D17 | **Accounts for other people (owner's request, 2026-10-08)**, replacing D1 and D7: open sign-up with email + password via **Supabase Auth** (a developer's advice the owner chose), confirmation and reset emails through Brevo SMTP sent from the owner's Gmail (no domain; owner accepted that some emails may land in spam), per-user data with `user_id` on every table (migration `0003`, backward compatible with the deployed code; `0004` after R3 removes the old single-user parts), one Claude link per user, existing data claimed by the owner with the old passcode. Built now as M5A, before M6. | Other people asked to use the app |
 
 ## B16. Out of scope
 
-Multiple users or sign-up · a timer · push notifications · offline logging · built-in AI features ·
+~~Multiple users or sign-up~~ (now in scope, D17) · a timer · push notifications · offline logging · built-in AI features ·
 a manual theme switch · Urdu · data import · native mobile apps · analytics or tracking.
 
 ## B17. Final acceptance checklist
