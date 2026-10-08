@@ -78,7 +78,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Try accounts on the PR #20 preview with throwaway `+test` addresses: sign-up, confirmation email
       (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
       deleted, 9 original nodes untouched (owner, 2026-10-09)
-- [ ] OK to merge #20 into `develop`
+- [x] OK to merge #20 into `develop` (owner, 2026-10-09; merged)
 - [ ] Say yes/no to release R3 (M5 + M5A accounts)
 - [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
