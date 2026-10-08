@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-08 by Claude Code (M5A Accounts built on `feat/accounts`, draft PR #20; next: owner setup)_
+_Last updated: 2026-10-09 by Claude Code (M6 Reports built on `feat/reports`, PR #21; R3 held by the owner)_
 
 ## Milestones
 
@@ -12,8 +12,8 @@ _Last updated: 2026-10-08 by Claude Code (M5A Accounts built on `feat/accounts`,
 | M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
 | M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
-| M5A Accounts  | 🔨 built  | #20 | Draft. ACCT-1–12 built and tested (330 tests + e2e). Needs the owner's setup steps before it can be tried            |
-| M6 Reports    | ⏳        |     |                                                                                                                      |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                              |
+| M6 Reports    | 🔍 review | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Needs the owner's try-out on the preview             |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
 
@@ -79,11 +79,28 @@ One database for everything (D15), so each migration runs once.
       (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
       deleted, 9 original nodes untouched (owner, 2026-10-09)
 - [x] OK to merge #20 into `develop` (owner, 2026-10-09; merged)
-- [ ] Say yes/no to release R3 (M5 + M5A accounts)
+- [ ] Try M6 Reports on the PR #21 preview (demo mode first) and OK to merge #21 into `develop`
+- [ ] Say yes/no to release R3 (M5 + M5A accounts + M6 reports)
 - [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
 ## Current work / next step
+
+**2026-10-09: M6 Reports built on `feat/reports`, PR #21 (into `develop`).** The owner said to keep
+building and do their open tasks later. Delivered: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`;
+no migration. 378 tests + e2e green; main bundle ~223 KB gzipped (Reports lazy-loaded).
+
+**Next (in order):**
+
+1. Owner tries M6 in demo mode (`/demo/reports`, Settings → Your data) on the PR #21 preview, then
+   says OK to merge #21 into `develop`. (Share links and export on the real login write to the
+   shared database; revoke test links afterwards.)
+2. Owner decides on release R3 (now M5 + M5A + M6), then the claim and new-Claude-link steps.
+3. After R3: migration `0004` (remove single-user leftovers, make `user_id` required).
+4. Meanwhile: M7 (`feat/demo-pwa`: DEMO-1–5 sample data, PWA-1–3, e2e suite) can start from
+   `develop` once #21 is merged.
+
+Previous notes:
 
 **2026-10-08: M5A Accounts (SPEC D17, ACCT-1–12), branch `feat/accounts`, draft PR #20.** The owner asked
 for accounts for other people: open sign-up, email + password, reset emails, one Claude link per
@@ -179,6 +196,19 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 ## Open questions for the owner
 
 ## Decisions made during the build
+
+- M6: share links are created by sending the report's period and notes choice; the server rebuilds
+  the report with `buildReport` and freezes it, so a link can never show numbers the app didn't make.
+- M6: the public read is the only cross-user query (`PublicShareStore.findBySlug`); unknown, expired,
+  and revoked links all answer the same 404. The `/r/*` page also gets `X-Robots-Tag` from `_headers`.
+- M6: a report's "current streak" and neglect are judged at the end of the period (or today, if the
+  period hasn't ended); deadlines are always the next 3 from today.
+- M6: week periods run Monday–Sunday in full; "active days of N" counts only days up to today.
+- M6: export is one POST that returns all data as JSON and stamps `last_export_at`; the CSV is made
+  in the browser from the same data. CSV cells that start like a formula get a leading apostrophe.
+- M6: SET-3's reminder is a `backupDue` flag on the dashboard, so Home makes no extra request.
+- M6: date labels and score-kind names moved to `src/core/logic/labels.ts` (shared with report text);
+  `src/lib/format.ts` re-exports them.
 
 - M5A: sessions are our own signed cookie with the user id (not Supabase's tokens), so requests don't
   call Supabase Auth; a password change revokes older cookies via `sessions_valid_after` (cached 60 s).
