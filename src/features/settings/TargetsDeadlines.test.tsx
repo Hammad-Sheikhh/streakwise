@@ -11,7 +11,7 @@ describe('Weekly targets (TGT-1)', () => {
     const api = fakeApi({ loggedIn: true });
     renderRoutes('/settings/targets', api);
 
-    const select = await screen.findByLabelText('German Language');
+    const select = await screen.findByLabelText('Exam Prep');
     await user.selectOptions(select, '1.5h a week');
     await waitFor(async () => expect((await api.listTree())[0]?.weeklyTargetMinutes).toBe(90));
     await user.selectOptions(select, 'No target');

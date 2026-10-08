@@ -35,7 +35,7 @@ describe('Reports (REP-1–8)', () => {
   it('includes notes only when the toggle is on (REP-5)', async () => {
     const user = userEvent.setup();
     const api = fakeApi({ loggedIn: true });
-    const node = (await api.listTree()).find((n) => n.name === 'Self-study');
+    const node = (await api.listTree()).find((n) => n.name === 'Flashcards');
     if (!node) throw new Error('seed missing');
     await api.logSession({ nodeId: node.id, studiedOn: '2026-10-02', minutes: 30, note: 'Dative' });
     renderRoutes('/reports', api);

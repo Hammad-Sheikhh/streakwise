@@ -27,7 +27,7 @@ describe('demo mode (DEMO-1, DEMO-2, DEMO-4)', () => {
     const isAuthenticated = vi.spyOn(api, 'isAuthenticated');
     renderRoutes('/demo', api);
 
-    expect(await screen.findByText('Claude Certification')).toBeInTheDocument();
+    expect(await screen.findByText('Online Course')).toBeInTheDocument();
     expect(screen.getByRole('note')).toHaveTextContent('Demo — sample data. Changes aren’t saved.');
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(isAuthenticated).not.toHaveBeenCalled();

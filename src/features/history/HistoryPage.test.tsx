@@ -15,7 +15,7 @@ async function nodeId(api: FakeApi, name: string): Promise<string> {
 async function withSessions() {
   const api = fakeApi({ loggedIn: true });
   const maths = await nodeId(api, 'Maths');
-  const classId = await nodeId(api, 'Class');
+  const classId = await nodeId(api, 'Practice');
   await api.logSession({ nodeId: maths, studiedOn: '2026-10-01', minutes: 30 });
   await api.logSession({ nodeId: classId, studiedOn: '2026-10-03', minutes: 45, note: 'Verbs' });
   await api.logSession({ nodeId: maths, studiedOn: '2026-10-03', minutes: 60 });
@@ -56,12 +56,12 @@ describe('editing and deleting (HIST-2)', () => {
     const user = userEvent.setup();
     renderRoutes('/history', api);
 
-    await user.click(await screen.findByRole('button', { name: 'Edit 45m of Class' }));
+    await user.click(await screen.findByRole('button', { name: 'Edit 45m of Practice' }));
     const dialog = await screen.findByRole('dialog', { name: 'Edit session' });
     await user.click(within(dialog).getByRole('button', { name: '2h' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
 
-    expect(await screen.findByRole('button', { name: 'Edit 2h of Class' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Edit 2h of Practice' })).toBeInTheDocument();
     const [day] = (await api.getHistory({})).days;
     expect(day?.totalMinutes).toBe(180);
   });
@@ -89,13 +89,13 @@ describe('editing and deleting (HIST-2)', () => {
 describe('filters and badges (HIST-3, HIST-4)', () => {
   it('filters by node from the URL, including descendants', async () => {
     const { api } = await withSessions();
-    const exams = await nodeId(api, 'Improvement Exams');
+    const exams = await nodeId(api, 'School Subjects');
     renderRoutes(`/history?node=${exams}`, api);
 
     await screen.findByRole('region', { name: 'Today' });
     expect(screen.queryByText('Verbs')).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Edit .* of Maths$/ })).toHaveLength(2);
-    expect(screen.getByLabelText('Subject')).toHaveDisplayValue(/Improvement Exams/);
+    expect(screen.getByLabelText('Subject')).toHaveDisplayValue(/School Subjects/);
   });
 
   it('marks sessions logged by Claude', async () => {

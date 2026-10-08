@@ -24,7 +24,7 @@ async function home(api: FakeApi) {
 describe('Home dashboard (DASH-1)', () => {
   it('shows today, the streak, and weekly targets with progress (STRK-1/2, TGT-2)', async () => {
     const api = fakeApi({ loggedIn: true });
-    const german = await nodeId(api, 'German Language');
+    const german = await nodeId(api, 'Exam Prep');
     await api.updateNode(german, { weeklyTargetMinutes: 480 });
     await api.logSession({ nodeId: german, studiedOn: '2026-10-03', minutes: 120 });
     await api.logSession({ nodeId: german, studiedOn: '2026-10-02', minutes: 80 });
@@ -33,7 +33,7 @@ describe('Home dashboard (DASH-1)', () => {
     expect(screen.getByRole('region', { name: 'Today' })).toHaveTextContent('2h');
     expect(screen.getByRole('region', { name: 'Streak' })).toHaveTextContent('2 days');
     expect(screen.getByRole('region', { name: 'Streak' })).toHaveTextContent('Longest: 2');
-    const bar = screen.getByRole('progressbar', { name: 'German Language weekly target' });
+    const bar = screen.getByRole('progressbar', { name: 'Exam Prep weekly target' });
     expect(bar).toHaveAttribute('aria-valuenow', '42');
     expect(screen.getByText('3h 20m / 8h · 42%')).toBeInTheDocument();
     // Tracks without a target show their time only.
@@ -48,7 +48,7 @@ describe('Home dashboard (DASH-1)', () => {
     const { router } = await home(api);
 
     const warnings = screen.getByRole('region', { name: 'Needs attention' });
-    expect(within(warnings).getByText('Improvement Exams — 5 days untouched')).toBeInTheDocument();
+    expect(within(warnings).getByText('School Subjects — 5 days untouched')).toBeInTheDocument();
     await user.click(within(warnings).getByRole('link', { name: /Maths — 5 days untouched/ }));
     await waitFor(() => expect(router.state.location.search).toBe(`?node=${maths}`));
   });
