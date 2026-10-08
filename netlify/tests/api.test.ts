@@ -10,7 +10,7 @@ import { createRecentNodesHandler } from '../functions/recent-nodes';
 import { createSessionHandler } from '../functions/session';
 import { createSessionsHandler } from '../functions/sessions';
 import { createSettingsHandler } from '../functions/settings';
-import { context, cookieFrom, post, TEST_PASSCODE, testDeps } from './fakes';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
 
 // The M2 endpoints, end to end on the in-memory repository: auth → validation → service → JSON.
 
@@ -18,9 +18,7 @@ async function setup() {
   const t = testDeps();
   const getDeps = () => t.deps;
   const login = createLoginHandler(getDeps);
-  const cookie = cookieFrom(
-    await login(post('/api/auth/login', { passcode: TEST_PASSCODE }), context),
-  );
+  const cookie = cookieFrom(await login(post('/api/auth/login', LOGIN), context));
 
   const request = (method: string, path: string, body?: unknown, withCookie = true) =>
     new Request(`http://localhost${path}`, {
@@ -127,16 +125,16 @@ describe('/api/nodes', () => {
     expect(blank.status).toBe(400);
 
     const duplicate = await api.nodes(
-      api.request('POST', '/api/nodes', { parentId: null, name: 'german language' }),
+      api.request('POST', '/api/nodes', { parentId: null, name: 'exam prep' }),
       context,
     );
     expect(duplicate.status).toBe(409);
     expect(await errorCode(duplicate)).toBe('duplicate');
 
-    const german = await api.byName('German Language');
+    const examPrep = await api.byName('Exam Prep');
     const inUse = await api.node(
-      api.request('DELETE', `/api/nodes/${german.id}`),
-      api.withId(german.id),
+      api.request('DELETE', `/api/nodes/${examPrep.id}`),
+      api.withId(examPrep.id),
     );
     expect(inUse.status).toBe(409);
     expect(await errorCode(inUse)).toBe('node_in_use');

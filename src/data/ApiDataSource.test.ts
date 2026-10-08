@@ -11,7 +11,7 @@ const node = {
   id: '00000000-0000-4000-8000-000000000001',
   parentId: null,
   depth: 1,
-  name: 'German Language',
+  name: 'Exam Prep',
   color: 'amber',
   sortOrder: 0,
   weeklyTargetMinutes: null,
@@ -23,18 +23,21 @@ const node = {
 };
 
 describe('ApiDataSource', () => {
-  it('posts the passcode as JSON to /api/auth/login', async () => {
-    const fetchFn = respond(200, { authenticated: true });
-    await new ApiDataSource(fetchFn).login('secret');
+  it('posts the email and password as JSON to /api/auth/login', async () => {
+    const fetchFn = respond(200, { authenticated: true, claimed: false });
+    const login = { email: 'student@example.com', password: 'secret password' };
+    expect(await new ApiDataSource(fetchFn).account.login(login)).toEqual({ claimed: false });
     const [url, init] = fetchFn.mock.calls[0] ?? [];
     expect(url).toBe('/api/auth/login');
     expect(init).toMatchObject({ method: 'POST', credentials: 'same-origin' });
-    expect(JSON.parse(String(init?.body))).toEqual({ passcode: 'secret' });
+    expect(JSON.parse(String(init?.body))).toEqual(login);
   });
 
   it('turns API errors into DataSourceErrors with the server message', async () => {
     const fetchFn = respond(429, { error: { code: 'locked_out', message: 'Too many attempts.' } });
-    const error = await new ApiDataSource(fetchFn).login('x').catch((e: unknown) => e);
+    const error = await new ApiDataSource(fetchFn).account
+      .login({ email: 'a@example.com', password: 'x' })
+      .catch((e: unknown) => e);
     expect(error).toBeInstanceOf(DataSourceError);
     expect(error).toMatchObject({ status: 429, code: 'locked_out', message: 'Too many attempts.' });
   });

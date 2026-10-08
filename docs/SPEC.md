@@ -29,13 +29,13 @@
 A private study tracker that works on your phone and laptop. You log your study time yourself
 (there's no timer) under your three tracks:
 
-- **German Language**: self-study and your class
-- **Improvement Exams**: Maths and English
-- **Claude Certification**: your institute course
+- **Exam Prep**: flashcards and your class
+- **School Subjects**: Maths and English
+- **Online Course**: your institute course
 
 Each track has **subtasks** (like Maths), and each subtask can have **topics** (like Chapter 3).
 You can also create to-do **tasks** anywhere, with sub-tasks nested as deep as you like. One
-example is a weekly German revision that you give yourself a score on.
+example is a weekly self-test that you give yourself a score on.
 
 The app then shows you:
 - how much you studied today and this week, compared with weekly goals you set
@@ -69,7 +69,7 @@ Visitors to your portfolio get a **demo with made-up data**, so your real data s
 - Three tracks with three levels each (track → subtask → topic). Tasks can nest as deep as you want.
 - You log time by hand. There's no timer.
 - Weekly goals are set per track. A warning appears after 3 days without study.
-- Scores: past papers (Improvement), institute quizzes (Certification), and weekly recall/revision (German).
+- Scores: past papers, quizzes, mock tests, and weekly self-tests.
 - Reports are in English and formal enough for teachers and parents. Your private notes are hidden
   from reports unless you switch them on.
 - Reports can be shared as a link, like a Claude artifact link.
@@ -173,16 +173,16 @@ a title, a date, a score, a maximum, a node, a note, and an optional link to a t
 Seeding runs **automatically on the first successful login when the `nodes` table is empty**, and it is idempotent.
 
 ```
-German Language        color: amber
-├─ Self-study
-└─ Class
-Improvement Exams      color: blue
+Exam Prep          color: amber
+├─ Flashcards
+└─ Practice
+School Subjects    color: blue
 ├─ Maths
 └─ English
-Claude Certification   color: violet
+Online Course      color: violet
 ```
 
-- One task: "Weekly recall / revision" on German Language, weekly, scored, default max 20.
+- One task: "Weekly self-test" on Exam Prep, weekly, scored, default max 20.
 - Settings: student name empty (the app asks for it the first time a report is made); neglect threshold 3.
 - No topics, targets, or deadlines. No personal information anywhere in the seed.
 
@@ -196,6 +196,22 @@ Claude Certification   color: violet
 | AUTH-3 | MUST | Every `/api/*` route requires a valid session, except `auth/login`, `share/:slug` (public read), `health`, and `keepalive`. |
 | AUTH-4 | MUST | Logout (in Settings) clears the cookie. |
 | AUTH-5 | MUST | 5 wrong attempts from one IP within 15 minutes locks login from that IP for 15 minutes. IPs are stored only as salted hashes. |
+
+### B5.1a Accounts (ACCT) — added by D17, replaces the passcode (AUTH-1, AUTH-2)
+| ID | Priority | Requirement |
+|---|---|---|
+| ACCT-1 | MUST | Accounts live in **Supabase Auth**, called only by Netlify Functions (D5 still holds: the browser never talks to Supabase). Anyone can sign up at `/signup` with name, email and a password of at least 8 characters. |
+| ACCT-2 | MUST | When email sending is set up, a new account must confirm its email before it can log in. The confirmation link opens `/auth/confirm` on our site (token-hash flow), never a Supabase page. |
+| ACCT-3 | MUST | `/login` has email + password, "Forgot password?", "Create an account", and "Try the demo". A correct login sets a signed, httpOnly, Secure, SameSite=Strict session cookie for that user, valid for 30 days (Supabase Auth checks the password only at login). Changing the password logs out other devices. Wrong details show one calm message that doesn't reveal whether the email exists. |
+| ACCT-4 | MUST | Forgot password emails a one-time reset link that opens `/reset-password` on our site, where a new password is chosen. The response never reveals whether the email has an account. |
+| ACCT-5 | MUST | Every data row (nodes, sessions, tasks, completions, scores, deadlines, shared reports, settings) belongs to one user (`user_id`), and every server read and write is limited to the logged-in user. The database itself refuses rows that point at another user's rows (composite foreign keys). |
+| ACCT-6 | MUST | A new account gets the standard seed (§B4) on its first login. |
+| ACCT-7 | MUST | Claiming existing data: while unclaimed rows (from before accounts) exist and `APP_PASSCODE` is set, the login page's "I have the old passcode" option accepts the passcode once, then asks the owner to create (or log into) an account; all unclaimed rows and the old settings move to it atomically. After that, the passcode is no longer accepted. |
+| ACCT-8 | MUST | Each user has their own Claude link `/mcp/<token>`. Only a hash of the token is stored, so Settings → Claude connection shows the link right after "Create link" / "Make a new link" (the old link stops working). The link reaches only that user's data. |
+| ACCT-9 | MUST | Settings → Account shows the email, and offers change password, log out, and delete account (typing DELETE to confirm; deletes all of the user's data). |
+| ACCT-10 | MUST | Abuse limits: AUTH-5's lockout applies to login (per hashed IP), and sign-up and reset requests are limited per hashed IP (5 per hour). |
+| ACCT-11 | MUST | Emails (confirmation, reset) are sent by Supabase through custom SMTP (Brevo, sender = the owner's verified address); templates are in `docs/email-templates/`. Without SMTP set up, the app still works: confirmation is off and the owner can't send reset emails. |
+| ACCT-12 | SHOULD | Demo mode is unchanged and never touches accounts. |
 
 ### B5.2 Structure (TREE)
 | ID | Priority | Requirement |
@@ -236,7 +252,7 @@ Claude Certification   color: violet
 | DASH-1 | MUST | Home on mobile, top to bottom: (1) neglect warnings, if any; (2) today's total and current streak; (3) weekly target progress per track; (4) tasks due this week; (5) next 3 deadlines; (6) heatmap; (7) a link to this week's report. Desktop may use two columns in the same priority order. All data comes from one dashboard request. Sections that depend on later milestones (tasks in M5, the report link in M6) appear when those milestones land. |
 | TGT-1 | MUST | Each track can have a weekly target in hours (0.5 h steps; empty means no target). |
 | TGT-2 | MUST | Each track shows a progress bar for this week (§B9.4) with a label like "3h 20m / 8h". Tracks without a target show their time only. |
-| NEG-1 | MUST | Neglect warnings follow §B9.5, e.g. "English — 4 days untouched" or "Claude Certification — never logged". Tapping a warning opens Log with that node preselected. |
+| NEG-1 | MUST | Neglect warnings follow §B9.5, e.g. "English — 4 days untouched" or "Online Course — never logged". Tapping a warning opens Log with that node preselected. |
 | NEG-2 | COULD | Mute warnings for a specific node. |
 | STRK-1 | MUST | Current streak (§B9.6). |
 | STRK-2 | SHOULD | Longest streak. |
@@ -275,7 +291,7 @@ Claude Certification   color: violet
 | SCORE-2 | MUST | A line chart of percentage over time, with one line per subtask (or per track when the score is at track level). Filterable by track and kind. |
 | SCORE-3 | MUST | A results table, newest first. |
 | SCORE-4 | SHOULD | A trend indicator per line: the average of the last 3 results vs the previous 3 (▲/▼ with the difference in percentage points). |
-| SCORE-5 | SHOULD | Default views: Improvement → past papers; Certification → quizzes; German → revision. |
+| SCORE-5 | SHOULD | Default views: each track's chart opens on the score kind it records most. |
 
 ### B5.9 Track pages (TRACK)
 | ID | Priority | Requirement |
@@ -332,11 +348,11 @@ Claude Certification   color: violet
 ### B5.15 MCP server (MCP)
 | ID | Priority | Requirement |
 |---|---|---|
-| MCP-1 | MUST | The endpoint is `/mcp/:secret`. The secret is compared to `MCP_SECRET` in constant time; a mismatch returns 404. |
+| MCP-1 | MUST | The endpoint is `/mcp/:secret`. ~~The secret is compared to `MCP_SECRET` in constant time~~ Since D17 the secret is the user's own token (ACCT-8), looked up by its hash; no match returns 404. |
 | MCP-2 | MUST | Uses the official MCP TypeScript SDK with the Streamable HTTP transport, stateless, inside a Netlify Function. Check the current SDK docs and any current Netlify guidance on hosting MCP servers, and verify with MCP Inspector before connecting Claude. |
 | MCP-3 | MUST | The server's `instructions` explain tracks/subtasks/topics, tasks, scores, the time zone, and that durations are in minutes. |
 | MCP-4 | MUST | Tools call the core services directly (not over HTTP) and return compact JSON text. Lists are capped (default 50, max 200) with a `truncated` flag. Each call updates the "last MCP call" time. |
-| MCP-5 | MUST | Node references accept an id, or a path like `Improvement Exams > Maths > Chapter 3` (case-insensitive, `>`-separated; a unique partial name like `maths` also works). An ambiguous or unknown reference returns an error listing up to 5 closest matches. |
+| MCP-5 | MUST | Node references accept an id, or a path like `School Subjects > Maths > Chapter 3` (case-insensitive, `>`-separated; a unique partial name like `maths` also works). An ambiguous or unknown reference returns an error listing up to 5 closest matches. |
 | MCP-6 | MUST | Dates accept `today`, `yesterday`, or `YYYY-MM-DD`, interpreted in Asia/Karachi. |
 | MCP-7 | MUST | Sessions created through MCP have `source = 'claude'`. |
 | MCP-8 | MUST | Every tool has a Zod input schema, a description written for an AI reader, and correct annotations (`readOnlyHint` for reads, `destructiveHint` for deletes). |
@@ -458,13 +474,13 @@ The structure looks like this (the data is illustrative):
 
 Total: 14h 30m · 6 of 7 days · streak 9 days
 
-*German Language* — 6h 10m of 8h (77%)
-Self-study 4h 40m · Class 1h 30m
-*Improvement Exams* — 5h 20m of 6h (89%)
+*Exam Prep* — 6h 10m of 8h (77%)
+Flashcards 4h 40m · Practice 1h 30m
+*School Subjects* — 5h 20m of 6h (89%)
 Maths 3h 50m · English 1h 30m
-*Claude Certification* — 3h of 4h (75%)
+*Online Course* — 3h of 4h (75%)
 
-Completed: Maths Ch. 3 · Weekly recall 18/20
+Completed: Maths Ch. 3 · Weekly self-test 18/20
 Needs attention: English (4 days)
 Coming up: Maths exam in 41 days (62% of syllabus left)
 ```
@@ -596,7 +612,8 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | M3 | `feat/dashboard` | DASH-1, TGT-1–2, NEG-1–2, STRK-1–2, HEAT-1–4, DEAD-1–3 | — | — |
 | M4 | `feat/mcp` | MCP-1–8, MCP-9 (M4 tools), SET-4 | Connect Claude after R2 | **R2:** Claude connected (minimum useful version, §B14.6) |
 | M5 | `feat/progress` | TOP-1–2, TASK-1–10, SCORE-1–5, TRACK-1, MCP-9 (M5 tools), tasks added to `find_gaps` | — | — |
-| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3** |
+| M5A | `feat/accounts` | ACCT-1–12 (accounts with Supabase Auth, per-user data, per-user Claude link; D17) | Brevo account + Supabase SMTP and email templates; run `0003`; replace the Claude connector | **R3** (M5 + M5A), after the owner says yes |
+| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3** (owner held R3 so M6 ships with M5 + M5A) |
 | M7 | `feat/demo-pwa` | DEMO-1–5 complete (sample data, banner, disabled features), PWA-1–3, end-to-end suite | — | — |
 | M8 | `chore/polish` | Accessibility and performance pass, empty states, README, screenshots, architecture.md | Final checklist (§B17) | **R4:** v1.0.0 |
 
@@ -655,10 +672,13 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D13 | Feature PRs squash-merged into `develop`; release PRs merged into `main` with a merge commit | Clean history, and release PRs that don't conflict |
 | D14 | R2 (M0–M4) is the minimum useful version | Exams come first; the core goal is met early |
 | D15 | One Supabase project for every environment (owner's choice, 2026-10-03). Previews and the `develop` deploy use the real database; features are tested in demo mode first, and Claude Code warns the owner before any test that writes to the database. `MCP_SECRET` still differs between production and other contexts. | The owner's Supabase account already uses its free project allowance; a second project isn't available for free |
+| D16 | Tasks can be for **Other** (no track; `tasks.node_id` nullable, migration `0002`); "Other" tasks can't be scored. The task form's "For" list also offers **+ New track…**, the Tracks screen has an Add track form, and the Log screen's Track picker offers **+ New track…** (owner's requests, 2026-10-06). | To-dos outside the study structure, and adding tracks where they're needed |
+| D17 | **Accounts for other people (owner's request, 2026-10-08)**, replacing D1 and D7: open sign-up with email + password via **Supabase Auth** (a developer's advice the owner chose), confirmation and reset emails through Brevo SMTP sent from the owner's Gmail (no domain; owner accepted that some emails may land in spam), per-user data with `user_id` on every table (migration `0003`, backward compatible with the deployed code; `0004` after R3 removes the old single-user parts), one Claude link per user, existing data claimed by the owner with the old passcode. Built now as M5A, before M6. | Other people asked to use the app |
+| D18 | **General sample tracks (owner's request, 2026-10-09):** the seed for new accounts and the demo use Exam Prep (Flashcards, Practice), School Subjects (Maths, English), and Online Course, with a scored "Weekly self-test". The owner's own track names appear nowhere in the code, docs, or tests. Existing accounts keep their data. | The app is public; the starter tracks should suit any student, multitasker, or high achiever, and not reveal the owner's studies |
 
 ## B16. Out of scope
 
-Multiple users or sign-up · a timer · push notifications · offline logging · built-in AI features ·
+~~Multiple users or sign-up~~ (now in scope, D17) · a timer · push notifications · offline logging · built-in AI features ·
 a manual theme switch · Urdu · data import · native mobile apps · analytics or tracking.
 
 ## B17. Final acceptance checklist

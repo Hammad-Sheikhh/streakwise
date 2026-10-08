@@ -1,0 +1,16 @@
+<!--
+  Supabase → Authentication → Emails → Templates → "Confirm signup".
+  Subject: Confirm your Streakwise account
+  The link goes to our own /auth/confirm (SPEC ACCT-2), never to a Supabase page.
+  {{ .RedirectTo }} is the site that asked (production or a preview), if it is in the allowed
+  Redirect URLs; otherwise Supabase uses the Site URL.
+-->
+<h2>Welcome to Streakwise</h2>
+<p>Hi {{ .Data.name }},</p>
+<p>Please confirm your email address to finish creating your account:</p>
+<p>
+  <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup"
+    >Confirm my account</a
+  >
+</p>
+<p>If you didn't sign up for Streakwise, you can ignore this email.</p>

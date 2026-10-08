@@ -79,10 +79,23 @@ export interface Dashboard {
   targets: { trackId: string; minutes: number; targetMinutes: number | null }[];
   /** NEG-1, most neglected first. */
   neglect: { nodeId: string; days: number; neverLogged: boolean }[];
+  /** TASK-7: tasks due this week, overdue first, then by due date (weekly ones last). */
+  tasksDue: TaskItem[];
   /** DEAD-2/3: the next 3 upcoming deadlines. */
   deadlines: UpcomingDeadline[];
   /** HEAT-1: days with sessions in the last 12 months. */
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
+  /** SET-3: no export yet, or the last one is more than 30 days old. */
+  backupDue: boolean;
+}
+
+/** TRACK-1: time per node in the track (the track itself included) and its latest sessions. */
+export interface TrackOverview {
+  trackId: string;
+  today: string;
+  nodes: { nodeId: string; weekMinutes: number; totalMinutes: number }[];
+  /** Newest first. */
+  recentSessions: Session[];
 }
 
 /** One day of History (HIST-1): its sessions, newest first, and their total. */
@@ -102,7 +115,8 @@ export type TaskRecurrence = 'none' | 'weekly';
 
 export interface Task {
   id: string;
-  nodeId: string;
+  /** null = "Other": not tied to any track (0002). Such tasks can't be scored. */
+  nodeId: string | null;
   parentTaskId: string | null;
   title: string;
   description: string | null;
@@ -116,6 +130,47 @@ export interface Task {
   updatedAt: string;
 }
 
+export interface TaskCompletion {
+  id: string;
+  taskId: string;
+  /** The week's Monday for weekly tasks; null for one-off tasks. */
+  periodStart: string | null;
+  completedAt: string;
+  note: string | null;
+}
+
+/** A task as the Tasks screen and MCP show it, with its state as of today. */
+export interface TaskItem {
+  task: Task;
+  /** The completion that makes it done today (this week's, for weekly tasks), or null. */
+  completion: TaskCompletion | null;
+  /** TASK-7. */
+  dueThisWeek: boolean;
+  overdue: boolean;
+  /** TASK-9: direct sub-tasks done vs total; null when it has none. */
+  subtasks: { done: number; total: number } | null;
+  /** TASK-5: Mondays of the weeks a weekly task was completed, newest first. */
+  completedWeeks: string[];
+}
+
+export const SCORE_KINDS = ['past_paper', 'quiz', 'mock_test', 'revision', 'other'] as const;
+export type ScoreKind = (typeof SCORE_KINDS)[number];
+
+export interface Score {
+  id: string;
+  nodeId: string;
+  /** Set when the score was recorded by completing a scored task. */
+  taskCompletionId: string | null;
+  kind: ScoreKind;
+  title: string;
+  /** Local date. */
+  takenOn: string;
+  score: number;
+  maxScore: number;
+  note: string | null;
+  createdAt: string;
+}
+
 export interface Settings {
   /** Empty until the owner enters it (asked for on the first report). */
   studentName: string;
@@ -124,9 +179,21 @@ export interface Settings {
   lastMcpCallAt: string | null;
 }
 
-/** SET-4: how to connect Claude. `url` is null when the server has no MCP secret configured. */
+/** A new user's settings (SPEC §B4). */
+export const DEFAULT_SETTINGS: Readonly<Settings> = {
+  studentName: '',
+  neglectDays: 3,
+  lastExportAt: null,
+  lastMcpCallAt: null,
+};
+
+/**
+ * SET-4, ACCT-8: the user's Claude link. Only a hash is stored, so `url` is set only in the answer
+ * that creates the link; `hasLink` says whether one exists.
+ */
 export interface ClaudeConnection {
   url: string | null;
+  hasLink: boolean;
   lastMcpCallAt: string | null;
 }
 
@@ -135,3 +202,115 @@ export type Clock = () => Date;
 
 /** Creates a new unique id (UUID v4). Injected for deterministic tests. */
 export type IdGenerator = () => string;
+
+/** REP-1–3: the periods a report can cover. */
+export const REPORT_PERIODS = ['today', 'yesterday', 'this_week', 'last_week', 'custom'] as const;
+export type ReportPeriodKind = (typeof REPORT_PERIODS)[number];
+
+/** REP-3: the longest custom range, in days. */
+export const MAX_REPORT_DAYS = 92;
+
+/**
+ * REP-4: everything a report shows. It is self-contained (names and paths instead of ids), so a
+ * shared link can store it as a frozen snapshot (SHARE-1) and render it without the tree.
+ */
+export interface Report {
+  studentName: string;
+  period: {
+    kind: ReportPeriodKind;
+    /** e.g. "This week". */
+    label: string;
+    from: string;
+    to: string;
+    /** Week periods show % of each track's weekly target. */
+    isWeek: boolean;
+  };
+  generatedAt: string;
+  includesNotes: boolean;
+  totals: {
+    minutes: number;
+    sessions: number;
+    activeDays: number;
+    /** Days in the period (up to today). */
+    days: number;
+    /** As of the end of the period (or today, if the period includes today). */
+    streak: number;
+  };
+  /** Tracks in display order: visible ones, plus archived ones with time in the period. */
+  tracks: {
+    name: string;
+    color: TrackColor | null;
+    minutes: number;
+    /** Week periods only. */
+    targetMinutes: number | null;
+    targetPercent: number | null;
+    /** Subtasks with time in the period. */
+    subtasks: { name: string; minutes: number }[];
+  }[];
+  topicsStudied: { path: string; minutes: number }[];
+  topicsDone: { path: string; doneOn: string }[];
+  tasksCompleted: {
+    title: string;
+    /** null for "Other" tasks. */
+    path: string | null;
+    completedOn: string;
+    score: { score: number; maxScore: number; percent: number } | null;
+  }[];
+  /** Oldest first. */
+  scores: {
+    date: string;
+    path: string;
+    kind: ScoreKind;
+    title: string;
+    score: number;
+    maxScore: number;
+    percent: number;
+  }[];
+  /** NEG-1 as of the end of the period, most neglected first. */
+  neglected: { path: string; days: number; neverLogged: boolean }[];
+  /** The next 3 deadlines from today. */
+  deadlines: {
+    title: string;
+    path: string;
+    dueOn: string;
+    daysLeft: number;
+    syllabusLeftPercent: number | null;
+  }[];
+  /** REP-5: empty unless notes were included. Oldest first. */
+  notes: { date: string; path: string; minutes: number; note: string }[];
+}
+
+/** SHARE-3: a shared link as Settings lists it (the snapshot itself stays on the server). */
+export interface SharedReportLink {
+  id: string;
+  slug: string;
+  periodLabel: string;
+  createdAt: string;
+  /** null = never expires (SHARE-6). */
+  expiresAt: string | null;
+  revokedAt: string | null;
+}
+
+/** SHARE-1: what the public page reads. */
+export interface SharedReport extends SharedReportLink {
+  snapshot: Report;
+}
+
+/** SHARE-4: whether a link still shows its report. */
+export type ShareStatus = 'active' | 'expired' | 'revoked';
+
+/** SET-2: everything the user has, as one JSON file. */
+export interface DataExport {
+  app: 'Streakwise';
+  formatVersion: 1;
+  exportedAt: string;
+  settings: Pick<Settings, 'studentName' | 'neglectDays'>;
+  nodes: TreeNode[];
+  sessions: Session[];
+  tasks: Task[];
+  taskCompletions: TaskCompletion[];
+  scores: Score[];
+  deadlines: Deadline[];
+  /** The links only; their snapshots can be rebuilt from the data above. */
+  sharedReports: SharedReportLink[];
+}

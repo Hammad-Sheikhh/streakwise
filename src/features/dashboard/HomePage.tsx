@@ -1,5 +1,5 @@
-import { AlertTriangle, CalendarClock, Flame, Plus } from 'lucide-react';
-import { Link } from 'react-router';
+import { AlertTriangle, CalendarClock, FileText, Flame, Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
 
 import { NodeLabel } from '@/components/NodeLabel';
 import { QueryError } from '@/components/QueryError';
@@ -14,11 +14,13 @@ import { useDataSource } from '@/data/useDataSource';
 import { formatDay, formatDaysLeft, formatTargetHours } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
+import { TaskRow } from '@/features/tasks/TaskList';
+
 import { Heatmap } from './Heatmap';
 
 // DASH-1: Home answers "How am I doing this week, and what am I neglecting?" (G2).
-// Order on mobile: neglect → today and streak → targets → (tasks, M5) → deadlines → heatmap →
-// (this week's report, M6).
+// Order on mobile: neglect → today and streak → targets → tasks due → deadlines → heatmap →
+// this week's report. A backup reminder (SET-3) sits at the end when one is due.
 export function HomePage() {
   const dashboard = useDashboard();
   const tree = useTree();
@@ -72,6 +74,7 @@ function Section({
 
 function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNode[] }) {
   const { basePath } = useDataSource();
+  const navigate = useNavigate();
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const settingsLink = (path: string, label: string) => (
     <Link to={`${basePath}/settings/${path}`} className="text-sm underline underline-offset-4">
@@ -211,6 +214,32 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
       </Section>
 
       <Section
+        id="tasks-heading"
+        title="Due this week"
+        action={
+          <Link to={`${basePath}/tasks`} className="text-sm underline underline-offset-4">
+            All tasks
+          </Link>
+        }
+      >
+        {data.tasksDue.length === 0 ? (
+          <p className="rounded-lg border border-dashed p-6">Nothing due this week.</p>
+        ) : (
+          <ul className="flex flex-col divide-y rounded-lg border">
+            {data.tasksDue.map((item) => (
+              <li key={item.task.id}>
+                <TaskRow
+                  item={item}
+                  nodes={nodes}
+                  onOpen={() => void navigate(`${basePath}/tasks?filter=due`)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <Section
         id="deadlines-heading"
         title="Coming up"
         action={settingsLink('deadlines', 'Manage')}
@@ -259,6 +288,22 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
           historyPath={`${basePath}/history`}
         />
       </Section>
+
+      <Button asChild variant="outline" className="h-11 self-start">
+        <Link to={`${basePath}/reports`}>
+          <FileText aria-hidden="true" /> This week’s report
+        </Link>
+      </Button>
+
+      {data.backupDue && (
+        <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
+          Time for a backup: download your data in{' '}
+          <Link to={`${basePath}/settings`} className="underline underline-offset-4">
+            Settings → Your data
+          </Link>
+          .
+        </p>
+      )}
 
       {data.targets.length > 0 && data.heatmap.days.length === 0 && (
         <Button asChild className="h-11 self-start">

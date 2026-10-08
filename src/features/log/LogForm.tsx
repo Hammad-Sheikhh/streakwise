@@ -2,6 +2,7 @@ import { useId, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { NativeSelect } from '@/components/NativeSelect';
+import { NewTrackDialog } from '@/components/NewTrackDialog';
 import { NodeLabel } from '@/components/NodeLabel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,9 @@ export interface LogFormValues {
 }
 
 const DURATION_CHIPS = [15, 30, 45, 60, 90, 120];
+
+/** The track picker's "+ Add new track…" choice, which opens the new track's settings. */
+const NEW_TRACK = 'new-track';
 
 interface Props {
   nodes: readonly TreeNode[];
@@ -99,6 +103,7 @@ export function LogForm({
   const [submitted, setSubmitted] = useState(false);
   const [newTopicOpen, setNewTopicOpen] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
+  const [newTrackOpen, setNewTrackOpen] = useState(false);
 
   // Only visible nodes can be picked, plus the session's own path when editing an archived one.
   const pickable = useMemo(() => {
@@ -150,6 +155,14 @@ export function LogForm({
       },
     },
   );
+
+  // Not selectNode: the tree in hand doesn't have the new track yet.
+  function trackCreated(track: TreeNode) {
+    setTrackId(track.id);
+    setSubtaskId('');
+    setTopicId('');
+    setNewTrackOpen(false);
+  }
 
   function selectNode(id: string) {
     const [track = '', subtask = '', topic = ''] = pathIds(nodes, id);
@@ -210,7 +223,11 @@ export function LogForm({
           <NativeSelect
             id={`${ids}-track`}
             value={trackId}
-            onChange={(e) => selectNode(e.target.value)}
+            onChange={(e) => {
+              // "Add new track" opens its settings; the current choice stays until it's created.
+              if (e.target.value === NEW_TRACK) setNewTrackOpen(true);
+              else selectNode(e.target.value);
+            }}
             {...describe('node')}
           >
             <option value="">Choose a track…</option>
@@ -219,6 +236,7 @@ export function LogForm({
                 {n.name}
               </option>
             ))}
+            <option value={NEW_TRACK}>+ Add new track…</option>
           </NativeSelect>
           {errorText('node')}
         </div>
@@ -302,6 +320,12 @@ export function LogForm({
             )}
           </div>
         )}
+        <NewTrackDialog
+          nodes={nodes}
+          open={newTrackOpen}
+          onOpenChange={setNewTrackOpen}
+          onCreated={trackCreated}
+        />
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">

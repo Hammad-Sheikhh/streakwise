@@ -5,14 +5,15 @@ import { seedIfEmpty } from '../../src/core/services/seed';
 import { addDeadline } from '../../src/core/services/deadlines';
 import { logSession } from '../../src/core/services/sessions';
 import { addNode, updateNode } from '../../src/core/services/structure';
-import { mcpSecretMatches } from '../functions/_lib/mcpSecret';
+import { generateMcpToken, hashMcpToken } from '../functions/_lib/mcpToken';
 import { createMcpFunction } from '../functions/mcp';
 import { testDeps } from './fakes';
 
 // MCP-1–9 against the in-memory repository, through the real HTTP handler and SDK. Requests use
 // the 2025 protocol (no handshake needed in stateless mode); one test covers the 2026 envelope.
 
-const SECRET = 'test-mcp-secret-0123456789abcdefghijklmnop';
+// A fixed, well-formed test token (43 base64url characters).
+const SECRET = 'test-mcp-token-0123456789abcdefghijklmnopqr';
 let setup: ReturnType<typeof testDeps>;
 let handler: ReturnType<typeof createMcpFunction>;
 let rpcId = 0;
@@ -75,29 +76,42 @@ async function byName(name: string): Promise<TreeNode> {
 
 beforeEach(async () => {
   setup = testDeps();
-  setup.deps.env.MCP_SECRET = SECRET;
+  await setup.accounts.setMcpTokenHash(setup.user.id, hashMcpToken(SECRET));
   handler = createMcpFunction(() => setup.deps);
   await seedIfEmpty(setup.repo, setup.deps.newId);
 });
 
-describe('the secret URL (MCP-1)', () => {
-  it('compares secrets and refuses missing or short ones', () => {
-    expect(mcpSecretMatches(SECRET, SECRET)).toBe(true);
-    expect(mcpSecretMatches(`${SECRET}x`, SECRET)).toBe(false);
-    expect(mcpSecretMatches('', undefined)).toBe(false);
-    expect(mcpSecretMatches('short', 'short')).toBe(false);
+describe('the secret URL (MCP-1, ACCT-8)', () => {
+  it('makes long random tokens and stores only their hash', () => {
+    const token = generateMcpToken();
+    expect(token).toMatch(/^[\w-]{43}$/);
+    expect(generateMcpToken()).not.toBe(token);
+    expect(hashMcpToken(token)).toMatch(/^[0-9a-f]{64}$/);
+    expect([...setup.accounts.mcpTokenHashes.values()]).not.toContain(SECRET);
   });
 
-  it('answers 404 for a wrong secret, before looking at the method or body', async () => {
-    const wrong = await mcpRequest({}, { secret: 'wrong-secret-0123456789abcdefghijklmnop' });
+  it('answers 404 for a wrong token, before looking at the method or body', async () => {
+    const wrong = await mcpRequest({}, { secret: 'wrong-token-0123456789abcdefghijklmnopqrstu' });
     expect(wrong.status).toBe(404);
     expect(await wrong.text()).toBe('Not found');
     expect((await mcpRequest({}, { secret: 'nope', method: 'GET' })).status).toBe(404);
   });
 
-  it('answers 404 for everyone when MCP_SECRET isn’t set', async () => {
-    setup.deps.env.MCP_SECRET = undefined;
-    expect((await mcpRequest({})).status).toBe(404);
+  it("reaches only the link owner's data", async () => {
+    const other = setup.auth.addUser('other@example.com', 'other password');
+    const otherToken = generateMcpToken();
+    await setup.accounts.setMcpTokenHash(other.id, hashMcpToken(otherToken));
+    const reply = await mcpRequest(
+      {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: 'get_structure', arguments: {} },
+      },
+      { secret: otherToken },
+    );
+    expect(reply.status).toBe(200);
+    expect(await reply.text()).not.toContain('Exam Prep');
   });
 
   it('only accepts POST', async () => {
@@ -128,19 +142,25 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
     }
   });
 
-  it('lists the M4 tools with descriptions, schemas, and annotations', async () => {
+  it('lists the tools with descriptions, schemas, and annotations', async () => {
     const reply = await rpc('tools/list');
     const tools = (reply.result as { tools: Record<string, unknown>[] }).tools;
     const byTool = Object.fromEntries(tools.map((t) => [t.name as string, t]));
     expect(Object.keys(byTool).sort()).toEqual([
       'add_node',
+      'add_task',
+      'complete_task',
       'delete_session',
       'find_gaps',
       'get_progress',
+      'get_report',
       'get_structure',
       'list_deadlines',
       'list_sessions',
+      'list_tasks',
+      'log_score',
       'log_session',
+      'set_topic_status',
     ]);
     for (const tool of tools) {
       expect(String(tool.description).length).toBeGreaterThan(40);
@@ -152,8 +172,16 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'get_progress',
       'find_gaps',
       'list_deadlines',
+      'list_tasks',
+      'get_report',
     ]) {
       expect(byTool[name]?.annotations).toMatchObject({ readOnlyHint: true });
+    }
+    for (const name of ['add_task', 'complete_task', 'log_score', 'set_topic_status']) {
+      expect(byTool[name]?.annotations).toMatchObject({
+        readOnlyHint: false,
+        destructiveHint: false,
+      });
     }
     expect(byTool.delete_session?.annotations).toMatchObject({ destructiveHint: true });
     expect(byTool.log_session?.annotations).toMatchObject({
@@ -196,7 +224,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     await addNode(setup.repo, setup.deps.newId, { parentId: maths.id, name: 'Chapter 3' });
 
     const { isError, data } = await call('log_session', {
-      node: 'improvement exams > maths > chapter 3',
+      node: 'school subjects > maths > chapter 3',
       minutes: 90,
       date: 'yesterday',
       note: 'Integration practice',
@@ -205,7 +233,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     expect(data.session).toMatchObject({
       date: '2026-10-02',
       minutes: 90,
-      path: 'Improvement Exams > Maths > Chapter 3',
+      path: 'School Subjects > Maths > Chapter 3',
       note: 'Integration practice',
       source: 'claude',
     });
@@ -214,10 +242,10 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
   });
 
   it('defaults to today', async () => {
-    const { data } = await call('log_session', { node: 'self-study', minutes: 30 });
+    const { data } = await call('log_session', { node: 'flashcards', minutes: 30 });
     expect(data.session).toMatchObject({
       date: '2026-10-03',
-      path: 'German Language > Self-study',
+      path: 'Exam Prep > Flashcards',
     });
   });
 
@@ -230,7 +258,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     const ambiguous = await call('log_session', { node: 'chapter 1', minutes: 30 });
     expect(ambiguous.isError).toBe(true);
     expect(ambiguous.data.error.code).toBe('node_ambiguous');
-    expect(ambiguous.data.error.message).toContain('Improvement Exams > English > Chapter 1');
+    expect(ambiguous.data.error.message).toContain('School Subjects > English > Chapter 1');
 
     const future = await call('log_session', { node: 'maths', minutes: 30, date: '2026-10-04' });
     expect(future.data.error).toEqual({
@@ -266,15 +294,15 @@ describe('list_sessions and delete_session', () => {
         { nodeId: (await byName(name)).id, studiedOn, minutes },
         source,
       );
-    await at('Self-study', '2026-09-30', 10);
-    await at('Class', '2026-10-01', 20, 'claude');
+    await at('Flashcards', '2026-09-30', 10);
+    await at('Practice', '2026-10-01', 20, 'claude');
     await at('Maths', '2026-10-02', 30);
   });
 
   it('filters by node, dates, and source, and caps the list', async () => {
-    const german = await call('list_sessions', { node: 'German Language' });
-    expect(german.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([20, 10]);
-    expect(german.data.truncated).toBe(false);
+    const examPrep = await call('list_sessions', { node: 'Exam Prep' });
+    expect(examPrep.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([20, 10]);
+    expect(examPrep.data.truncated).toBe(false);
 
     const ranged = await call('list_sessions', { from: '2026-10-01', to: 'yesterday' });
     expect(ranged.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([30, 20]);
@@ -295,7 +323,7 @@ describe('list_sessions and delete_session', () => {
     expect(deleted.data.deleted).toMatchObject({
       id: newest?.id,
       minutes: 30,
-      path: 'Improvement Exams > Maths',
+      path: 'School Subjects > Maths',
     });
     expect(await setup.repo.listSessions({})).toHaveLength(2);
 
@@ -306,30 +334,30 @@ describe('list_sessions and delete_session', () => {
 
 describe('get_structure and add_node', () => {
   it('returns the tree, with archived nodes only on request', async () => {
-    const claude = await byName('Claude Certification');
+    const claude = await byName('Online Course');
     await updateNode(setup.repo, setup.deps.clock, claude.id, { archived: true });
-    await updateNode(setup.repo, setup.deps.clock, (await byName('German Language')).id, {
+    await updateNode(setup.repo, setup.deps.clock, (await byName('Exam Prep')).id, {
       weeklyTargetMinutes: 300,
     });
 
     const visible = await call('get_structure');
     expect(visible.data.tracks.map((t: { name: string }) => t.name)).toEqual([
-      'German Language',
-      'Improvement Exams',
+      'Exam Prep',
+      'School Subjects',
     ]);
     expect(visible.data.tracks[0]).toMatchObject({
       kind: 'track',
       weeklyTargetMinutes: 300,
       children: [
-        { name: 'Self-study', kind: 'subtask' },
-        { name: 'Class', kind: 'subtask' },
+        { name: 'Flashcards', kind: 'subtask' },
+        { name: 'Practice', kind: 'subtask' },
       ],
     });
 
     const all = await call('get_structure', { include_archived: true });
     expect(all.data.tracks[2]).toEqual({
       id: claude.id,
-      name: 'Claude Certification',
+      name: 'Online Course',
       kind: 'track',
       archived: true,
     });
@@ -340,7 +368,7 @@ describe('get_structure and add_node', () => {
     expect(added.data.node).toMatchObject({
       name: 'Chapter 4',
       kind: 'topic',
-      path: 'Improvement Exams > Maths > Chapter 4',
+      path: 'School Subjects > Maths > Chapter 4',
       status: 'not_started',
     });
 
@@ -394,11 +422,148 @@ describe('get_progress, find_gaps, list_deadlines', () => {
       expect.objectContaining({
         title: 'Final exam',
         daysLeft: 30,
-        path: 'Improvement Exams > Maths',
+        path: 'School Subjects > Maths',
       }),
     ]);
 
     const all = await call('list_deadlines', { include_past: true });
     expect(all.data.deadlines.map((d: { daysLeft: number }) => d.daysLeft)).toEqual([-13, 30]);
+  });
+});
+
+describe('M5 tools: topics, tasks, and scores', () => {
+  it('sets a topic’s status and refuses non-topics', async () => {
+    const maths = await byName('Maths');
+    await addNode(setup.repo, setup.deps.newId, { parentId: maths.id, name: 'Chapter 3' });
+
+    const done = await call('set_topic_status', { topic: 'maths > chapter 3', status: 'done' });
+    expect(done.data.topic).toMatchObject({
+      path: 'School Subjects > Maths > Chapter 3',
+      status: 'done',
+    });
+    const reopened = await call('set_topic_status', { topic: 'chapter 3', status: 'in_progress' });
+    expect(reopened.data.topic.status).toBe('in_progress');
+
+    const wrong = await call('set_topic_status', { topic: 'maths', status: 'done' });
+    expect(wrong.isError).toBe(true);
+    expect(wrong.data.error.code).toBe('topics_only');
+  });
+
+  it('adds tasks and sub-tasks, lists them by status, and completes a scored one', async () => {
+    const added = await call('add_task', {
+      title: 'Past paper 2023',
+      node: 'maths',
+      due_date: '2026-10-02',
+      scored: true,
+      default_max_score: 80,
+    });
+    expect(added.isError).toBe(false);
+    expect(added.data.task).toMatchObject({
+      path: 'School Subjects > Maths',
+      dueOn: '2026-10-02',
+      scored: true,
+      done: false,
+    });
+    const child = await call('add_task', {
+      title: 'Section A',
+      node: 'maths',
+      parent_task_id: added.data.task.id,
+    });
+    expect(child.data.task.parentTaskId).toBe(added.data.task.id);
+
+    const invalid = await call('add_task', {
+      title: 'Weekly',
+      node: 'maths',
+      weekly: true,
+      due_date: 'today',
+    });
+    expect(invalid.isError).toBe(true);
+
+    const due = await call('list_tasks', { status: 'due_this_week' });
+    expect(due.data.tasks.map((t: { title: string }) => t.title)).toContain('Past paper 2023');
+    const inMaths = await call('list_tasks', { node: 'School Subjects' });
+    expect(inMaths.data.tasks).toHaveLength(2);
+
+    const missingScore = await call('complete_task', { task_id: added.data.task.id });
+    expect(missingScore.data.error.code).toBe('score_required');
+
+    const completed = await call('complete_task', {
+      task_id: added.data.task.id,
+      score: 60,
+      kind: 'past_paper',
+    });
+    expect(completed.data.task.done).toBe(true);
+    expect(completed.data.score).toMatchObject({ score: 60, maxScore: 80, percent: 75 });
+
+    const again = await call('complete_task', { task_id: added.data.task.id, score: 60 });
+    expect(again.isError).toBe(true);
+
+    const done = await call('list_tasks', { status: 'done' });
+    expect(done.data.tasks).toHaveLength(1);
+  });
+
+  it('records a score, validating the date and the maximum', async () => {
+    const saved = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Grammar quiz',
+      score: 9,
+      max_score: 12,
+      date: 'yesterday',
+    });
+    expect(saved.data.score).toMatchObject({
+      path: 'School Subjects > English',
+      percent: 75,
+      kind: 'quiz',
+    });
+    const over = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Too high',
+      score: 13,
+      max_score: 12,
+    });
+    expect(over.isError).toBe(true);
+    const future = await call('log_score', {
+      node: 'english',
+      kind: 'quiz',
+      title: 'Future',
+      score: 1,
+      max_score: 12,
+      date: '2099-01-01',
+    });
+    expect(future.data.error.code).toBe('future_date');
+  });
+
+  it('adds an "Other" task when no node is given', async () => {
+    const other = await call('add_task', { title: 'Renew library card' });
+    expect(other.data.task).toMatchObject({ nodeId: null, path: 'Other', scored: false });
+  });
+
+  it('adds tasks due this week to find_gaps', async () => {
+    const gaps = await call('find_gaps');
+    expect(gaps.data.tasksDue).toEqual([
+      expect.objectContaining({ title: 'Weekly self-test', weekly: true, overdue: false }),
+    ]);
+  });
+});
+
+describe('get_report (M6, REP-9)', () => {
+  it('returns the report for a period, with notes only when asked', async () => {
+    await call('log_session', { node: 'flashcards', minutes: 45, note: 'Dative case' });
+    const week = await call('get_report', {});
+    expect(week.isError).toBe(false);
+    expect(week.data.period).toMatchObject({ kind: 'this_week', isWeek: true });
+    expect(week.data.totals.minutes).toBe(45);
+    expect(week.data.notes).toEqual([]);
+
+    const withNotes = await call('get_report', { period: 'today', include_notes: true });
+    expect(withNotes.data.notes).toEqual([expect.objectContaining({ note: 'Dative case' })]);
+
+    const custom = await call('get_report', { period: 'custom', from: 'yesterday', to: 'today' });
+    expect(custom.data.period).toMatchObject({ from: '2026-10-02', to: '2026-10-03' });
+
+    const missing = await call('get_report', { period: 'custom' });
+    expect(missing.isError).toBe(true);
   });
 });

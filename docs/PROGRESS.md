@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (M4 + MCP sign-in fix merged into develop; R2 waiting for the owner)_
+_Last updated: 2026-10-09 by Claude Code (M6 merged as #21; R3 held by the owner; next M7)_
 
 ## Milestones
 
@@ -11,19 +11,21 @@ _Last updated: 2026-10-06 by Claude Code (M4 + MCP sign-in fix merged into devel
 | M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
 | M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
-| M5 Progress   | ⏳        |     |                                                                                                                      |
-| M6 Reports    | ⏳        |     |                                                                                                                      |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                              |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)        |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
-| Release | Date       | Includes                                                                                                                                                                   |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month. |
-| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).   |
+| Release | Date       | Includes                                                                                                                                                                                               |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R0      | 2026-10-03 | M0 scaffold, placeholder page, `/api/health` (#3, #5). 2 production builds: the first failed (test file in `netlify/functions`, fixed in #4). Count both toward the month.                             |
+| R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).                               |
+| R2      | 2026-10-06 | M4 Claude connection, MCP `/.well-known` fix, owner-task rule (#15, merge commit). Owner approved. Live check: `/api/health` ok, `/api/claude-connection` 401, `/mcp/wrong` 404, `/.well-known/*` 404. |
 
-Production builds this month (Oct 2026): **3** (~45 credits, counted conservatively).
+Production builds this month (Oct 2026): **4** (~60 credits, counted conservatively).
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -31,9 +33,11 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration          | Applied                                                  |
-| ------------------ | -------------------------------------------------------- |
-| `0001_initial.sql` | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
+| Migration                     | Applied                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------- |
+| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
+| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
+| `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
 
 ## Owner's manual steps
 
@@ -55,12 +59,86 @@ One database for everything (D15), so each migration runs once.
 - [x] Merge #8 (merged by Claude Code with the owner's OK)
 - [x] Merge #9 (merged by Claude Code at the owner's request)
 - [x] Say yes/no to release R1 (first live version): yes, released 2026-10-03 (#10)
-- [ ] Try M4 on the preview: Settings → Claude connection (https://deploy-preview-11--streakwise-ap.netlify.app/settings)
-- [ ] OK to merge #11 into `develop`
-- [ ] Say yes/no to release R2 (Claude connected; production build 4 of 8 this month)
-- [ ] Claude custom connector added (after R2), using the URL from the **live** Settings page
+- [x] Try M4 on the live site: Settings → Claude connection (owner used it to add the connector, 2026-10-06)
+- [x] OK to merge #11 into `develop` (owner confirmed 2026-10-06)
+- [x] Say yes/no to release R2: yes, released 2026-10-06 (#15)
+- [x] Claude custom connector added (after R2), using the URL from the **live** Settings page: owner confirmed it works, 2026-10-06
+- [x] Try M5 on the PR #16 preview (owner confirmed, 2026-10-06)
+- [x] OK to merge #16 into `develop` (owner confirmed and allowed Claude Code to merge, 2026-10-06; merged with #17)
+- [x] Try "+ New track…" on the Log screen (PR #18 preview) and OK to merge #18 (owner, 2026-10-06; merged)
+- [x] Try "+ Add new track…" on the Log screen (PR #19) and OK to merge #19 (owner, 2026-10-06; merged)
+- [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
+- [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
+      https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
+- [x] Run `supabase/migrations/0003_accounts.sql` in the Supabase SQL Editor (owner, 2026-10-08)
+- [x] Create a free Brevo account, verify your Gmail as a sender, and create an SMTP key (owner, 2026-10-08)
+- [x] Supabase custom SMTP saved with the Brevo details (owner, 2026-10-08)
+- [x] Supabase: both email templates pasted, URL configuration set (Site URL + 3 redirect URLs),
+      "Allow new users to sign up" and "Confirm email" on (owner, 2026-10-09)
+- [x] Try accounts on the PR #20 preview with throwaway `+test` addresses: sign-up, confirmation email
+      (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
+      deleted, 9 original nodes untouched (owner, 2026-10-09)
+- [x] OK to merge #20 into `develop` (owner, 2026-10-09; merged)
+- [x] OK to merge #21 (M6 Reports) into `develop` (owner, 2026-10-09; merged)
+- [ ] Try M6 Reports on https://develop--streakwise-ap.netlify.app (demo mode first: `/demo/reports`)
+- [ ] Say yes/no to release R3 (M5 + M5A accounts + M6 reports)
+- [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
+- [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
 ## Current work / next step
+
+**2026-10-09: M6 Reports built on `feat/reports`, PR #21 (into `develop`).** The owner said to keep
+building and do their open tasks later. Delivered: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`;
+no migration. 378 tests + e2e green; main bundle ~223 KB gzipped (Reports lazy-loaded).
+
+**Next (in order):**
+
+1. Done: #21 merged into `develop` (2026-10-09, owner's OK). Owner can still try it on the develop
+   site (share links and export on the real login write to the shared database).
+2. Owner decides on release R3 (now M5 + M5A + M6), then the claim and new-Claude-link steps.
+3. After R3: migration `0004` (remove single-user leftovers, make `user_id` required).
+4. Meanwhile: M7 (`feat/demo-pwa`: DEMO-1–5 sample data, PWA-1–3, e2e suite) can start from
+   `develop` once #21 is merged.
+
+Previous notes:
+
+**2026-10-08: M5A Accounts (SPEC D17, ACCT-1–12), branch `feat/accounts`, draft PR #20.** The owner asked
+for accounts for other people: open sign-up, email + password, reset emails, one Claude link per
+person, built now (before M6). On a developer's advice the owner chose **Supabase Auth**; emails go
+through **Brevo** SMTP sent from the owner's Gmail (no domain; owner accepted the spam risk).
+
+Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped):
+
+- `0003_accounts.sql`: `user_id` on every data table with same-owner composite keys,
+  `user_settings` (incl. hashed Claude token, `sessions_valid_after`), `auth_requests`, per-user RPCs,
+  `claim_unclaimed_data`. Backward compatible with the deployed code, so it can run any time.
+- Server: Supabase Auth wrapper, sign-up / login / passcode-claim / forgot / resend / password /
+  delete-account endpoints, `/auth/confirm` for email links, per-user repositories, per-user MCP links.
+- UI: login (email + password, old passcode, resend confirmation), sign-up, forgot and reset password,
+  Settings → Account (change password, delete account), Claude link made in Settings (shown once).
+- Docs: SPEC (M5A, ACCT-1–12, D17, ACCT-3 and MCP-1 wording), architecture.md, `.env.example`,
+  `docs/email-templates/`.
+
+**Next (in order):**
+
+1. Done: owner ran `0003` (2026-10-08).
+2. Done (2026-10-09): owner set up Brevo and Supabase email (explain in detail, checking current Brevo/Supabase docs first):
+   Brevo account + verified Gmail sender + SMTP key → Supabase Authentication → Emails (SMTP settings);
+   paste both templates from `docs/email-templates/`; Authentication → URL Configuration: Site URL
+   `https://streakwise-ap.netlify.app`, redirect URLs for production, `develop--…` and `deploy-preview-*--…`;
+   make sure "Confirm email" is on.
+3. Done (2026-10-09): owner tried it on the PR #20 preview with `+test` addresses. Claiming the real
+   data is deliberately left until right after R3, so nothing logged on the old live site is left out.
+4. Done: #20 merged into `develop` (2026-10-09). **Owner chose to hold the release** (save credits) and
+   keep building first; next work is M6 Reports on a new branch from `develop`. Release R3 later
+   (M5 + M5A + whatever is ready), with the claim steps right after it.
+5. After R3: owner makes a new Claude link in Settings and replaces the Claude connector; then
+   migration `0004` removes the old single-user leftovers (`settings` table, old RPCs, `MCP_SECRET`,
+   later `APP_PASSCODE`) and makes `user_id` required.
+6. Then M6 Reports (shared reports are per user now: `shared_reports.user_id`).
+
+Known limits / deferred: Supabase Auth's own per-IP rate limits see Netlify's IPs (all users share
+them; fine at small scale). No CAPTCHA on sign-up (ACCT-10 per-IP limits only). Previous plan text below.
 
 Setup is done (R0 live; Step 8.7 explained to the owner). Blank local dev page fixed in #6.
 
@@ -98,11 +176,16 @@ after the owner confirms, 2026-10-06).
 
 **Next:**
 
-1. Owner tries M4 on the `develop` deploy (https://develop--streakwise-ap.netlify.app/settings),
-   then says yes/no to **R2**.
-2. After R2: owner adds the custom connector in Claude (steps are in Settings → Claude connection,
-   checked against the Claude help article on 2026-10-04) and tests it in a chat.
-3. Then M5 (`feat/progress`: TOP, TASK, SCORE, TRACK-1, M5 MCP tools, tasks in `find_gaps`).
+1. Done: R2 released 2026-10-06; owner added the Claude connector and confirmed it works.
+2. M5 merged into `develop` as #16 (2026-10-06), with the owner's later requests: tasks can be
+   for "Other" (no track; can't be scored; migration `0002`, D16), the task form's For list has
+   "+ New track…", and the Tracks screen has an Add track form. #17 added the CLAUDE.md rule to
+   explain every owner task in detail. 302 tests. `0002` was run by the owner (2026-10-06) and the owner
+   tried "Other" and "+ New track…" on the develop site. #18 added "+ New track…" to the Log screen; #19 made it open a New track window (name, color,
+   weekly target, subtasks) and select the track.
+   `backup/progress-old` (local only) can be deleted.
+3. Next: M6 (`feat/reports`: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`), then release R3
+   (M5 + M6) after the owner says yes. `0002` must be run before R3 goes live.
 
 No new migration was needed for M2. Run future SQL in the SQL Editor the same way:
 https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the file copied via
@@ -112,9 +195,31 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- #11 was merged on 2026-10-04: did the owner OK that merge? (Its task stays `[ ]` until confirmed.)
-
 ## Decisions made during the build
+
+- M6: share links are created by sending the report's period and notes choice; the server rebuilds
+  the report with `buildReport` and freezes it, so a link can never show numbers the app didn't make.
+- M6: the public read is the only cross-user query (`PublicShareStore.findBySlug`); unknown, expired,
+  and revoked links all answer the same 404. The `/r/*` page also gets `X-Robots-Tag` from `_headers`.
+- M6: a report's "current streak" and neglect are judged at the end of the period (or today, if the
+  period hasn't ended); deadlines are always the next 3 from today.
+- M6: week periods run Monday–Sunday in full; "active days of N" counts only days up to today.
+- M6: export is one POST that returns all data as JSON and stamps `last_export_at`; the CSV is made
+  in the browser from the same data. CSV cells that start like a formula get a leading apostrophe.
+- M6: SET-3's reminder is a `backupDue` flag on the dashboard, so Home makes no extra request.
+- M6: date labels and score-kind names moved to `src/core/logic/labels.ts` (shared with report text);
+  `src/lib/format.ts` re-exports them.
+
+- M5A: sessions are our own signed cookie with the user id (not Supabase's tokens), so requests don't
+  call Supabase Auth; a password change revokes older cookies via `sessions_valid_after` (cached 60 s).
+- M5A: Supabase Auth is called with the secret key through a fresh client per call, so a sign-in
+  never replaces the database client's key.
+- M5A: the login page makes no request until the visitor acts (no "status" call), so the demo e2e
+  still sees zero API calls. The old-passcode form is behind "Used Streakwise before accounts?".
+- M5A: the claim cookie is SameSite=Lax (it must reach `/auth/confirm` from an email link); the
+  session cookie stays Strict.
+- M5A: Claude link tokens are 32 random bytes; only the SHA-256 hash is stored, so the link is shown
+  once and "Make a new link" replaces it.
 
 - App name: **Streakwise** (repo `streakwise`), public repo, MIT license under "Hammad Sheikh".
 - Netlify CLI installed globally; npm skipped its optional postinstall scripts (new npm allow-scripts
@@ -173,6 +278,18 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 - M4: node references try, in order: id, full path, end of path, partial name (each segment
   contained); archived nodes only match when nothing visible does.
 - M4: "last MCP call" is stamped on every tool call (not on `initialize` / `tools/list`).
+- M5: a task's score uses the task title; its kind defaults to "revision" for weekly tasks and
+  "other" for one-off ones (the score dialog lets the owner change it). The completion note is
+  also the score's note. Sub-task progress counts direct sub-tasks only.
+- M5: SCORE-5 "default views" = each track's chart opens on the kind it records most (latest wins
+  a tie), instead of matching track names, so renaming a track doesn't break it. With the usual
+  habits it gives past papers for Improvement, quizzes for Certification, revision for German.
+- M5: SCORE-4 trend = average of the last 3 results minus the 3 before them; with fewer than 4
+  results, the oldest is "before" and the rest are "last". Shown from 2 results on.
+- M5: the score chart is hand-drawn SVG (no chart library, keeps the bundle at ~211 KB gzipped).
+  Line colors are a fixed 8-color palette (validated for color blindness, separate dark steps);
+  a line keeps its color when filters change. The results table is the accessible view.
+- M5: deleting a score that came from a task leaves the task completed.
 - **D15 (owner's choice): one Supabase project (`streakwise-dev`, Singapore) for every environment.**
   The owner's free project allowance was already used. Previews and the `develop` deploy touch real
   data, so test features in demo mode first and warn the owner before any test that writes to the

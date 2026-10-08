@@ -1,8 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 
 import { NativeSelect } from '@/components/NativeSelect';
@@ -15,29 +14,21 @@ import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 
+import { AccountSection } from './AccountSection';
 import { ClaudeConnectionSection } from './ClaudeConnection';
+import { ExportSection } from './ExportSection';
 
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
   { path: 'targets', title: 'Weekly targets', description: 'Hours per week for each track' },
   { path: 'deadlines', title: 'Deadlines', description: 'Exams and due dates' },
+  { path: 'shared-links', title: 'Shared links', description: 'Report links you’ve shared' },
 ];
 
-// SET-1: the Settings shell. Later milestones add shared links and export as more sections.
+// SET-1: the Settings shell, with shared links (SHARE-3) and export (SET-2/3).
 export function SettingsPage() {
   const dataSource = useDataSource();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const settings = useSettings();
-
-  const logout = useMutation({
-    mutationFn: () => dataSource.logout(),
-    onSuccess: () => {
-      queryClient.clear();
-      void navigate('/login', { replace: true });
-    },
-    onError: (error) => toast.error(error.message),
-  });
 
   return (
     <>
@@ -76,27 +67,11 @@ export function SettingsPage() {
         </ul>
       </section>
 
+      <ExportSection />
+
       <ClaudeConnectionSection />
 
-      <section aria-labelledby="account-heading" className="flex flex-col items-start gap-4">
-        <h2 id="account-heading" className="text-lg font-medium">
-          Account
-        </h2>
-        {dataSource.mode === 'api' ? (
-          <Button
-            variant="outline"
-            className="h-11"
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
-          >
-            Log out
-          </Button>
-        ) : (
-          <Button variant="outline" className="h-11" onClick={() => void navigate('/login')}>
-            Exit demo
-          </Button>
-        )}
-      </section>
+      <AccountSection />
     </>
   );
 }

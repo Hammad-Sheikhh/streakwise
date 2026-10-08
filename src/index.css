@@ -50,6 +50,16 @@
 }
 
 :root {
+  /* Score chart lines (SCORE-2): a fixed categorical order, checked for color blindness and
+     contrast with the dataviz palette validator against this background. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -86,6 +96,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
@@ -129,5 +147,32 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* REP-6, SPEC §B10.3: reports print on A4 portrait, black on white (even in dark mode), with no
+   navigation or buttons. Elements hide themselves with Tailwind's `print:hidden`. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+  :root {
+    color-scheme: light;
+    --background: #fff;
+    --foreground: #000;
+    --card: #fff;
+    --card-foreground: #000;
+    --muted: #f5f5f5;
+    --muted-foreground: #525252;
+    --border: #d4d4d4;
+  }
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  [data-sonner-toaster] {
+    display: none !important;
   }
 }

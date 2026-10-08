@@ -14,6 +14,11 @@
 - Tasks not yet confirmed stay as `[ ]` under "Owner's manual steps" so the next session knows them.
 - At the start of every session, and again before stopping, remind the owner of every open `[ ]` task
   (one line each) and ask whether any are done. Keep reminding until each one is confirmed.
+- Explain every task the owner must perform in detail, never as a one-line pointer: why it's
+  needed, where to go (full URL or exact menu path), every click and what to type, what they should
+  see when it worked, what to do if it looks different, and whether it touches real data or costs
+  money/Netlify credits. Also explain what happens next once it's done (e.g. what "merge" or
+  "release" means and who does it).
 
 ## The owner
 - Not technical, on Windows (PowerShell). Explain each step in 1–2 plain sentences; define jargon once.

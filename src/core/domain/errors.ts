@@ -23,6 +23,9 @@ export const CONFLICT_MESSAGES: Record<string, string> = {
   node_has_children: 'Move or remove its children first.',
   already_completed: 'This task is already completed for that period.',
   duplicate: 'Something with that name already exists here.',
+  nothing_to_claim: 'There’s no data from before accounts left to move.',
+  account_has_data:
+    'This account already has its own tracks, so the old data can’t be moved into it. Use a new account.',
 };
 
 export function conflict(code: string): DomainError {

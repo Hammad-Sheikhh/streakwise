@@ -8,16 +8,13 @@ import { createDeadlineHandler } from '../functions/deadline';
 import { createDeadlinesHandler } from '../functions/deadlines';
 import { createNodeHandler } from '../functions/node';
 import { createNodesHandler } from '../functions/nodes';
-import { context, cookieFrom, post, TEST_PASSCODE, testDeps } from './fakes';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
 
 async function setup() {
   const t = testDeps();
   const getDeps = () => t.deps;
   const cookie = cookieFrom(
-    await createLoginHandler(getDeps)(
-      post('/api/auth/login', { passcode: TEST_PASSCODE }),
-      context,
-    ),
+    await createLoginHandler(getDeps)(post('/api/auth/login', LOGIN), context),
   );
   const request = (method: string, path: string, body?: unknown, withCookie = true) =>
     new Request(`http://localhost${path}`, {
@@ -56,26 +53,26 @@ describe('/api/dashboard', () => {
       (await api.dashboard(api.request('GET', '/api/dashboard', undefined, false), context)).status,
     ).toBe(401);
 
-    const german = api.byName('German Language');
+    const examPrep = api.byName('Exam Prep');
     const target = await api.node(
-      api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 300 }),
-      api.withId(german.id),
+      api.request('PATCH', `/api/nodes/${examPrep.id}`, { weeklyTargetMinutes: 300 }),
+      api.withId(examPrep.id),
     );
     expect(target.status).toBe(200);
 
     const response = await api.dashboard(api.request('GET', '/api/dashboard'), context);
     const body = (await response.json()) as Dashboard;
     expect(body.today).toBe('2026-10-03');
-    expect(body.targets[0]).toEqual({ trackId: german.id, minutes: 0, targetMinutes: 300 });
+    expect(body.targets[0]).toEqual({ trackId: examPrep.id, minutes: 0, targetMinutes: 300 });
     expect(body.heatmap.start).toBe('2025-09-29');
   });
 
   it('rejects a target that is not in half-hour steps', async () => {
     const api = await setup();
-    const german = api.byName('German Language');
+    const examPrep = api.byName('Exam Prep');
     const response = await api.node(
-      api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 50 }),
-      api.withId(german.id),
+      api.request('PATCH', `/api/nodes/${examPrep.id}`, { weeklyTargetMinutes: 50 }),
+      api.withId(examPrep.id),
     );
     expect(response.status).toBe(400);
   });
