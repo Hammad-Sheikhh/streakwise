@@ -43,9 +43,9 @@ beforeEach(async () => {
 
 describe('getProgress', () => {
   it('reports weekly targets, pace, streaks, syllabus, and upcoming deadlines', async () => {
-    const german = await byName('Exam Prep');
+    const examPrep = await byName('Exam Prep');
     const maths = await byName('Maths');
-    await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 420 });
+    await updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 420 });
     const topic = await addNode(repo, newId, { parentId: maths.id, name: 'Chapter 1' });
     await addNode(repo, newId, { parentId: maths.id, name: 'Chapter 2' });
     await log('Flashcards', '2026-09-29', 60);
@@ -62,7 +62,7 @@ describe('getProgress', () => {
       streak: { current: 2, longest: 2 },
     });
     expect(progress.tracks[0]).toEqual({
-      id: german.id,
+      id: examPrep.id,
       name: 'Exam Prep',
       weekMinutes: 150,
       weeklyTargetMinutes: 420,
@@ -109,9 +109,9 @@ describe('getProgress', () => {
 
 describe('findGaps', () => {
   it('lists neglected nodes, tracks behind pace, and topics not started', async () => {
-    const german = await byName('Exam Prep');
+    const examPrep = await byName('Exam Prep');
     const english = await byName('English');
-    await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 420 });
+    await updateNode(repo, clock, examPrep.id, { weeklyTargetMinutes: 420 });
     await addNode(repo, newId, { parentId: english.id, name: 'Essay writing' });
     await log('Flashcards', '2026-09-30', 60);
     await log('Practice', '2026-09-30', 30);
@@ -133,7 +133,7 @@ describe('findGaps', () => {
     // 90 minutes is below 0.75 × 180.
     expect(gaps.behindPace).toEqual([
       {
-        id: german.id,
+        id: examPrep.id,
         name: 'Exam Prep',
         weekMinutes: 90,
         weeklyTargetMinutes: 420,
@@ -156,8 +156,8 @@ describe('listSessions', () => {
     await log('Maths', '2026-09-29', 30);
     await log('Practice', '2026-09-30', 40);
 
-    const german = await byName('Exam Prep');
-    const all = await listSessions(repo, { nodeId: german.id });
+    const examPrep = await byName('Exam Prep');
+    const all = await listSessions(repo, { nodeId: examPrep.id });
     expect(all.sessions.map((s) => s.minutes)).toEqual([40, 20, 10]);
     expect(all.truncated).toBe(false);
 

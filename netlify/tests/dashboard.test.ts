@@ -53,26 +53,26 @@ describe('/api/dashboard', () => {
       (await api.dashboard(api.request('GET', '/api/dashboard', undefined, false), context)).status,
     ).toBe(401);
 
-    const german = api.byName('Exam Prep');
+    const examPrep = api.byName('Exam Prep');
     const target = await api.node(
-      api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 300 }),
-      api.withId(german.id),
+      api.request('PATCH', `/api/nodes/${examPrep.id}`, { weeklyTargetMinutes: 300 }),
+      api.withId(examPrep.id),
     );
     expect(target.status).toBe(200);
 
     const response = await api.dashboard(api.request('GET', '/api/dashboard'), context);
     const body = (await response.json()) as Dashboard;
     expect(body.today).toBe('2026-10-03');
-    expect(body.targets[0]).toEqual({ trackId: german.id, minutes: 0, targetMinutes: 300 });
+    expect(body.targets[0]).toEqual({ trackId: examPrep.id, minutes: 0, targetMinutes: 300 });
     expect(body.heatmap.start).toBe('2025-09-29');
   });
 
   it('rejects a target that is not in half-hour steps', async () => {
     const api = await setup();
-    const german = api.byName('Exam Prep');
+    const examPrep = api.byName('Exam Prep');
     const response = await api.node(
-      api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 50 }),
-      api.withId(german.id),
+      api.request('PATCH', `/api/nodes/${examPrep.id}`, { weeklyTargetMinutes: 50 }),
+      api.withId(examPrep.id),
     );
     expect(response.status).toBe(400);
   });

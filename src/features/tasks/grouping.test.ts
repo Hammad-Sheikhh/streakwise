@@ -50,8 +50,8 @@ function item(id: string, nodeId: string, parentTaskId: string | null = null): T
 
 // Display (depth-first) order, as the tree is listed.
 const nodes = [
-  node('german', null, 1),
-  node('class', 'german', 2),
+  node('examPrep', null, 1),
+  node('class', 'examPrep', 2),
   node('exams', null, 1),
   node('maths', 'exams', 2),
   node('ch3', 'maths', 3),
@@ -81,7 +81,7 @@ describe('groupTasks (TASK-1)', () => {
       item('t4', 'maths'),
     ]);
     const groups = groupTasks(nodes, roots);
-    expect(groups.map((g) => g.track?.id)).toEqual(['german', 'exams']);
+    expect(groups.map((g) => g.track?.id)).toEqual(['examPrep', 'exams']);
     expect(groups[1]?.nodes.map((n) => n.nodeId)).toEqual(['exams', 'maths', 'ch3']);
   });
 });

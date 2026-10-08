@@ -15,13 +15,13 @@ async function nodeId(api: FakeApi, name: string): Promise<string> {
 
 async function seedScores(api: FakeApi) {
   const maths = await nodeId(api, 'Maths');
-  const german = await nodeId(api, 'Flashcards');
+  const examPrep = await nodeId(api, 'Flashcards');
   const add = (id: string, kind: ScoreKind, takenOn: string, score: number) =>
     api.addScore({ nodeId: id, kind, title: `${kind} ${takenOn}`, takenOn, score, maxScore: 50 });
   await add(maths, 'past_paper', '2026-09-01', 25);
   await add(maths, 'past_paper', '2026-09-10', 30);
   await add(maths, 'quiz', '2026-09-12', 40);
-  await add(german, 'revision', '2026-09-15', 45);
+  await add(examPrep, 'revision', '2026-09-15', 45);
 }
 
 describe('Scores screen (SCORE-1–5)', () => {

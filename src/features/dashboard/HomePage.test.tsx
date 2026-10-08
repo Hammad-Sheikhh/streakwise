@@ -24,10 +24,10 @@ async function home(api: FakeApi) {
 describe('Home dashboard (DASH-1)', () => {
   it('shows today, the streak, and weekly targets with progress (STRK-1/2, TGT-2)', async () => {
     const api = fakeApi({ loggedIn: true });
-    const german = await nodeId(api, 'Exam Prep');
-    await api.updateNode(german, { weeklyTargetMinutes: 480 });
-    await api.logSession({ nodeId: german, studiedOn: '2026-10-03', minutes: 120 });
-    await api.logSession({ nodeId: german, studiedOn: '2026-10-02', minutes: 80 });
+    const examPrep = await nodeId(api, 'Exam Prep');
+    await api.updateNode(examPrep, { weeklyTargetMinutes: 480 });
+    await api.logSession({ nodeId: examPrep, studiedOn: '2026-10-03', minutes: 120 });
+    await api.logSession({ nodeId: examPrep, studiedOn: '2026-10-02', minutes: 80 });
     await home(api);
 
     expect(screen.getByRole('region', { name: 'Today' })).toHaveTextContent('2h');
