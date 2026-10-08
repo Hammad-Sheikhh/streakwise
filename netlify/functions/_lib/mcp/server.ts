@@ -44,10 +44,10 @@ export const MCP_SERVER_VERSION = '1.0.0';
 // MCP-3.
 export const MCP_INSTRUCTIONS = `Streakwise is one student's personal study tracker.
 
-Structure: a tree of up to 3 levels. Tracks (level 1, e.g. "Improvement Exams") contain subtasks
+Structure: a tree of up to 3 levels. Tracks (level 1, e.g. "School Subjects") contain subtasks
 (level 2, e.g. "Maths"), which may contain topics (level 3, e.g. "Chapter 3"). Topics have a status:
 not_started, in_progress, or done. Archived nodes are hidden from the app and can't take new time.
-Refer to a node by its id or by a path such as "Improvement Exams > Maths > Chapter 3"
+Refer to a node by its id or by a path such as "School Subjects > Maths > Chapter 3"
 (case-insensitive); the end of a path or a unique partial name like "maths" also works. If a
 reference is ambiguous or unknown, the error lists the closest matches: pick one and retry.
 

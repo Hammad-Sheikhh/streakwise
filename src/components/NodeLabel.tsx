@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 import { trackSwatchClass } from './trackColors';
 
-/** A node's path ("Improvement Exams › Maths") with its track's color swatch. */
+/** A node's path ("School Subjects › Maths") with its track's color swatch. */
 export function NodeLabel({
   nodes,
   nodeId,

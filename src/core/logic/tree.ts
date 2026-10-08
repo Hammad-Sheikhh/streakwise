@@ -46,7 +46,7 @@ export function visibleNodes(nodes: readonly TreeNode[]): TreeNode[] {
   return nodes.filter((n) => !hidden.has(n.id));
 }
 
-/** Names from the track down to the node, e.g. ["Improvement Exams", "Maths"]. */
+/** Names from the track down to the node, e.g. ["School Subjects", "Maths"]. */
 export function nodePath(nodes: readonly TreeNode[], id: string): string[] {
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const names: string[] = [];
