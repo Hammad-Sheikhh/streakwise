@@ -112,7 +112,9 @@ Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped
    make sure "Confirm email" is on.
 3. Done (2026-10-09): owner tried it on the PR #20 preview with `+test` addresses. Claiming the real
    data is deliberately left until right after R3, so nothing logged on the old live site is left out.
-4. Mark PR #20 ready, merge into `develop`, then release R3 (M5 + M5A) after the owner says yes.
+4. Done: #20 merged into `develop` (2026-10-09). **Owner chose to hold the release** (save credits) and
+   keep building first; next work is M6 Reports on a new branch from `develop`. Release R3 later
+   (M5 + M5A + whatever is ready), with the claim steps right after it.
 5. After R3: owner makes a new Claude link in Settings and replaces the Claude connector; then
    migration `0004` removes the old single-user leftovers (`settings` table, old RPCs, `MCP_SECRET`,
    later `APP_PASSCODE`) and makes `user_id` required.
