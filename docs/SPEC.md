@@ -202,7 +202,7 @@ Claude Certification   color: violet
 |---|---|---|
 | ACCT-1 | MUST | Accounts live in **Supabase Auth**, called only by Netlify Functions (D5 still holds: the browser never talks to Supabase). Anyone can sign up at `/signup` with name, email and a password of at least 8 characters. |
 | ACCT-2 | MUST | When email sending is set up, a new account must confirm its email before it can log in. The confirmation link opens `/auth/confirm` on our site (token-hash flow), never a Supabase page. |
-| ACCT-3 | MUST | `/login` has email + password, "Forgot password?", "Create an account", and "Try the demo". A correct login sets httpOnly, Secure, SameSite=Strict cookies holding the Supabase session; the server refreshes it as needed, so a device stays logged in until logout (or 30 days unused). Wrong details show one calm message that doesn't reveal whether the email exists. |
+| ACCT-3 | MUST | `/login` has email + password, "Forgot password?", "Create an account", and "Try the demo". A correct login sets a signed, httpOnly, Secure, SameSite=Strict session cookie for that user, valid for 30 days (Supabase Auth checks the password only at login). Changing the password logs out other devices. Wrong details show one calm message that doesn't reveal whether the email exists. |
 | ACCT-4 | MUST | Forgot password emails a one-time reset link that opens `/reset-password` on our site, where a new password is chosen. The response never reveals whether the email has an account. |
 | ACCT-5 | MUST | Every data row (nodes, sessions, tasks, completions, scores, deadlines, shared reports, settings) belongs to one user (`user_id`), and every server read and write is limited to the logged-in user. The database itself refuses rows that point at another user's rows (composite foreign keys). |
 | ACCT-6 | MUST | A new account gets the standard seed (§B4) on its first login. |
@@ -348,7 +348,7 @@ Claude Certification   color: violet
 ### B5.15 MCP server (MCP)
 | ID | Priority | Requirement |
 |---|---|---|
-| MCP-1 | MUST | The endpoint is `/mcp/:secret`. The secret is compared to `MCP_SECRET` in constant time; a mismatch returns 404. |
+| MCP-1 | MUST | The endpoint is `/mcp/:secret`. ~~The secret is compared to `MCP_SECRET` in constant time~~ Since D17 the secret is the user's own token (ACCT-8), looked up by its hash; no match returns 404. |
 | MCP-2 | MUST | Uses the official MCP TypeScript SDK with the Streamable HTTP transport, stateless, inside a Netlify Function. Check the current SDK docs and any current Netlify guidance on hosting MCP servers, and verify with MCP Inspector before connecting Claude. |
 | MCP-3 | MUST | The server's `instructions` explain tracks/subtasks/topics, tasks, scores, the time zone, and that durations are in minutes. |
 | MCP-4 | MUST | Tools call the core services directly (not over HTTP) and return compact JSON text. Lists are capped (default 50, max 200) with a `truncated` flag. Each call updates the "last MCP call" time. |
