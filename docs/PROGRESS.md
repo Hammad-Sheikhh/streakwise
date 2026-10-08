@@ -33,11 +33,11 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration                     | Applied                                                      |
-| ----------------------------- | ------------------------------------------------------------ |
-| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login     |
-| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                            |
-| `0003_accounts.sql`           | ⏳ not run yet (safe for the live site: backward compatible) |
+| Migration                     | Applied                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------- |
+| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
+| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
+| `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
 
 ## Owner's manual steps
 
@@ -70,7 +70,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
 - [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
-- [ ] Run `supabase/migrations/0003_accounts.sql` in the Supabase SQL Editor (M5A; safe for the live site)
+- [x] Run `supabase/migrations/0003_accounts.sql` in the Supabase SQL Editor (owner, 2026-10-08)
 - [ ] Create a free Brevo account, verify your Gmail as a sender, and create an SMTP key (M5A)
 - [ ] Supabase: turn on custom SMTP with the Brevo details, paste the two email templates, set the URL
       configuration (Site URL + redirect URLs), keep "Confirm email" on (M5A)
@@ -98,7 +98,7 @@ Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped
 
 **Next (in order):**
 
-1. Owner runs `0003` in the Supabase SQL Editor (explain in detail first).
+1. Done: owner ran `0003` (2026-10-08).
 2. Owner sets up Brevo and Supabase email (explain in detail, checking current Brevo/Supabase docs first):
    Brevo account + verified Gmail sender + SMTP key → Supabase Authentication → Emails (SMTP settings);
    paste both templates from `docs/email-templates/`; Authentication → URL Configuration: Site URL
