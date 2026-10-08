@@ -58,12 +58,14 @@ describe('addNode (TREE-1)', () => {
   });
 
   it('rejects a sibling with the same name, ignoring case', async () => {
-    const german = await byName('German Language');
-    const error = await errorOf(addNode(repo, newId, { parentId: german.id, name: 'CLASS' }));
+    const examPrep = await byName('Exam Prep');
+    const error = await errorOf(addNode(repo, newId, { parentId: examPrep.id, name: 'PRACTICE' }));
     expect(error).toMatchObject({ kind: 'conflict', code: 'duplicate' });
     // The same name under a different parent is fine.
-    const exams = await byName('Improvement Exams');
-    await expect(addNode(repo, newId, { parentId: exams.id, name: 'Class' })).resolves.toBeTruthy();
+    const exams = await byName('School Subjects');
+    await expect(
+      addNode(repo, newId, { parentId: exams.id, name: 'Practice' }),
+    ).resolves.toBeTruthy();
   });
 
   it('validates the name and only gives tracks a color', async () => {
@@ -71,32 +73,34 @@ describe('addNode (TREE-1)', () => {
       kind: 'validation',
       message: 'Enter a name.',
     });
-    const german = await byName('German Language');
+    const examPrep = await byName('Exam Prep');
     expect(
-      await errorOf(addNode(repo, newId, { parentId: german.id, name: 'X', color: 'rose' })),
+      await errorOf(addNode(repo, newId, { parentId: examPrep.id, name: 'X', color: 'rose' })),
     ).toMatchObject({ code: 'color_tracks_only' });
   });
 
   it('refuses to add under an archived node', async () => {
-    const german = await byName('German Language');
-    await updateNode(repo, clock, german.id, { archived: true });
-    const selfStudy = await byName('Self-study');
+    const examPrep = await byName('Exam Prep');
+    await updateNode(repo, clock, examPrep.id, { archived: true });
+    const flashcards = await byName('Flashcards');
     expect(
-      await errorOf(addNode(repo, newId, { parentId: selfStudy.id, name: 'Verbs' })),
+      await errorOf(addNode(repo, newId, { parentId: flashcards.id, name: 'Verbs' })),
     ).toMatchObject({ code: 'parent_archived' });
   });
 });
 
 describe('updateNode (TREE-1, TREE-2, TREE-5)', () => {
   it('renames and recolors', async () => {
-    const german = await byName('German Language');
-    const updated = await updateNode(repo, clock, german.id, { name: 'German', color: 'rose' });
-    expect(updated).toMatchObject({ name: 'German', color: 'rose' });
+    const examPrep = await byName('Exam Prep');
+    const updated = await updateNode(repo, clock, examPrep.id, { name: 'Exams', color: 'rose' });
+    expect(updated).toMatchObject({ name: 'Exams', color: 'rose' });
   });
 
   it('keeps sibling names unique on rename', async () => {
-    const selfStudy = await byName('Self-study');
-    expect(await errorOf(updateNode(repo, clock, selfStudy.id, { name: 'class' }))).toMatchObject({
+    const flashcards = await byName('Flashcards');
+    expect(
+      await errorOf(updateNode(repo, clock, flashcards.id, { name: 'practice' })),
+    ).toMatchObject({
       code: 'duplicate',
     });
   });
@@ -123,7 +127,7 @@ describe('deleteNode (TREE-3)', () => {
   });
 
   it('refuses when a descendant has sessions', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     const maths = await byName('Maths');
     await logSession(repo, clock, newId, {
       nodeId: maths.id,
@@ -135,8 +139,8 @@ describe('deleteNode (TREE-3)', () => {
   });
 
   it('refuses when the node has tasks', async () => {
-    const german = await byName('German Language');
-    expect(await errorOf(deleteNode(repo, german.id))).toMatchObject({ code: 'node_in_use' });
+    const examPrep = await byName('Exam Prep');
+    expect(await errorOf(deleteNode(repo, examPrep.id))).toMatchObject({ code: 'node_in_use' });
   });
 });
 
@@ -145,38 +149,26 @@ describe('moveNode (TREE-6)', () => {
     (await listTree(repo)).filter((n) => n.depth === 1).map((n) => n.name);
 
   it('swaps a node with its neighbour', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     await moveNode(repo, exams.id, { direction: 'up' });
-    expect(await trackNames()).toEqual([
-      'Improvement Exams',
-      'German Language',
-      'Claude Certification',
-    ]);
+    expect(await trackNames()).toEqual(['School Subjects', 'Exam Prep', 'Online Course']);
     await moveNode(repo, exams.id, { direction: 'down' });
     await moveNode(repo, exams.id, { direction: 'down' });
-    expect(await trackNames()).toEqual([
-      'German Language',
-      'Claude Certification',
-      'Improvement Exams',
-    ]);
+    expect(await trackNames()).toEqual(['Exam Prep', 'Online Course', 'School Subjects']);
   });
 
   it('does nothing at the ends', async () => {
-    const german = await byName('German Language');
-    await moveNode(repo, german.id, { direction: 'up' });
-    expect((await trackNames())[0]).toBe('German Language');
+    const examPrep = await byName('Exam Prep');
+    await moveNode(repo, examPrep.id, { direction: 'up' });
+    expect((await trackNames())[0]).toBe('Exam Prep');
   });
 
   it('skips archived siblings', async () => {
-    const exams = await byName('Improvement Exams');
-    const claude = await byName('Claude Certification');
+    const exams = await byName('School Subjects');
+    const claude = await byName('Online Course');
     await updateNode(repo, clock, exams.id, { archived: true });
     await moveNode(repo, claude.id, { direction: 'up' });
-    expect(await trackNames()).toEqual([
-      'Claude Certification',
-      'Improvement Exams',
-      'German Language',
-    ]);
+    expect(await trackNames()).toEqual(['Online Course', 'School Subjects', 'Exam Prep']);
   });
 });
 

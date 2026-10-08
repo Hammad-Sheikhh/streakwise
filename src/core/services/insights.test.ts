@@ -43,13 +43,13 @@ beforeEach(async () => {
 
 describe('getProgress', () => {
   it('reports weekly targets, pace, streaks, syllabus, and upcoming deadlines', async () => {
-    const german = await byName('German Language');
+    const german = await byName('Exam Prep');
     const maths = await byName('Maths');
     await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 420 });
     const topic = await addNode(repo, newId, { parentId: maths.id, name: 'Chapter 1' });
     await addNode(repo, newId, { parentId: maths.id, name: 'Chapter 2' });
-    await log('Self-study', '2026-09-29', 60);
-    await log('Class', '2026-09-30', 90);
+    await log('Flashcards', '2026-09-29', 60);
+    await log('Practice', '2026-09-30', 90);
     await log('Chapter 1', '2026-09-27', 45); // last week (Sunday)
     await addDeadline(repo, newId, { nodeId: maths.id, title: 'Maths exam', dueOn: '2026-10-10' });
     await addDeadline(repo, newId, { nodeId: maths.id, title: 'Past', dueOn: '2026-09-01' });
@@ -63,7 +63,7 @@ describe('getProgress', () => {
     });
     expect(progress.tracks[0]).toEqual({
       id: german.id,
-      name: 'German Language',
+      name: 'Exam Prep',
       weekMinutes: 150,
       weeklyTargetMinutes: 420,
       targetPercent: 36,
@@ -72,12 +72,17 @@ describe('getProgress', () => {
       syllabusPercent: null,
       subtasks: [
         {
-          id: (await byName('Self-study')).id,
-          name: 'Self-study',
+          id: (await byName('Flashcards')).id,
+          name: 'Flashcards',
           weekMinutes: 60,
           syllabusPercent: null,
         },
-        { id: (await byName('Class')).id, name: 'Class', weekMinutes: 90, syllabusPercent: null },
+        {
+          id: (await byName('Practice')).id,
+          name: 'Practice',
+          weekMinutes: 90,
+          syllabusPercent: null,
+        },
       ],
     });
     expect(progress.tracks[1]?.subtasks[0]).toMatchObject({
@@ -89,38 +94,38 @@ describe('getProgress', () => {
     expect(progress.upcomingDeadlines).toHaveLength(1);
     expect(progress.upcomingDeadlines[0]).toMatchObject({
       title: 'Maths exam',
-      path: 'Improvement Exams > Maths',
+      path: 'School Subjects > Maths',
       daysLeft: 10,
       syllabusLeftPercent: 100,
     });
   });
 
   it('leaves out archived tracks', async () => {
-    await updateNode(repo, clock, (await byName('Claude Certification')).id, { archived: true });
+    await updateNode(repo, clock, (await byName('Online Course')).id, { archived: true });
     const progress = await getProgress(repo, clock);
-    expect(progress.tracks.map((t) => t.name)).toEqual(['German Language', 'Improvement Exams']);
+    expect(progress.tracks.map((t) => t.name)).toEqual(['Exam Prep', 'School Subjects']);
   });
 });
 
 describe('findGaps', () => {
   it('lists neglected nodes, tracks behind pace, and topics not started', async () => {
-    const german = await byName('German Language');
+    const german = await byName('Exam Prep');
     const english = await byName('English');
     await updateNode(repo, clock, german.id, { weeklyTargetMinutes: 420 });
     await addNode(repo, newId, { parentId: english.id, name: 'Essay writing' });
-    await log('Self-study', '2026-09-30', 60);
-    await log('Class', '2026-09-30', 30);
+    await log('Flashcards', '2026-09-30', 60);
+    await log('Practice', '2026-09-30', 30);
     await log('Maths', '2026-09-29', 30);
 
     const gaps = await findGaps(repo, clock);
     expect(gaps.today).toBe('2026-09-30');
     expect(gaps.neglectDays).toBe(3);
-    // Seeded 10 days ago and never logged; Maths and German were studied recently.
+    // Seeded 10 days ago and never logged; Maths and Exam Prep were studied recently.
     expect(gaps.neglected).toEqual([
-      { id: english.id, path: 'Improvement Exams > English', days: 10, neverLogged: true },
+      { id: english.id, path: 'School Subjects > English', days: 10, neverLogged: true },
       {
-        id: (await byName('Claude Certification')).id,
-        path: 'Claude Certification',
+        id: (await byName('Online Course')).id,
+        path: 'Online Course',
         days: 10,
         neverLogged: true,
       },
@@ -129,7 +134,7 @@ describe('findGaps', () => {
     expect(gaps.behindPace).toEqual([
       {
         id: german.id,
-        name: 'German Language',
+        name: 'Exam Prep',
         weekMinutes: 90,
         weeklyTargetMinutes: 420,
         expectedByNowMinutes: 180,
@@ -138,7 +143,7 @@ describe('findGaps', () => {
     expect(gaps.topicsNotStarted).toEqual([
       {
         id: (await byName('Essay writing')).id,
-        path: 'Improvement Exams > English > Essay writing',
+        path: 'School Subjects > English > Essay writing',
       },
     ]);
   });
@@ -146,12 +151,12 @@ describe('findGaps', () => {
 
 describe('listSessions', () => {
   it('filters by node subtree, dates, and source, newest first', async () => {
-    await log('Self-study', '2026-09-25', 10);
-    await log('Class', '2026-09-28', 20, 'claude');
+    await log('Flashcards', '2026-09-25', 10);
+    await log('Practice', '2026-09-28', 20, 'claude');
     await log('Maths', '2026-09-29', 30);
-    await log('Class', '2026-09-30', 40);
+    await log('Practice', '2026-09-30', 40);
 
-    const german = await byName('German Language');
+    const german = await byName('Exam Prep');
     const all = await listSessions(repo, { nodeId: german.id });
     expect(all.sessions.map((s) => s.minutes)).toEqual([40, 20, 10]);
     expect(all.truncated).toBe(false);

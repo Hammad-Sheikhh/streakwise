@@ -27,7 +27,7 @@ async function nodeId(name: string): Promise<string> {
 describe('exportData (SET-2)', () => {
   it('returns everything and records the export time', async () => {
     await logSession(repo, clock, newId, {
-      nodeId: await nodeId('Self-study'),
+      nodeId: await nodeId('Flashcards'),
       studiedOn: '2026-10-02',
       minutes: 45,
     });
@@ -50,13 +50,13 @@ describe('exportData (SET-2)', () => {
 describe('sessionsCsv (SET-2)', () => {
   it('writes one row per session with the path split into columns', async () => {
     await logSession(repo, clock, newId, {
-      nodeId: await nodeId('Self-study'),
+      nodeId: await nodeId('Flashcards'),
       studiedOn: '2026-10-01',
       minutes: 30,
       note: 'Said "hallo", then left',
     });
     await logSession(repo, clock, newId, {
-      nodeId: await nodeId('Claude Certification'),
+      nodeId: await nodeId('Online Course'),
       studiedOn: '2026-10-02',
       minutes: 60,
       note: '=HYPERLINK("x")',
@@ -66,10 +66,10 @@ describe('sessionsCsv (SET-2)', () => {
     const lines = csv.slice(1).trimEnd().split('\r\n');
     expect(lines[0]).toBe('date,track,subtask,topic,minutes,note,source,created_at');
     expect(lines[1]).toMatch(
-      /^2026-10-01,German Language,Self-study,,30,"Said ""hallo"", then left",app,/,
+      /^2026-10-01,Exam Prep,Flashcards,,30,"Said ""hallo"", then left",app,/,
     );
     // A note that looks like a formula is neutralised.
-    expect(lines[2]).toMatch(/^2026-10-02,Claude Certification,,,60,"'=HYPERLINK\(""x""\)",app,/);
+    expect(lines[2]).toMatch(/^2026-10-02,Online Course,,,60,"'=HYPERLINK\(""x""\)",app,/);
   });
 });
 

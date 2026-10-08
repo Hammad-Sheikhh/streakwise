@@ -93,7 +93,7 @@ describe('logSession', () => {
   });
 
   it('rejects archived nodes and nodes under them', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     await updateNode(repo, clock, exams.id, { archived: true });
     const maths = await byName('Maths');
     expect(await errorOf(log(maths.id, TODAY))).toMatchObject({ code: 'node_archived' });
@@ -205,9 +205,9 @@ describe('getHistory (HIST-1, HIST-3)', () => {
   });
 
   it('filters by node (with descendants), source, and date range', async () => {
-    const exams = await byName('Improvement Exams');
+    const exams = await byName('School Subjects');
     const maths = await byName('Maths');
-    const german = await byName('German Language');
+    const german = await byName('Exam Prep');
     const topic = await addNode(repo, newId, { parentId: maths.id, name: 'Algebra' });
     await log(topic.id, TODAY);
     await log(german.id, TODAY);
@@ -236,10 +236,10 @@ describe('getHistory (HIST-1, HIST-3)', () => {
 
 describe('recentNodeIds (LOG-7)', () => {
   it('returns up to 5 distinct visible nodes, most recent first', async () => {
-    const names = ['Self-study', 'Class', 'Maths', 'English', 'Claude Certification'];
+    const names = ['Flashcards', 'Practice', 'Maths', 'English', 'Online Course'];
     const nodes = await Promise.all(names.map(byName));
     for (const node of nodes) await log(node.id, TODAY);
-    const german = await byName('German Language');
+    const german = await byName('Exam Prep');
     await log(german.id, TODAY);
     await log(nodes[4]?.id ?? '', TODAY);
 
