@@ -27,6 +27,8 @@ _Last updated: 2026-10-09 by Claude Code (R3 released as #23; next: owner claims
 
 | R3 | 2026-10-09 | M5 progress, M5A accounts, M6 reports, sample tracks (#16–#22; release #23, merge commit). Owner approved. Live check: `/api/health` ok, `/api/reports` 401, `/api/share/<unknown>` 404 "no longer available", `/r/*` sends `X-Robots-Tag: noindex`, `/signup` 200, unknown `/mcp/*` 404. |
 
+| Docs | 2026-10-09 | New README and progress notes only (#24; release #25, merge commit). Owner approved. Netlify skipped the build (Markdown only), so it isn't counted. |
+
 Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
