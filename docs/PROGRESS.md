@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-09 by Claude Code (M6 Reports built on `feat/reports`, PR #21; R3 held by the owner)_
+_Last updated: 2026-10-09 by Claude Code (M6 merged as #21; R3 held by the owner; next M7)_
 
 ## Milestones
 
@@ -13,7 +13,7 @@ _Last updated: 2026-10-09 by Claude Code (M6 Reports built on `feat/reports`, PR
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
 | M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
 | M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                              |
-| M6 Reports    | 🔍 review | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Needs the owner's try-out on the preview             |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)        |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
 
@@ -79,7 +79,8 @@ One database for everything (D15), so each migration runs once.
       (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
       deleted, 9 original nodes untouched (owner, 2026-10-09)
 - [x] OK to merge #20 into `develop` (owner, 2026-10-09; merged)
-- [ ] Try M6 Reports on the PR #21 preview (demo mode first) and OK to merge #21 into `develop`
+- [x] OK to merge #21 (M6 Reports) into `develop` (owner, 2026-10-09; merged)
+- [ ] Try M6 Reports on https://develop--streakwise-ap.netlify.app (demo mode first: `/demo/reports`)
 - [ ] Say yes/no to release R3 (M5 + M5A accounts + M6 reports)
 - [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
@@ -92,9 +93,8 @@ no migration. 378 tests + e2e green; main bundle ~223 KB gzipped (Reports lazy-l
 
 **Next (in order):**
 
-1. Owner tries M6 in demo mode (`/demo/reports`, Settings → Your data) on the PR #21 preview, then
-   says OK to merge #21 into `develop`. (Share links and export on the real login write to the
-   shared database; revoke test links afterwards.)
+1. Done: #21 merged into `develop` (2026-10-09, owner's OK). Owner can still try it on the develop
+   site (share links and export on the real login write to the shared database).
 2. Owner decides on release R3 (now M5 + M5A + M6), then the claim and new-Claude-link steps.
 3. After R3: migration `0004` (remove single-user leftovers, make `user_id` required).
 4. Meanwhile: M7 (`feat/demo-pwa`: DEMO-1–5 sample data, PWA-1–3, e2e suite) can start from
