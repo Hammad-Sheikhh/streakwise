@@ -53,7 +53,7 @@ describe('/api/dashboard', () => {
       (await api.dashboard(api.request('GET', '/api/dashboard', undefined, false), context)).status,
     ).toBe(401);
 
-    const german = api.byName('German Language');
+    const german = api.byName('Exam Prep');
     const target = await api.node(
       api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 300 }),
       api.withId(german.id),
@@ -69,7 +69,7 @@ describe('/api/dashboard', () => {
 
   it('rejects a target that is not in half-hour steps', async () => {
     const api = await setup();
-    const german = api.byName('German Language');
+    const german = api.byName('Exam Prep');
     const response = await api.node(
       api.request('PATCH', `/api/nodes/${german.id}`, { weeklyTargetMinutes: 50 }),
       api.withId(german.id),

@@ -111,7 +111,7 @@ describe('the secret URL (MCP-1, ACCT-8)', () => {
       { secret: otherToken },
     );
     expect(reply.status).toBe(200);
-    expect(await reply.text()).not.toContain('German');
+    expect(await reply.text()).not.toContain('Exam Prep');
   });
 
   it('only accepts POST', async () => {
@@ -224,7 +224,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     await addNode(setup.repo, setup.deps.newId, { parentId: maths.id, name: 'Chapter 3' });
 
     const { isError, data } = await call('log_session', {
-      node: 'improvement exams > maths > chapter 3',
+      node: 'school subjects > maths > chapter 3',
       minutes: 90,
       date: 'yesterday',
       note: 'Integration practice',
@@ -233,7 +233,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     expect(data.session).toMatchObject({
       date: '2026-10-02',
       minutes: 90,
-      path: 'Improvement Exams > Maths > Chapter 3',
+      path: 'School Subjects > Maths > Chapter 3',
       note: 'Integration practice',
       source: 'claude',
     });
@@ -242,10 +242,10 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
   });
 
   it('defaults to today', async () => {
-    const { data } = await call('log_session', { node: 'self-study', minutes: 30 });
+    const { data } = await call('log_session', { node: 'flashcards', minutes: 30 });
     expect(data.session).toMatchObject({
       date: '2026-10-03',
-      path: 'German Language > Self-study',
+      path: 'Exam Prep > Flashcards',
     });
   });
 
@@ -258,7 +258,7 @@ describe('log_session (MCP-5, MCP-6, MCP-7)', () => {
     const ambiguous = await call('log_session', { node: 'chapter 1', minutes: 30 });
     expect(ambiguous.isError).toBe(true);
     expect(ambiguous.data.error.code).toBe('node_ambiguous');
-    expect(ambiguous.data.error.message).toContain('Improvement Exams > English > Chapter 1');
+    expect(ambiguous.data.error.message).toContain('School Subjects > English > Chapter 1');
 
     const future = await call('log_session', { node: 'maths', minutes: 30, date: '2026-10-04' });
     expect(future.data.error).toEqual({
@@ -294,15 +294,15 @@ describe('list_sessions and delete_session', () => {
         { nodeId: (await byName(name)).id, studiedOn, minutes },
         source,
       );
-    await at('Self-study', '2026-09-30', 10);
-    await at('Class', '2026-10-01', 20, 'claude');
+    await at('Flashcards', '2026-09-30', 10);
+    await at('Practice', '2026-10-01', 20, 'claude');
     await at('Maths', '2026-10-02', 30);
   });
 
   it('filters by node, dates, and source, and caps the list', async () => {
-    const german = await call('list_sessions', { node: 'German Language' });
-    expect(german.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([20, 10]);
-    expect(german.data.truncated).toBe(false);
+    const examPrep = await call('list_sessions', { node: 'Exam Prep' });
+    expect(examPrep.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([20, 10]);
+    expect(examPrep.data.truncated).toBe(false);
 
     const ranged = await call('list_sessions', { from: '2026-10-01', to: 'yesterday' });
     expect(ranged.data.sessions.map((s: { minutes: number }) => s.minutes)).toEqual([30, 20]);
@@ -323,7 +323,7 @@ describe('list_sessions and delete_session', () => {
     expect(deleted.data.deleted).toMatchObject({
       id: newest?.id,
       minutes: 30,
-      path: 'Improvement Exams > Maths',
+      path: 'School Subjects > Maths',
     });
     expect(await setup.repo.listSessions({})).toHaveLength(2);
 
@@ -334,30 +334,30 @@ describe('list_sessions and delete_session', () => {
 
 describe('get_structure and add_node', () => {
   it('returns the tree, with archived nodes only on request', async () => {
-    const claude = await byName('Claude Certification');
+    const claude = await byName('Online Course');
     await updateNode(setup.repo, setup.deps.clock, claude.id, { archived: true });
-    await updateNode(setup.repo, setup.deps.clock, (await byName('German Language')).id, {
+    await updateNode(setup.repo, setup.deps.clock, (await byName('Exam Prep')).id, {
       weeklyTargetMinutes: 300,
     });
 
     const visible = await call('get_structure');
     expect(visible.data.tracks.map((t: { name: string }) => t.name)).toEqual([
-      'German Language',
-      'Improvement Exams',
+      'Exam Prep',
+      'School Subjects',
     ]);
     expect(visible.data.tracks[0]).toMatchObject({
       kind: 'track',
       weeklyTargetMinutes: 300,
       children: [
-        { name: 'Self-study', kind: 'subtask' },
-        { name: 'Class', kind: 'subtask' },
+        { name: 'Flashcards', kind: 'subtask' },
+        { name: 'Practice', kind: 'subtask' },
       ],
     });
 
     const all = await call('get_structure', { include_archived: true });
     expect(all.data.tracks[2]).toEqual({
       id: claude.id,
-      name: 'Claude Certification',
+      name: 'Online Course',
       kind: 'track',
       archived: true,
     });
@@ -368,7 +368,7 @@ describe('get_structure and add_node', () => {
     expect(added.data.node).toMatchObject({
       name: 'Chapter 4',
       kind: 'topic',
-      path: 'Improvement Exams > Maths > Chapter 4',
+      path: 'School Subjects > Maths > Chapter 4',
       status: 'not_started',
     });
 
@@ -422,7 +422,7 @@ describe('get_progress, find_gaps, list_deadlines', () => {
       expect.objectContaining({
         title: 'Final exam',
         daysLeft: 30,
-        path: 'Improvement Exams > Maths',
+        path: 'School Subjects > Maths',
       }),
     ]);
 
@@ -438,7 +438,7 @@ describe('M5 tools: topics, tasks, and scores', () => {
 
     const done = await call('set_topic_status', { topic: 'maths > chapter 3', status: 'done' });
     expect(done.data.topic).toMatchObject({
-      path: 'Improvement Exams > Maths > Chapter 3',
+      path: 'School Subjects > Maths > Chapter 3',
       status: 'done',
     });
     const reopened = await call('set_topic_status', { topic: 'chapter 3', status: 'in_progress' });
@@ -459,7 +459,7 @@ describe('M5 tools: topics, tasks, and scores', () => {
     });
     expect(added.isError).toBe(false);
     expect(added.data.task).toMatchObject({
-      path: 'Improvement Exams > Maths',
+      path: 'School Subjects > Maths',
       dueOn: '2026-10-02',
       scored: true,
       done: false,
@@ -481,7 +481,7 @@ describe('M5 tools: topics, tasks, and scores', () => {
 
     const due = await call('list_tasks', { status: 'due_this_week' });
     expect(due.data.tasks.map((t: { title: string }) => t.title)).toContain('Past paper 2023');
-    const inMaths = await call('list_tasks', { node: 'Improvement Exams' });
+    const inMaths = await call('list_tasks', { node: 'School Subjects' });
     expect(inMaths.data.tasks).toHaveLength(2);
 
     const missingScore = await call('complete_task', { task_id: added.data.task.id });
@@ -512,7 +512,7 @@ describe('M5 tools: topics, tasks, and scores', () => {
       date: 'yesterday',
     });
     expect(saved.data.score).toMatchObject({
-      path: 'Improvement Exams > English',
+      path: 'School Subjects > English',
       percent: 75,
       kind: 'quiz',
     });
@@ -543,14 +543,14 @@ describe('M5 tools: topics, tasks, and scores', () => {
   it('adds tasks due this week to find_gaps', async () => {
     const gaps = await call('find_gaps');
     expect(gaps.data.tasksDue).toEqual([
-      expect.objectContaining({ title: 'Weekly recall / revision', weekly: true, overdue: false }),
+      expect.objectContaining({ title: 'Weekly self-test', weekly: true, overdue: false }),
     ]);
   });
 });
 
 describe('get_report (M6, REP-9)', () => {
   it('returns the report for a period, with notes only when asked', async () => {
-    await call('log_session', { node: 'self-study', minutes: 45, note: 'Dative case' });
+    await call('log_session', { node: 'flashcards', minutes: 45, note: 'Dative case' });
     const week = await call('get_report', {});
     expect(week.isError).toBe(false);
     expect(week.data.period).toMatchObject({ kind: 'this_week', isWeek: true });
