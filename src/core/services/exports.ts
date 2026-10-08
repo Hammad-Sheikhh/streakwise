@@ -42,6 +42,9 @@ export async function exportData(repo: Repository, clock: Clock): Promise<DataEx
   };
 }
 
+/** A UTF-8 byte-order mark, so Excel reads accents and symbols correctly. */
+const BOM = String.fromCharCode(0xfeff);
+
 const CSV_HEADER = ['date', 'track', 'subtask', 'topic', 'minutes', 'note', 'source', 'created_at'];
 
 /**
@@ -63,5 +66,5 @@ export function sessionsCsv(nodes: readonly TreeNode[], sessions: readonly Sessi
       .join(',');
   });
   // CRLF and a byte-order mark so Excel opens it as UTF-8 with the right columns.
-  return `﻿${[CSV_HEADER.join(','), ...rows].join('\r\n')}\r\n`;
+  return `${BOM}${[CSV_HEADER.join(','), ...rows].join('\r\n')}\r\n`;
 }
