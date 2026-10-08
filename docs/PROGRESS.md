@@ -84,7 +84,7 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge #21 (M6 Reports) into `develop` (owner, 2026-10-09; merged)
 - [x] Tried M6 Reports (owner confirmed it works, 2026-10-09)
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
-- [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
+- [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
 ## Current work / next step
@@ -98,8 +98,9 @@ in the public app: #22 (D18) made new accounts and the demo start with general s
 
 **Next (in order):**
 
-0. Owner: claim the old data on the live site now (old passcode, then create/log into an account),
-   then make a new Claude link. Until the claim, the old data is safe but not shown to anyone.
+0. Done: owner claimed the old data (2026-10-09). Still open: make a new Claude link and replace
+   the connector. Possible later improvement (owner asked how per-user MCP works): OAuth sign-in
+   for the connector instead of a secret link.
 1. Done: #21 merged into `develop` (2026-10-09, owner's OK). Owner can still try it on the develop
    site (share links and export on the real login write to the shared database).
 2. Owner decides on release R3 (now M5 + M5A + M6), then the claim and new-Claude-link steps.
