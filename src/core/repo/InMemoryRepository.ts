@@ -7,6 +7,8 @@ import type {
   Session,
   SessionFact,
   Settings,
+  SharedReport,
+  SharedReportLink,
   Task,
   TaskCompletion,
   TreeNode,
@@ -18,6 +20,7 @@ import type {
   NewNode,
   NewScore,
   NewSession,
+  NewSharedReport,
   NewTask,
   NodePatch,
   Repository,
@@ -35,6 +38,15 @@ import type {
 const byNewest = (a: Session, b: Session) =>
   b.studiedOn.localeCompare(a.studiedOn) || b.createdAt.localeCompare(a.createdAt);
 
+const linkOf = (share: SharedReport): SharedReportLink => ({
+  id: share.id,
+  slug: share.slug,
+  periodLabel: share.periodLabel,
+  createdAt: share.createdAt,
+  expiresAt: share.expiresAt,
+  revokedAt: share.revokedAt,
+});
+
 const SCORED_NEEDS_NODE = 'Scored tasks need a track or subject.';
 
 export class InMemoryRepository implements Repository {
@@ -45,6 +57,7 @@ export class InMemoryRepository implements Repository {
   private scores: Score[] = [];
   private deadlines: Deadline[] = [];
   private settings: Settings = { ...DEFAULT_SETTINGS };
+  private shares: SharedReport[] = [];
   // Creation times must be strictly increasing so "newest first" is stable, even when the clock
   // is frozen in tests.
   private lastStamp = 0;
@@ -187,6 +200,10 @@ export class InMemoryRepository implements Repository {
     return this.sessions.map(({ nodeId, studiedOn, minutes }) => ({ nodeId, studiedOn, minutes }));
   }
 
+  async listAllSessions(): Promise<Session[]> {
+    return [...this.sessions].sort((a, b) => -byNewest(a, b)).map((s) => ({ ...s }));
+  }
+
   async listDeadlines(): Promise<Deadline[]> {
     return [...this.deadlines]
       .sort((a, b) => a.dueOn.localeCompare(b.dueOn) || a.createdAt.localeCompare(b.createdAt))
@@ -225,6 +242,40 @@ export class InMemoryRepository implements Repository {
 
   async recordMcpCall(at: string): Promise<void> {
     this.settings.lastMcpCallAt = at;
+  }
+
+  async recordExport(at: string): Promise<void> {
+    this.settings.lastExportAt = at;
+  }
+
+  async insertSharedReport(input: NewSharedReport): Promise<SharedReportLink> {
+    if (this.shares.some((r) => r.slug === input.slug)) throw conflict('duplicate');
+    const { snapshot, ...link } = input;
+    const share: SharedReport = {
+      ...link,
+      snapshot: structuredClone(snapshot),
+      createdAt: this.stamp(),
+      revokedAt: null,
+    };
+    this.shares.push(share);
+    return linkOf(share);
+  }
+
+  async listSharedReports(): Promise<SharedReportLink[]> {
+    return [...this.shares].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(linkOf);
+  }
+
+  async revokeSharedReport(id: string, at: string): Promise<SharedReportLink> {
+    const share = this.shares.find((r) => r.id === id);
+    if (!share) throw notFound('share_not_found');
+    share.revokedAt ??= at;
+    return linkOf(share);
+  }
+
+  /** The public read (SHARE-2); the server's version looks across all users. */
+  async findSharedReport(slug: string): Promise<SharedReport | null> {
+    const share = this.shares.find((r) => r.slug === slug);
+    return share ? structuredClone(share) : null;
   }
 
   async seedIfEmpty(seed: SeedData): Promise<boolean> {

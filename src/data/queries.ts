@@ -29,6 +29,16 @@ export function useClaudeConnection() {
   });
 }
 
+/** SHARE-3: never requested in demo mode (DEMO-5). */
+export function useShares() {
+  const ds = useDataSource();
+  return useQuery({
+    queryKey: [ds.mode, 'shares'],
+    queryFn: () => ds.listShares(),
+    enabled: ds.mode === 'api',
+  });
+}
+
 export function useDashboard() {
   const ds = useDataSource();
   return useQuery({ queryKey: [ds.mode, 'dashboard'], queryFn: () => ds.getDashboard() });

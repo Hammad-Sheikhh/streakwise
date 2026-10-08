@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES } from '../domain/types';
+import { REPORT_PERIODS, SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES } from '../domain/types';
 import { listLimitSchema, MAX_NOTE_LENGTH, MAX_SESSION_MINUTES } from './inputs';
 
 // MCP-8: input schemas for the Claude (MCP) tools. Descriptions are written for an AI reader; the
@@ -171,4 +171,20 @@ export const logScoreToolSchema = z.object({
     .default('today')
     .describe(`When it was taken; not in the future. ${dateRef.description} Default today.`),
   note: z.string().trim().max(MAX_NOTE_LENGTH).optional().describe('Optional short note.'),
+});
+
+export const getReportToolSchema = z.object({
+  period: z
+    .enum(REPORT_PERIODS)
+    .default('this_week')
+    .describe(
+      'today, yesterday, this_week (Monday to Sunday), last_week, or custom (needs from and to, ' +
+        'at most 92 days). Default this_week.',
+    ),
+  from: dateRef.optional().describe(`First day of a custom period. ${dateRef.description}`),
+  to: dateRef.optional().describe(`Last day of a custom period. ${dateRef.description}`),
+  include_notes: z
+    .boolean()
+    .default(false)
+    .describe('Include session notes (private by default). Default false.'),
 });

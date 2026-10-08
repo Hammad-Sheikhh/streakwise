@@ -53,31 +53,36 @@ All require a session cookie except `auth/login`, `auth/signup`, `auth/passcode`
 `auth/resend`, `auth/logout`, `health`, and `keepalive`. Every data endpoint reads and writes only the
 logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below).
 
-| Endpoint                 | Methods       | Purpose                                                   |
-| ------------------------ | ------------- | --------------------------------------------------------- |
-| `/api/auth/signup`       | POST          | Create an account (Supabase Auth), limited per IP         |
-| `/api/auth/login`        | POST          | Email + password login (lockout), first-login seed, claim |
-| `/api/auth/passcode`     | POST          | Old passcode → claim cookie (ACCT-7)                      |
-| `/api/auth/forgot`       | POST          | Email a reset link (same answer for unknown emails)       |
-| `/api/auth/resend`       | POST          | Send the confirmation email again                         |
-| `/api/auth/password`     | POST          | Change password; logs out other devices                   |
-| `/api/auth/account`      | DELETE        | Delete the account and all its data                       |
-| `/api/auth/logout`       | POST          | Clear the session cookie                                  |
-| `/api/auth/me`           | GET           | Who is logged in (email, name), reset-link state          |
-| `/auth/confirm`          | GET           | Where email links land; logs in, then redirects           |
-| `/api/nodes`             | GET, POST     | The structure tree; add a node                            |
-| `/api/nodes/:id`         | PATCH, DELETE | Rename, recolor, archive/restore; delete                  |
-| `/api/nodes/:id/move`    | POST          | Move up/down among siblings                               |
-| `/api/sessions`          | GET, POST     | A 30-day History page (filters); log a session            |
-| `/api/sessions/:id`      | PATCH, DELETE | Edit or delete a session                                  |
-| `/api/recent-nodes`      | GET           | The 5 most recently used nodes                            |
-| `/api/dashboard`         | GET           | Everything Home shows, in one request (DASH-1)            |
-| `/api/deadlines`         | GET, POST     | List and add deadlines                                    |
-| `/api/deadlines/:id`     | PATCH, DELETE | Edit or delete a deadline                                 |
-| `/api/settings`          | GET, PATCH    | Student name, neglect threshold                           |
-| `/api/claude-connection` | GET, POST     | Whether a link exists; POST makes a new one (shown once)  |
-| `/api/health`            | GET           | Liveness, no database                                     |
-| `/api/keepalive`         | GET           | One trivial database read                                 |
+| Endpoint                 | Methods       | Purpose                                                    |
+| ------------------------ | ------------- | ---------------------------------------------------------- |
+| `/api/auth/signup`       | POST          | Create an account (Supabase Auth), limited per IP          |
+| `/api/auth/login`        | POST          | Email + password login (lockout), first-login seed, claim  |
+| `/api/auth/passcode`     | POST          | Old passcode → claim cookie (ACCT-7)                       |
+| `/api/auth/forgot`       | POST          | Email a reset link (same answer for unknown emails)        |
+| `/api/auth/resend`       | POST          | Send the confirmation email again                          |
+| `/api/auth/password`     | POST          | Change password; logs out other devices                    |
+| `/api/auth/account`      | DELETE        | Delete the account and all its data                        |
+| `/api/auth/logout`       | POST          | Clear the session cookie                                   |
+| `/api/auth/me`           | GET           | Who is logged in (email, name), reset-link state           |
+| `/auth/confirm`          | GET           | Where email links land; logs in, then redirects            |
+| `/api/nodes`             | GET, POST     | The structure tree; add a node                             |
+| `/api/nodes/:id`         | PATCH, DELETE | Rename, recolor, archive/restore; delete                   |
+| `/api/nodes/:id/move`    | POST          | Move up/down among siblings                                |
+| `/api/sessions`          | GET, POST     | A 30-day History page (filters); log a session             |
+| `/api/sessions/:id`      | PATCH, DELETE | Edit or delete a session                                   |
+| `/api/recent-nodes`      | GET           | The 5 most recently used nodes                             |
+| `/api/dashboard`         | GET           | Everything Home shows, in one request (DASH-1)             |
+| `/api/deadlines`         | GET, POST     | List and add deadlines                                     |
+| `/api/deadlines/:id`     | PATCH, DELETE | Edit or delete a deadline                                  |
+| `/api/settings`          | GET, PATCH    | Student name, neglect threshold                            |
+| `/api/claude-connection` | GET, POST     | Whether a link exists; POST makes a new one (shown once)   |
+| `/api/reports`           | POST          | Build a report for a period (`buildReport`, REP-9)         |
+| `/api/shares`            | GET, POST     | List share links; create one (server rebuilds the report)  |
+| `/api/shares/:id`        | DELETE        | Revoke a share link (kept in the list, marked revoked)     |
+| `/api/share/:slug`       | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked |
+| `/api/export`            | POST          | All data as JSON (CSV is made in the browser); stamps time |
+| `/api/health`            | GET           | Liveness, no database                                      |
+| `/api/keepalive`         | GET           | One trivial database read                                  |
 
 ## Accounts (M5A, SPEC D17)
 

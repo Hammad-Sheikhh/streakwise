@@ -14,10 +14,9 @@ describe('navigation (SPEC §B6)', () => {
     }
   });
 
-  it('shows a placeholder for screens from later milestones', async () => {
+  it('lazy-loads the Reports screen', async () => {
     renderRoutes('/reports', fakeApi({ loggedIn: true }));
     expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument();
-    expect(screen.getByText(/arrive in a later update/)).toBeInTheDocument();
   });
 });
 

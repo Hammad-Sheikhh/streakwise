@@ -5,11 +5,14 @@ import {
   apiErrorSchema,
   claudeConnectionSchema,
   dashboardSchema,
+  dataExportSchema,
   deadlineSchema,
   historyPageSchema,
+  reportSchema,
   scoreSchema,
   sessionSchema,
   settingsSchema,
+  sharedReportLinkSchema,
   taskCompletionSchema,
   taskItemSchema,
   taskSchema,
@@ -37,6 +40,9 @@ const taskItemsResponse = z.object({ items: z.array(taskItemSchema) });
 const completionResponse = z.object({ completion: taskCompletionSchema });
 const scoreResponse = z.object({ score: scoreSchema });
 const scoresResponse = z.object({ scores: z.array(scoreSchema) });
+const reportResponse = z.object({ report: reportSchema });
+const shareResponse = z.object({ share: sharedReportLinkSchema });
+const sharesResponse = z.object({ shares: z.array(sharedReportLinkSchema) });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -257,5 +263,26 @@ export class ApiDataSource implements DataSource {
 
   async getClaudeConnection() {
     return this.request('claude-connection', claudeConnectionSchema);
+  }
+
+  async buildReport(query: Parameters<DataSource['buildReport']>[0]) {
+    return (await this.request('reports', reportResponse, { method: 'POST', body: query })).report;
+  }
+
+  async createShare(input: Parameters<DataSource['createShare']>[0]) {
+    return (await this.request('shares', shareResponse, { method: 'POST', body: input })).share;
+  }
+
+  async listShares() {
+    return (await this.request('shares', sharesResponse)).shares;
+  }
+
+  async revokeShare(id: string) {
+    const path = `shares/${encodeURIComponent(id)}`;
+    return (await this.request(path, shareResponse, { method: 'DELETE' })).share;
+  }
+
+  async exportData() {
+    return this.request('export', dataExportSchema, { method: 'POST' });
   }
 }

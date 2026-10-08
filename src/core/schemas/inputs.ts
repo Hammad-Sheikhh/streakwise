@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
+import {
+  REPORT_PERIODS,
+  SCORE_KINDS,
+  SESSION_SOURCES,
+  TOPIC_STATUSES,
+  TRACK_COLORS,
+} from '../domain/types';
 
 // Inputs from the UI, the API, and MCP. The server validates every request with these (SPEC §B8);
 // messages are written for the owner, because the UI shows them as they are.
@@ -266,3 +272,25 @@ export const updateScoreInputSchema = z
     message: 'Nothing to change.',
   });
 export type UpdateScoreInput = z.input<typeof updateScoreInputSchema>;
+
+/** REP-1–5: which report to build. `from`/`to` are used only for a custom range (REP-3). */
+export const reportQuerySchema = z
+  .object({
+    period: z.enum(REPORT_PERIODS, 'Choose a period.'),
+    from: localDateSchema.optional(),
+    to: localDateSchema.optional(),
+    includeNotes: z.boolean().default(false),
+  })
+  .refine((q) => q.period !== 'custom' || (q.from !== undefined && q.to !== undefined), {
+    message: 'Choose a start and an end date.',
+  });
+export type ReportQuery = z.input<typeof reportQuerySchema>;
+
+/** SHARE-5/6: a link expires after 7 or 30 days, or never (null). */
+export const SHARE_EXPIRY_DAYS = [7, 30] as const;
+
+export const createShareInputSchema = z.object({
+  report: reportQuerySchema,
+  expiresInDays: z.union([z.literal(7), z.literal(30), z.null()]).default(30),
+});
+export type CreateShareInput = z.input<typeof createShareInputSchema>;

@@ -12,7 +12,7 @@ export function DemoLayout() {
     <DataSourceProvider dataSource={dataSource}>
       <div
         role="note"
-        className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100"
+        className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100 print:hidden"
       >
         Demo — sample data. Changes aren’t saved.
       </div>

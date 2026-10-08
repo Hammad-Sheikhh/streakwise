@@ -613,7 +613,7 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | M4 | `feat/mcp` | MCP-1–8, MCP-9 (M4 tools), SET-4 | Connect Claude after R2 | **R2:** Claude connected (minimum useful version, §B14.6) |
 | M5 | `feat/progress` | TOP-1–2, TASK-1–10, SCORE-1–5, TRACK-1, MCP-9 (M5 tools), tasks added to `find_gaps` | — | — |
 | M5A | `feat/accounts` | ACCT-1–12 (accounts with Supabase Auth, per-user data, per-user Claude link; D17) | Brevo account + Supabase SMTP and email templates; run `0003`; replace the Claude connector | **R3** (M5 + M5A), after the owner says yes |
-| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3b** |
+| M6 | `feat/reports` | REP-1–9, SHARE-1–6, SET-2–3, MCP-9 (`get_report`) | — | **R3** (owner held R3 so M6 ships with M5 + M5A) |
 | M7 | `feat/demo-pwa` | DEMO-1–5 complete (sample data, banner, disabled features), PWA-1–3, end-to-end suite | — | — |
 | M8 | `chore/polish` | Accessibility and performance pass, empty states, README, screenshots, architecture.md | Final checklist (§B17) | **R4:** v1.0.0 |
 

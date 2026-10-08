@@ -1,14 +1,23 @@
 import { z } from 'zod';
 
-import { SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES, TRACK_COLORS } from '../domain/types';
+import {
+  REPORT_PERIODS,
+  SCORE_KINDS,
+  SESSION_SOURCES,
+  TOPIC_STATUSES,
+  TRACK_COLORS,
+} from '../domain/types';
 import type {
   ClaudeConnection,
   Dashboard,
   Deadline,
+  DataExport,
   HistoryPage,
+  Report,
   Score,
   Session,
   Settings,
+  SharedReportLink,
   Task,
   TaskCompletion,
   TaskItem,
@@ -155,4 +164,93 @@ export const dashboardSchema = z.object({
     end: z.iso.date(),
     days: z.array(z.object({ date: z.iso.date(), minutes })),
   }),
+  backupDue: z.boolean(),
 }) satisfies z.ZodType<Dashboard>;
+
+const percent = z.number().min(0);
+
+/** REP-4. Also checks snapshots read back from the database before the public page shows them. */
+export const reportSchema = z.object({
+  studentName: z.string().max(80),
+  period: z.object({
+    kind: z.enum(REPORT_PERIODS),
+    label: z.string(),
+    from: z.iso.date(),
+    to: z.iso.date(),
+    isWeek: z.boolean(),
+  }),
+  generatedAt: timestamp,
+  includesNotes: z.boolean(),
+  totals: z.object({
+    minutes,
+    sessions: minutes,
+    activeDays: minutes,
+    days: minutes,
+    streak: minutes,
+  }),
+  tracks: z.array(
+    z.object({
+      name: z.string(),
+      color: z.enum(TRACK_COLORS).nullable(),
+      minutes,
+      targetMinutes: minutes.nullable(),
+      targetPercent: percent.nullable(),
+      subtasks: z.array(z.object({ name: z.string(), minutes })),
+    }),
+  ),
+  topicsStudied: z.array(z.object({ path: z.string(), minutes })),
+  topicsDone: z.array(z.object({ path: z.string(), doneOn: z.iso.date() })),
+  tasksCompleted: z.array(
+    z.object({
+      title: z.string(),
+      path: z.string().nullable(),
+      completedOn: z.iso.date(),
+      score: z.object({ score: percent, maxScore: z.number().positive(), percent }).nullable(),
+    }),
+  ),
+  scores: z.array(
+    z.object({
+      date: z.iso.date(),
+      path: z.string(),
+      kind: z.enum(SCORE_KINDS),
+      title: z.string(),
+      score: percent,
+      maxScore: z.number().positive(),
+      percent,
+    }),
+  ),
+  neglected: z.array(z.object({ path: z.string(), days: minutes, neverLogged: z.boolean() })),
+  deadlines: z.array(
+    z.object({
+      title: z.string(),
+      path: z.string(),
+      dueOn: z.iso.date(),
+      daysLeft: z.number().int(),
+      syllabusLeftPercent: z.number().min(0).max(100).nullable(),
+    }),
+  ),
+  notes: z.array(z.object({ date: z.iso.date(), path: z.string(), minutes, note: z.string() })),
+}) satisfies z.ZodType<Report>;
+
+export const sharedReportLinkSchema = z.object({
+  id: z.uuid(),
+  slug: z.string().min(16).max(64),
+  periodLabel: z.string(),
+  createdAt: timestamp,
+  expiresAt: timestamp.nullable(),
+  revokedAt: timestamp.nullable(),
+}) satisfies z.ZodType<SharedReportLink>;
+
+export const dataExportSchema = z.object({
+  app: z.literal('Streakwise'),
+  formatVersion: z.literal(1),
+  exportedAt: timestamp,
+  settings: z.object({ studentName: z.string(), neglectDays: z.number().int() }),
+  nodes: z.array(treeNodeSchema),
+  sessions: z.array(sessionSchema),
+  tasks: z.array(taskSchema),
+  taskCompletions: z.array(taskCompletionSchema),
+  scores: z.array(scoreSchema),
+  deadlines: z.array(deadlineSchema),
+  sharedReports: z.array(sharedReportLinkSchema),
+}) satisfies z.ZodType<DataExport>;

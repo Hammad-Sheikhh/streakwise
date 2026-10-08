@@ -8,6 +8,7 @@ import { currentStreak, longestStreak } from '../logic/streak';
 import { hiddenIds } from '../logic/tree';
 import type { Repository } from '../repo/Repository';
 import { selectUpcoming } from './deadlines';
+import { isBackupDue } from './exports';
 import { listTree } from './structure';
 import { listTaskItems } from './tasks';
 
@@ -52,5 +53,6 @@ export async function getDashboard(repo: Repository, clock: Clock): Promise<Dash
     tasksDue: tasks.filter((item) => item.dueThisWeek).sort(compareDue),
     deadlines: selectUpcoming(nodes, deadlines, today).slice(0, DASHBOARD_DEADLINES),
     heatmap: { start, end, days: heatmapDays },
+    backupDue: isBackupDue(settings.lastExportAt, clock()),
   };
 }

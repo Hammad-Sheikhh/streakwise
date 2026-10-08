@@ -27,5 +27,13 @@ test('the demo logs a session without ever calling the API', async ({ page }) =>
   await expect(page.getByText('Logged 45m · German Language')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Today' })).toContainText('45m');
   await expect(page.getByRole('region', { name: 'Streak' })).toContainText('1 day');
+
+  // M6: this week's report includes the session and can be copied as text.
+  await page.getByRole('link', { name: 'This week’s report' }).click();
+  await expect(page.getByRole('heading', { name: 'Weekly study report' })).toBeVisible();
+  await expect(page.getByRole('row', { name: /German Language/ }).first()).toContainText('45m');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: 'Copy as text' }).click();
+  await expect(page.getByText('Copied for WhatsApp.')).toBeVisible();
   expect(apiCalls).toEqual([]);
 });

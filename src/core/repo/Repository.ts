@@ -1,10 +1,12 @@
 import type {
   Deadline,
+  Report,
   Score,
   Session,
   SessionFact,
   SessionSource,
   Settings,
+  SharedReportLink,
   Task,
   TaskCompletion,
   TaskRecurrence,
@@ -131,6 +133,15 @@ export interface NewCompletion {
   score: NewScore | null;
 }
 
+/** SHARE-1. */
+export interface NewSharedReport {
+  id: string;
+  slug: string;
+  snapshot: Report;
+  periodLabel: string;
+  expiresAt: string | null;
+}
+
 export type SettingsPatch = Partial<Pick<Settings, 'studentName' | 'neglectDays'>>;
 
 export interface Repository {
@@ -152,6 +163,8 @@ export interface Repository {
   listRecentSessions(limit: number): Promise<Session[]>;
   /** Node, date, and minutes of every session (all history), for dashboard calculations. */
   listSessionFacts(): Promise<SessionFact[]>;
+  /** Every session (SET-2 export), oldest first. */
+  listAllSessions(): Promise<Session[]>;
 
   /** Ordered by due date. */
   listDeadlines(): Promise<Deadline[]>;
@@ -181,6 +194,15 @@ export interface Repository {
   updateSettings(patch: SettingsPatch): Promise<Settings>;
   /** MCP-4: stamps the time of the latest Claude (MCP) tool call. */
   recordMcpCall(at: string): Promise<void>;
+  /** SET-2: stamps the time of the latest export. */
+  recordExport(at: string): Promise<void>;
+
+  /** SHARE-1. */
+  insertSharedReport(report: NewSharedReport): Promise<SharedReportLink>;
+  /** SHARE-3: newest first. */
+  listSharedReports(): Promise<SharedReportLink[]>;
+  /** SHARE-3: marks the link revoked (once; revoking again keeps the first time). */
+  revokeSharedReport(id: string, at: string): Promise<SharedReportLink>;
 
   /** Atomically writes the seed if there are no nodes yet. Returns whether it seeded. */
   seedIfEmpty(seed: SeedData): Promise<boolean>;

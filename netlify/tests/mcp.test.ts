@@ -153,6 +153,7 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'delete_session',
       'find_gaps',
       'get_progress',
+      'get_report',
       'get_structure',
       'list_deadlines',
       'list_sessions',
@@ -172,6 +173,7 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'find_gaps',
       'list_deadlines',
       'list_tasks',
+      'get_report',
     ]) {
       expect(byTool[name]?.annotations).toMatchObject({ readOnlyHint: true });
     }
@@ -543,5 +545,25 @@ describe('M5 tools: topics, tasks, and scores', () => {
     expect(gaps.data.tasksDue).toEqual([
       expect.objectContaining({ title: 'Weekly recall / revision', weekly: true, overdue: false }),
     ]);
+  });
+});
+
+describe('get_report (M6, REP-9)', () => {
+  it('returns the report for a period, with notes only when asked', async () => {
+    await call('log_session', { node: 'self-study', minutes: 45, note: 'Dative case' });
+    const week = await call('get_report', {});
+    expect(week.isError).toBe(false);
+    expect(week.data.period).toMatchObject({ kind: 'this_week', isWeek: true });
+    expect(week.data.totals.minutes).toBe(45);
+    expect(week.data.notes).toEqual([]);
+
+    const withNotes = await call('get_report', { period: 'today', include_notes: true });
+    expect(withNotes.data.notes).toEqual([expect.objectContaining({ note: 'Dative case' })]);
+
+    const custom = await call('get_report', { period: 'custom', from: 'yesterday', to: 'today' });
+    expect(custom.data.period).toMatchObject({ from: '2026-10-02', to: '2026-10-03' });
+
+    const missing = await call('get_report', { period: 'custom' });
+    expect(missing.isError).toBe(true);
   });
 });

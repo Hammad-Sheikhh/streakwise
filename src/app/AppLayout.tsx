@@ -49,7 +49,7 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-4 border-r p-4 md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-4 border-r p-4 md:flex print:hidden">
         <Link to={home} className="px-2 text-lg font-semibold tracking-tight">
           Streakwise
         </Link>
@@ -78,15 +78,15 @@ export function AppLayout() {
         </nav>
       </aside>
 
-      <main className="min-w-0 flex-1 pb-24 md:pb-10">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-8">
+      <main className="min-w-0 flex-1 pb-24 md:pb-10 print:p-0">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-8 print:max-w-none print:p-0">
           <Outlet />
         </div>
       </main>
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
         {MOBILE_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink

@@ -15,6 +15,7 @@ import type {
   Session,
   SessionFact,
   Settings,
+  SharedReportLink,
   Task,
   TaskCompletion,
   TreeNode,
@@ -26,6 +27,7 @@ import type {
   NewNode,
   NewScore,
   NewSession,
+  NewSharedReport,
   NewTask,
   NodePatch,
   Repository,
@@ -136,6 +138,28 @@ const deadlineRow = z
     dueOn: row.due_on,
     createdAt: row.created_at,
   }));
+
+export const sharedReportRow = z
+  .object({
+    id: z.string(),
+    slug: z.string(),
+    period_label: z.string(),
+    created_at: timestamp,
+    expires_at: timestamp.nullable(),
+    revoked_at: timestamp.nullable(),
+  })
+  .transform((row): SharedReportLink => ({
+    id: row.id,
+    slug: row.slug,
+    periodLabel: row.period_label,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+    revokedAt: row.revoked_at,
+  }));
+
+/** The link columns, without the (large) snapshot. */
+export const SHARED_REPORT_LINK_COLUMNS =
+  'id, slug, period_label, created_at, expires_at, revoked_at';
 
 // Postgres `numeric` columns may arrive as strings, depending on PostgREST settings.
 const numeric = z.coerce.number();
@@ -395,6 +419,13 @@ export class SupabaseRepository implements Repository {
     return z.array(factRow).parse(await this.readAll('sessions', 'node_id, studied_on, minutes'));
   }
 
+  async listAllSessions(): Promise<Session[]> {
+    const sessions = z.array(sessionRow).parse(await this.readAll('sessions'));
+    return sessions.sort(
+      (a, b) => a.studiedOn.localeCompare(b.studiedOn) || a.createdAt.localeCompare(b.createdAt),
+    );
+  }
+
   async listDeadlines(): Promise<Deadline[]> {
     const { data, error } = await this.select('deadlines').order('due_on').order('created_at');
     if (error) throwDbError(error);
@@ -575,6 +606,51 @@ export class SupabaseRepository implements Repository {
   async recordMcpCall(at: string): Promise<void> {
     const { error } = await this.upsertSettings({ last_mcp_call_at: at });
     if (error) throwDbError(error);
+  }
+
+  async recordExport(at: string): Promise<void> {
+    const { error } = await this.upsertSettings({ last_export_at: at });
+    if (error) throwDbError(error);
+  }
+
+  async insertSharedReport(report: NewSharedReport): Promise<SharedReportLink> {
+    const { data, error } = await this.insert('shared_reports', {
+      id: report.id,
+      slug: report.slug,
+      snapshot: report.snapshot,
+      period_label: report.periodLabel,
+      expires_at: report.expiresAt,
+    })
+      .select(SHARED_REPORT_LINK_COLUMNS)
+      .single();
+    if (error) throwDbError(error);
+    return sharedReportRow.parse(data);
+  }
+
+  async listSharedReports(): Promise<SharedReportLink[]> {
+    const { data, error } = await this.select('shared_reports', SHARED_REPORT_LINK_COLUMNS).order(
+      'created_at',
+      { ascending: false },
+    );
+    if (error) throwDbError(error);
+    return z.array(sharedReportRow).parse(data);
+  }
+
+  async revokeSharedReport(id: string, at: string): Promise<SharedReportLink> {
+    // Only a link that isn't revoked yet is stamped, so the first revocation time is kept.
+    const { error } = await this.update('shared_reports', { revoked_at: at })
+      .eq('id', id)
+      .is('revoked_at', null);
+    if (error) throwDbError(error);
+    const { data, error: readError } = await this.select(
+      'shared_reports',
+      SHARED_REPORT_LINK_COLUMNS,
+    )
+      .eq('id', id)
+      .maybeSingle();
+    if (readError) throwDbError(readError);
+    if (data === null) throw notFound('share_not_found');
+    return sharedReportRow.parse(data);
   }
 
   async seedIfEmpty(seed: SeedData): Promise<boolean> {

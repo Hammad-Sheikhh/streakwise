@@ -1,11 +1,15 @@
 import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
+import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
+import * as exportsService from '@/core/services/exports';
+import * as reports from '@/core/services/reports';
 import * as scores from '@/core/services/scores';
 import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
+import * as shares from '@/core/services/shares';
 import * as settings from '@/core/services/settings';
 import * as structure from '@/core/services/structure';
 import * as tasks from '@/core/services/tasks';
@@ -24,7 +28,7 @@ const STATUS_BY_KIND: Record<DomainError['kind'], number> = {
 };
 
 export class DemoDataSource implements DataSource {
-  readonly mode = 'demo';
+  readonly mode: DataSource['mode'] = 'demo';
   readonly basePath = '/demo';
   private readonly repo: InMemoryRepository;
   private readonly ready: Promise<unknown>;
@@ -184,5 +188,39 @@ export class DemoDataSource implements DataSource {
     return Promise.reject(
       new DataSourceError(404, 'demo_unavailable', 'The Claude connection is off in the demo.'),
     );
+  }
+
+  buildReport(query: Parameters<DataSource['buildReport']>[0]) {
+    return this.run((repo) => reports.buildReport(repo, this.clock, query));
+  }
+
+  /**
+   * DEMO-5: share links would publish demo data, so they're off. Test stand-ins for the API,
+   * which reuse this class in 'api' mode, get working links.
+   */
+  private sharesOff(): Promise<never> {
+    return Promise.reject(
+      new DataSourceError(404, 'demo_unavailable', 'Share links are off in the demo.'),
+    );
+  }
+
+  createShare(input: Parameters<DataSource['createShare']>[0]) {
+    if (this.mode === 'demo') return this.sharesOff();
+    const ids = { newId: this.newId, newSlug: newShareSlug };
+    return this.run((repo) => shares.createShare(repo, this.clock, ids, input));
+  }
+
+  listShares() {
+    if (this.mode === 'demo') return this.sharesOff();
+    return this.run((repo) => shares.listShares(repo));
+  }
+
+  revokeShare(id: string) {
+    if (this.mode === 'demo') return this.sharesOff();
+    return this.run((repo) => shares.revokeShare(repo, this.clock, id));
+  }
+
+  exportData() {
+    return this.run((repo) => exportsService.exportData(repo, this.clock));
   }
 }
