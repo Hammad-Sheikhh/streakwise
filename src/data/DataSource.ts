@@ -30,6 +30,8 @@ import type {
   UpdateSettingsInput,
 } from '@/core/schemas/inputs';
 
+import type { AccountApi } from './AccountApi';
+
 // The only way the UI reads or changes data (SPEC §B12). ApiDataSource calls /api; DemoDataSource
 // runs the same core services in the browser on an in-memory store.
 
@@ -42,8 +44,9 @@ export interface DataSource {
   /** The current time; demo mode and tests can fix it. */
   now(): Date;
   isAuthenticated(): Promise<boolean>;
-  login(passcode: string): Promise<void>;
   logout(): Promise<void>;
+  /** Accounts (ACCT); null in demo mode. */
+  readonly account: AccountApi | null;
 
   listTree(): Promise<TreeNode[]>;
   addNode(input: CreateNodeInput): Promise<TreeNode>;

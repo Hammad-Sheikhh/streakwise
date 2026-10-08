@@ -11,7 +11,6 @@ import { createMeHandler } from '../functions/auth-me';
 import { createPasscodeHandler } from '../functions/auth-passcode';
 import { createPasswordHandler } from '../functions/auth-password';
 import { createSignUpHandler } from '../functions/auth-signup';
-import { createStatusHandler } from '../functions/auth-status';
 import { createNodesHandler } from '../functions/nodes';
 import { InMemoryRepository } from '../../src/core/repo/InMemoryRepository';
 import {
@@ -38,7 +37,6 @@ function setup() {
     confirm: createConfirmHandler(getDeps),
     forgot: createForgotHandler(getDeps),
     passcode: createPasscodeHandler(getDeps),
-    status: createStatusHandler(getDeps),
     password: createPasswordHandler(getDeps),
     account: createAccountHandler(getDeps),
     nodes: createNodesHandler(getDeps),
@@ -288,20 +286,12 @@ describe('claiming the data from before accounts (ACCT-7)', () => {
   }
 
   it('moves the old data to the account that logs in after the passcode', async () => {
-    const { status, passcode, login, nodes, accounts, user, old } = await withOldData();
-    expect(await (await status(get('/api/auth/status'), context)).json()).toEqual({
-      claimAvailable: true,
-      claimReady: false,
-    });
-
+    const { passcode, login, nodes, accounts, user, old } = await withOldData();
     const wrong = await passcode(post('/api/auth/passcode', { passcode: 'nope' }), context);
     expect(await errorCode(wrong)).toBe('wrong_passcode');
     const right = await passcode(post('/api/auth/passcode', { passcode: TEST_PASSCODE }), context);
     const claimCookie = cookieFrom(right);
     expect(right.headers.get('set-cookie')).toContain('SameSite=Lax');
-    expect(
-      await (await status(get('/api/auth/status', { cookie: claimCookie }), context)).json(),
-    ).toEqual({ claimAvailable: true, claimReady: true });
 
     const loggedIn = await login(post('/api/auth/login', LOGIN, { cookie: claimCookie }), context);
     expect(await loggedIn.json()).toEqual({ authenticated: true, claimed: true });
@@ -314,10 +304,7 @@ describe('claiming the data from before accounts (ACCT-7)', () => {
       nodes: unknown[];
     };
     expect(tree.nodes).toHaveLength(7);
-    expect(await (await status(get('/api/auth/status'), context)).json()).toEqual({
-      claimAvailable: false,
-      claimReady: false,
-    });
+    expect(await accounts.hasUnclaimedData()).toBe(false);
   });
 
   it('does nothing without the passcode step', async () => {

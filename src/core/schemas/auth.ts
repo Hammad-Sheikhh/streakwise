@@ -57,14 +57,6 @@ export const meSchema = z.object({
 });
 export type Me = z.infer<typeof meSchema>;
 
-export const authStatusSchema = z.object({
-  /** ACCT-7: data from before accounts exists and the old passcode can still claim it. */
-  claimAvailable: z.boolean(),
-  /** This browser has entered the old passcode; the next login or sign-up claims the data. */
-  claimReady: z.boolean(),
-});
-export type AuthStatus = z.infer<typeof authStatusSchema>;
-
 export const signUpResultSchema = z.object({
   status: z.enum(['confirm_email', 'signed_in']),
 });

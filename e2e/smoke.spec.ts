@@ -13,7 +13,7 @@ test('the demo logs a session without ever calling the API', async ({ page }) =>
   await expect(page.getByText('Demo — sample data. Changes aren’t saved.')).toBeVisible();
   await page.getByRole('button', { name: 'Exit demo' }).click();
 
-  await expect(page.getByLabel('Passcode')).toBeVisible();
+  await expect(page.getByLabel('Email')).toBeVisible();
   await page.getByRole('link', { name: 'Try the demo' }).click();
 
   await expect(page.getByRole('heading', { level: 1, name: 'Streakwise' })).toBeVisible();
