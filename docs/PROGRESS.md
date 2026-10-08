@@ -85,7 +85,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Tried M6 Reports (owner confirmed it works, 2026-10-09)
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
-- [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
+- [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
 
 ## Current work / next step
 
@@ -98,8 +98,7 @@ in the public app: #22 (D18) made new accounts and the demo start with general s
 
 **Next (in order):**
 
-0. Done: owner claimed the old data (2026-10-09). Still open: make a new Claude link and replace
-   the connector. Possible later improvement (owner asked how per-user MCP works): OAuth sign-in
+0. Done: owner claimed the old data (2026-10-09). New Claude link done (2026-10-09). Possible later improvement (owner asked how per-user MCP works): OAuth sign-in
    for the connector instead of a secret link.
 1. Done: #21 merged into `develop` (2026-10-09, owner's OK). Owner can still try it on the develop
    site (share links and export on the real login write to the shared database).
@@ -290,8 +289,7 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
   "other" for one-off ones (the score dialog lets the owner change it). The completion note is
   also the score's note. Sub-task progress counts direct sub-tasks only.
 - M5: SCORE-5 "default views" = each track's chart opens on the kind it records most (latest wins
-  a tie), instead of matching track names, so renaming a track doesn't break it. With the usual
-  habits it gives past papers for Improvement, quizzes for Certification, revision for German.
+  a tie), instead of matching track names, so renaming a track doesn't break it.
 - M5: SCORE-4 trend = average of the last 3 results minus the 3 before them; with fewer than 4
   results, the oldest is "before" and the rest are "last". Shown from 2 results on.
 - M5: the score chart is hand-drawn SVG (no chart library, keeps the bundle at ~211 KB gzipped).
