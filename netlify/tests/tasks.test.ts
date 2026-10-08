@@ -9,16 +9,13 @@ import { createNodesHandler } from '../functions/nodes';
 import { createTaskHandler } from '../functions/task';
 import { createTaskCompleteHandler } from '../functions/task-complete';
 import { createTasksHandler } from '../functions/tasks';
-import { context, cookieFrom, post, TEST_PASSCODE, testDeps } from './fakes';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
 
 async function setup() {
   const t = testDeps();
   const getDeps = () => t.deps;
   const cookie = cookieFrom(
-    await createLoginHandler(getDeps)(
-      post('/api/auth/login', { passcode: TEST_PASSCODE }),
-      context,
-    ),
+    await createLoginHandler(getDeps)(post('/api/auth/login', LOGIN), context),
   );
   const request = (method: string, path: string, body?: unknown, withCookie = true) =>
     new Request(`http://localhost${path}`, {

@@ -1,8 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 
 import { NativeSelect } from '@/components/NativeSelect';
@@ -15,6 +14,7 @@ import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 
+import { AccountSection } from './AccountSection';
 import { ClaudeConnectionSection } from './ClaudeConnection';
 
 const SECTIONS = [
@@ -26,18 +26,7 @@ const SECTIONS = [
 // SET-1: the Settings shell. Later milestones add shared links and export as more sections.
 export function SettingsPage() {
   const dataSource = useDataSource();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const settings = useSettings();
-
-  const logout = useMutation({
-    mutationFn: () => dataSource.logout(),
-    onSuccess: () => {
-      queryClient.clear();
-      void navigate('/login', { replace: true });
-    },
-    onError: (error) => toast.error(error.message),
-  });
 
   return (
     <>
@@ -78,25 +67,7 @@ export function SettingsPage() {
 
       <ClaudeConnectionSection />
 
-      <section aria-labelledby="account-heading" className="flex flex-col items-start gap-4">
-        <h2 id="account-heading" className="text-lg font-medium">
-          Account
-        </h2>
-        {dataSource.mode === 'api' ? (
-          <Button
-            variant="outline"
-            className="h-11"
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
-          >
-            Log out
-          </Button>
-        ) : (
-          <Button variant="outline" className="h-11" onClick={() => void navigate('/login')}>
-            Exit demo
-          </Button>
-        )}
-      </section>
+      <AccountSection />
     </>
   );
 }

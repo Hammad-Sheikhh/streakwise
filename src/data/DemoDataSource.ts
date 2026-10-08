@@ -58,9 +58,10 @@ export class DemoDataSource implements DataSource {
     return true;
   }
 
-  async login(): Promise<void> {}
-
   async logout(): Promise<void> {}
+
+  /** DEMO: there are no accounts in the demo. */
+  readonly account = null;
 
   listTree() {
     return this.run((repo) => structure.listTree(repo));

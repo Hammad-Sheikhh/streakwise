@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { meSchema } from '@/core/schemas/auth';
+import { meSchema, signUpResultSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
   claudeConnectionSchema,
@@ -18,6 +18,7 @@ import {
 } from '@/core/schemas/domain';
 import type { HistoryQuery } from '@/core/schemas/inputs';
 
+import type { AccountApi } from './AccountApi';
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
 
@@ -27,6 +28,8 @@ const sessionResponse = z.object({ session: sessionSchema });
 const recentResponse = z.object({ nodeIds: z.array(z.uuid()) });
 const settingsResponse = z.object({ settings: settingsSchema });
 const okResponse = z.object({ ok: z.literal(true) });
+const loginResponse = z.object({ authenticated: z.literal(true), claimed: z.boolean() });
+const claimResponse = z.object({ claimReady: z.literal(true) });
 const deadlineResponse = z.object({ deadline: deadlineSchema });
 const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
 const taskResponse = z.object({ task: taskSchema });
@@ -87,9 +90,31 @@ export class ApiDataSource implements DataSource {
     }
   }
 
-  async login(passcode: string): Promise<void> {
-    await this.request('auth/login', meSchema, { method: 'POST', body: { passcode } });
-  }
+  readonly account: AccountApi = {
+    me: () => this.request('auth/me', meSchema),
+    login: async (body) => {
+      const { claimed } = await this.request('auth/login', loginResponse, { method: 'POST', body });
+      return { claimed };
+    },
+    signUp: (body) => this.request('auth/signup', signUpResultSchema, { method: 'POST', body }),
+    enterPasscode: async (body) => {
+      await this.request('auth/passcode', claimResponse, { method: 'POST', body });
+    },
+    forgotPassword: async (body) => {
+      await this.request('auth/forgot', okResponse, { method: 'POST', body });
+    },
+    resendConfirmation: async (body) => {
+      await this.request('auth/resend', okResponse, { method: 'POST', body });
+    },
+    changePassword: async (body) => {
+      await this.request('auth/password', okResponse, { method: 'POST', body });
+    },
+    deleteAccount: async (body) => {
+      await this.request('auth/account', meSchema, { method: 'DELETE', body });
+    },
+    createClaudeLink: () =>
+      this.request('claude-connection', claudeConnectionSchema, { method: 'POST' }),
+  };
 
   async logout(): Promise<void> {
     await this.request('auth/logout', meSchema, { method: 'POST', body: {} });

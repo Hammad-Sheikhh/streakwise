@@ -2,16 +2,16 @@ import type { Config } from '@netlify/functions';
 import { createMcpHandler } from '@modelcontextprotocol/server';
 
 import type { NetlifyHandler } from './_lib/api';
-import { serverDeps } from './_lib/deps';
-import type { ServerDeps } from './_lib/deps';
+import { forUser, serverDeps } from './_lib/deps';
+import type { ServerDeps, UserDeps } from './_lib/deps';
 import { ConfigError } from './_lib/env';
 import { describeError, log } from './_lib/log';
 import { buildMcpServer } from './_lib/mcp/server';
-import { isMcpConfigured, mcpSecretMatches } from './_lib/mcpSecret';
+import { hashMcpToken, isMcpTokenShaped } from './_lib/mcpToken';
 
-// MCP-1/MCP-2: the Claude connection at /mcp/<MCP_SECRET>, stateless Streamable HTTP. The secret in
-// the URL is the only credential, so anything that doesn't match gets the same plain 404 as an
-// unknown page.
+// MCP-1/MCP-2, ACCT-8: the Claude connection at /mcp/<token>, stateless Streamable HTTP. Each user
+// has their own token; it is the only credential, so anything that doesn't match gets the same
+// plain 404 as an unknown page.
 
 function notFoundResponse(): Response {
   return new Response('Not found', {
@@ -21,21 +21,14 @@ function notFoundResponse(): Response {
 }
 
 export function createMcpFunction(getDeps: () => ServerDeps): NetlifyHandler {
-  // The handler keeps no data between requests: the factory builds a fresh server for each one.
-  // Responses are plain JSON because no tool sends progress messages.
-  const mcp = createMcpHandler(() => buildMcpServer(getDeps()), {
-    onerror: (error) => log.warn('mcp_protocol_error', describeError(error)),
-  });
-
   return async (request, context) => {
     try {
-      const expected = getDeps().env.MCP_SECRET;
-      if (!mcpSecretMatches(context.params?.secret ?? '', expected)) {
-        if (!isMcpConfigured(expected)) {
-          log.warn('mcp_not_configured', { variables: ['MCP_SECRET'] });
-        }
-        return notFoundResponse();
-      }
+      const deps = getDeps();
+      const token = context.params?.secret ?? '';
+      const userId = isMcpTokenShaped(token)
+        ? await deps.accounts.userIdForMcpTokenHash(hashMcpToken(token))
+        : null;
+      if (!userId) return notFoundResponse();
       // Netlify's guidance: a serverless function can't hold open the GET event stream.
       if (request.method !== 'POST') {
         return new Response('Method not allowed', {
@@ -43,6 +36,12 @@ export function createMcpFunction(getDeps: () => ServerDeps): NetlifyHandler {
           headers: { Allow: 'POST', 'Cache-Control': 'no-store' },
         });
       }
+      const userDeps: UserDeps = forUser(deps, userId);
+      // The handler keeps no data between requests: the factory builds a fresh server for each
+      // one. Responses are plain JSON because no tool sends progress messages.
+      const mcp = createMcpHandler(() => buildMcpServer(userDeps), {
+        onerror: (error) => log.warn('mcp_protocol_error', describeError(error)),
+      });
       return await mcp.fetch(request);
     } catch (error) {
       if (error instanceof ConfigError) {

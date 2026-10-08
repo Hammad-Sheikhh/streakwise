@@ -6,10 +6,9 @@ import { z } from 'zod';
 const serverEnvSchema = z.object({
   SUPABASE_URL: z.url(),
   SUPABASE_SECRET_KEY: z.string().min(1),
-  APP_PASSCODE: z.string().min(1),
+  // ACCT-7: only used to claim the data from before accounts; can be removed afterwards.
+  APP_PASSCODE: z.string().min(1).optional(),
   SESSION_SECRET: z.string().min(32),
-  // Optional here so a missing value only disables the Claude connection, not the whole app.
-  MCP_SECRET: z.string().optional(),
 });
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 

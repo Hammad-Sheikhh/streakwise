@@ -22,12 +22,18 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
 
 export function json(
   data: unknown,
-  init: { status?: number; headers?: Record<string, string> } = {},
+  init: { status?: number; headers?: Record<string, string>; cookies?: string[] } = {},
 ): Response {
-  return Response.json(data, {
-    status: init.status ?? 200,
-    headers: { ...init.headers, ...NO_STORE },
-  });
+  const headers = new Headers({ ...init.headers, ...NO_STORE });
+  for (const cookie of init.cookies ?? []) headers.append('Set-Cookie', cookie);
+  return Response.json(data, { status: init.status ?? 200, headers });
+}
+
+/** A 303 redirect (after a GET link from an email), optionally setting cookies. */
+export function redirect(location: string, cookies: string[] = []): Response {
+  const headers = new Headers({ Location: location, ...NO_STORE });
+  for (const cookie of cookies) headers.append('Set-Cookie', cookie);
+  return new Response(null, { status: 303, headers });
 }
 
 export function errorJson(

@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { notFound } from '../../../src/core/domain/errors';
 import {
+  DEFAULT_SETTINGS,
   SCORE_KINDS,
   SESSION_SOURCES,
   TOPIC_STATUSES,
@@ -39,6 +40,9 @@ import { throwDbError } from './dbErrors';
 
 // Repository backed by Supabase Postgres (server only, secret key). Rows are validated with Zod on
 // the way in, so a schema mismatch fails loudly instead of leaking bad data to the UI.
+//
+// ACCT-5: one instance serves one user. Every query is limited to that user's rows and every insert
+// is stamped with the user's id; the same-owner foreign keys (0003) are the database's backstop.
 
 const toIso = (value: string) => new Date(value).toISOString();
 const timestamp = z.string().transform(toIso);
@@ -258,26 +262,44 @@ function sessionColumns(patch: SessionPatch) {
 }
 
 export class SupabaseRepository implements Repository {
-  constructor(private readonly db: SupabaseClient) {}
+  constructor(
+    private readonly db: SupabaseClient,
+    private readonly userId: string,
+  ) {}
+
+  // Every read, update, and delete goes through these, so none can miss the user filter.
+  private select(table: string, columns = '*') {
+    return this.db.from(table).select(columns).eq('user_id', this.userId);
+  }
+
+  private update(table: string, values: Record<string, unknown>) {
+    return this.db.from(table).update(values).eq('user_id', this.userId);
+  }
+
+  private delete(table: string) {
+    return this.db.from(table).delete().eq('user_id', this.userId);
+  }
+
+  private insert(table: string, values: Record<string, unknown>) {
+    return this.db.from(table).insert({ ...values, user_id: this.userId });
+  }
 
   async listNodes(): Promise<TreeNode[]> {
-    const { data, error } = await this.db.from('nodes').select('*');
+    const { data, error } = await this.select('nodes');
     if (error) throwDbError(error);
     return z.array(nodeRow).parse(data);
   }
 
   async insertNode(node: NewNode): Promise<TreeNode> {
-    const { data, error } = await this.db
-      .from('nodes')
-      .insert({
-        id: node.id,
-        parent_id: node.parentId,
-        depth: 1, // recomputed from the parent by the nodes_set_depth trigger
-        name: node.name,
-        color: node.color,
-        sort_order: node.sortOrder,
-        topic_status: node.topicStatus,
-      })
+    const { data, error } = await this.insert('nodes', {
+      id: node.id,
+      parent_id: node.parentId,
+      depth: 1, // recomputed from the parent by the nodes_set_depth trigger
+      name: node.name,
+      color: node.color,
+      sort_order: node.sortOrder,
+      topic_status: node.topicStatus,
+    })
       .select()
       .single();
     if (error) throwDbError(error);
@@ -286,9 +308,7 @@ export class SupabaseRepository implements Repository {
 
   async updateNode(id: string, patch: NodePatch): Promise<TreeNode> {
     // supabase-js drops undefined fields, so only the given columns change.
-    const { data, error } = await this.db
-      .from('nodes')
-      .update(nodeColumns(patch))
+    const { data, error } = await this.update('nodes', nodeColumns(patch))
       .eq('id', id)
       .select()
       .single();
@@ -297,27 +317,28 @@ export class SupabaseRepository implements Repository {
   }
 
   async deleteNodeTree(id: string): Promise<void> {
-    const { error } = await this.db.rpc('delete_node_tree', { p_node_id: id });
+    const { error } = await this.db.rpc('delete_user_node_tree', {
+      p_user_id: this.userId,
+      p_node_id: id,
+    });
     if (error) throwDbError(error);
   }
 
   async getSession(id: string): Promise<Session | null> {
-    const { data, error } = await this.db.from('sessions').select('*').eq('id', id).maybeSingle();
+    const { data, error } = await this.select('sessions').eq('id', id).maybeSingle();
     if (error) throwDbError(error);
     return data === null ? null : sessionRow.parse(data);
   }
 
   async insertSession(session: NewSession): Promise<Session> {
-    const { data, error } = await this.db
-      .from('sessions')
-      .insert({
-        id: session.id,
-        node_id: session.nodeId,
-        studied_on: session.studiedOn,
-        minutes: session.minutes,
-        note: session.note,
-        source: session.source,
-      })
+    const { data, error } = await this.insert('sessions', {
+      id: session.id,
+      node_id: session.nodeId,
+      studied_on: session.studiedOn,
+      minutes: session.minutes,
+      note: session.note,
+      source: session.source,
+    })
       .select()
       .single();
     if (error) throwDbError(error);
@@ -325,9 +346,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async updateSession(id: string, patch: SessionPatch): Promise<Session> {
-    const { data, error } = await this.db
-      .from('sessions')
-      .update(sessionColumns(patch))
+    const { data, error } = await this.update('sessions', sessionColumns(patch))
       .eq('id', id)
       .select()
       .single();
@@ -336,13 +355,13 @@ export class SupabaseRepository implements Repository {
   }
 
   async deleteSession(id: string): Promise<void> {
-    const { data, error } = await this.db.from('sessions').delete().eq('id', id).select('id');
+    const { data, error } = await this.delete('sessions').eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('session_not_found');
   }
 
   private filtered(columns: string, filter: SessionFilter) {
-    let query = this.db.from('sessions').select(columns);
+    let query = this.select('sessions', columns);
     if (filter.from !== undefined) query = query.gte('studied_on', filter.from);
     if (filter.to !== undefined) query = query.lte('studied_on', filter.to);
     if (filter.nodeIds !== undefined) query = query.in('node_id', filter.nodeIds);
@@ -365,9 +384,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async listRecentSessions(limit: number): Promise<Session[]> {
-    const { data, error } = await this.db
-      .from('sessions')
-      .select('*')
+    const { data, error } = await this.select('sessions')
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) throwDbError(error);
@@ -375,41 +392,22 @@ export class SupabaseRepository implements Repository {
   }
 
   async listSessionFacts(): Promise<SessionFact[]> {
-    // PostgREST returns at most 1000 rows per request (Supabase's default), so read in pages.
-    const pageSize = 1000;
-    const facts: SessionFact[] = [];
-    for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await this.db
-        .from('sessions')
-        .select('node_id, studied_on, minutes')
-        .order('id')
-        .range(offset, offset + pageSize - 1);
-      if (error) throwDbError(error);
-      const rows = z.array(factRow).parse(data);
-      facts.push(...rows);
-      if (rows.length < pageSize) return facts;
-    }
+    return z.array(factRow).parse(await this.readAll('sessions', 'node_id, studied_on, minutes'));
   }
 
   async listDeadlines(): Promise<Deadline[]> {
-    const { data, error } = await this.db
-      .from('deadlines')
-      .select('*')
-      .order('due_on')
-      .order('created_at');
+    const { data, error } = await this.select('deadlines').order('due_on').order('created_at');
     if (error) throwDbError(error);
     return z.array(deadlineRow).parse(data);
   }
 
   async insertDeadline(deadline: NewDeadline): Promise<Deadline> {
-    const { data, error } = await this.db
-      .from('deadlines')
-      .insert({
-        id: deadline.id,
-        node_id: deadline.nodeId,
-        title: deadline.title,
-        due_on: deadline.dueOn,
-      })
+    const { data, error } = await this.insert('deadlines', {
+      id: deadline.id,
+      node_id: deadline.nodeId,
+      title: deadline.title,
+      due_on: deadline.dueOn,
+    })
       .select()
       .single();
     if (error) throwDbError(error);
@@ -417,9 +415,11 @@ export class SupabaseRepository implements Repository {
   }
 
   async updateDeadline(id: string, patch: DeadlinePatch): Promise<Deadline> {
-    const { data, error } = await this.db
-      .from('deadlines')
-      .update({ node_id: patch.nodeId, title: patch.title, due_on: patch.dueOn })
+    const { data, error } = await this.update('deadlines', {
+      node_id: patch.nodeId,
+      title: patch.title,
+      due_on: patch.dueOn,
+    })
       .eq('id', id)
       .select()
       .single();
@@ -428,19 +428,17 @@ export class SupabaseRepository implements Repository {
   }
 
   async deleteDeadline(id: string): Promise<void> {
-    const { data, error } = await this.db.from('deadlines').delete().eq('id', id).select('id');
+    const { data, error } = await this.delete('deadlines').eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('deadline_not_found');
   }
 
   /** Reads every row of a table in pages (PostgREST returns at most 1000 per request). */
-  private async readAll(table: string): Promise<unknown[]> {
+  private async readAll(table: string, columns = '*'): Promise<unknown[]> {
     const pageSize = 1000;
     const rows: unknown[] = [];
     for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await this.db
-        .from(table)
-        .select('*')
+      const { data, error } = await this.select(table, columns)
         .order('id')
         .range(offset, offset + pageSize - 1);
       if (error) throwDbError(error);
@@ -454,13 +452,11 @@ export class SupabaseRepository implements Repository {
   }
 
   async insertTask(task: NewTask): Promise<Task> {
-    const { data, error } = await this.db
-      .from('tasks')
-      .insert({
-        id: task.id,
-        parent_task_id: task.parentTaskId,
-        ...taskColumns(task),
-      })
+    const { data, error } = await this.insert('tasks', {
+      id: task.id,
+      parent_task_id: task.parentTaskId,
+      ...taskColumns(task),
+    })
       .select()
       .single();
     if (error) throwDbError(error);
@@ -468,9 +464,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async updateTask(id: string, patch: TaskPatch): Promise<Task> {
-    const { data, error } = await this.db
-      .from('tasks')
-      .update(taskColumns(patch))
+    const { data, error } = await this.update('tasks', taskColumns(patch))
       .eq('id', id)
       .select()
       .single();
@@ -480,7 +474,7 @@ export class SupabaseRepository implements Repository {
 
   async deleteTask(id: string): Promise<void> {
     // One statement: sub-tasks and completions cascade, linked scores are set null (SPEC §B7).
-    const { data, error } = await this.db.from('tasks').delete().eq('id', id).select('id');
+    const { data, error } = await this.delete('tasks').eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('task_not_found');
   }
@@ -499,7 +493,8 @@ export class SupabaseRepository implements Repository {
       max_score: input.score.maxScore,
       note: input.score.note,
     };
-    const { data: completionId, error } = await this.db.rpc('complete_task', {
+    const { data: completionId, error } = await this.db.rpc('complete_user_task', {
+      p_user_id: this.userId,
       p_task_id: input.taskId,
       p_period_start: input.periodStart,
       p_completed_at: input.completedAt,
@@ -507,9 +502,7 @@ export class SupabaseRepository implements Repository {
       p_score: score,
     });
     if (error) throwDbError(error);
-    const { data, error: readError } = await this.db
-      .from('task_completions')
-      .select('*')
+    const { data, error: readError } = await this.select('task_completions')
       .eq('id', z.string().parse(completionId))
       .single();
     if (readError) throwDbError(readError);
@@ -517,7 +510,10 @@ export class SupabaseRepository implements Repository {
   }
 
   async uncompleteTask(completionId: string): Promise<void> {
-    const { error } = await this.db.rpc('uncomplete_task', { p_completion_id: completionId });
+    const { error } = await this.db.rpc('uncomplete_user_task', {
+      p_user_id: this.userId,
+      p_completion_id: completionId,
+    });
     if (error) throwDbError(error);
   }
 
@@ -529,9 +525,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async insertScore(score: NewScore): Promise<Score> {
-    const { data, error } = await this.db
-      .from('scores')
-      .insert({ id: score.id, ...scoreColumns(score) })
+    const { data, error } = await this.insert('scores', { id: score.id, ...scoreColumns(score) })
       .select()
       .single();
     if (error) throwDbError(error);
@@ -539,9 +533,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async updateScore(id: string, patch: ScorePatch): Promise<Score> {
-    const { data, error } = await this.db
-      .from('scores')
-      .update(scoreColumns(patch))
+    const { data, error } = await this.update('scores', scoreColumns(patch))
       .eq('id', id)
       .select()
       .single();
@@ -550,33 +542,38 @@ export class SupabaseRepository implements Repository {
   }
 
   async deleteScore(id: string): Promise<void> {
-    const { data, error } = await this.db.from('scores').delete().eq('id', id).select('id');
+    const { data, error } = await this.delete('scores').eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('score_not_found');
   }
 
   async getSettings(): Promise<Settings> {
-    const { data, error } = await this.db.from('settings').select('*').eq('id', true).single();
+    const { data, error } = await this.select('user_settings').maybeSingle();
     if (error) throwDbError(error);
-    return settingsRow.parse(data);
+    // The row is created on first login (seed or claim); until then the defaults apply.
+    return data === null ? { ...DEFAULT_SETTINGS } : settingsRow.parse(data);
+  }
+
+  /** Writes settings columns, creating the user's row if it doesn't exist yet. */
+  private async upsertSettings(values: Record<string, unknown>) {
+    return this.db
+      .from('user_settings')
+      .upsert({ ...values, user_id: this.userId }, { onConflict: 'user_id' })
+      .select()
+      .single();
   }
 
   async updateSettings(patch: SettingsPatch): Promise<Settings> {
-    const { data, error } = await this.db
-      .from('settings')
-      .update({ student_name: patch.studentName, neglect_days: patch.neglectDays })
-      .eq('id', true)
-      .select()
-      .single();
+    const { data, error } = await this.upsertSettings({
+      student_name: patch.studentName,
+      neglect_days: patch.neglectDays,
+    });
     if (error) throwDbError(error);
     return settingsRow.parse(data);
   }
 
   async recordMcpCall(at: string): Promise<void> {
-    const { error } = await this.db
-      .from('settings')
-      .update({ last_mcp_call_at: at })
-      .eq('id', true);
+    const { error } = await this.upsertSettings({ last_mcp_call_at: at });
     if (error) throwDbError(error);
   }
 
@@ -599,14 +596,11 @@ export class SupabaseRepository implements Repository {
         sort_order: task.sortOrder,
       })),
     };
-    const { data, error } = await this.db.rpc('seed_if_empty', { p_payload: payload });
+    const { data, error } = await this.db.rpc('seed_user_if_empty', {
+      p_user_id: this.userId,
+      p_payload: payload,
+    });
     if (error) throwDbError(error);
     return z.boolean().parse(data);
-  }
-
-  /** OPS-2: one trivial read, so Supabase sees activity and doesn't pause the project. */
-  async ping(): Promise<void> {
-    const { error } = await this.db.from('settings').select('id').limit(1);
-    if (error) throwDbError(error);
   }
 }

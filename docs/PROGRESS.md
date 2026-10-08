@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-06 by Claude Code (M5 + #18 merged into develop; 0002 run; next M6)_
+_Last updated: 2026-10-08 by Claude Code (M5A Accounts built on `feat/accounts`, draft PR #20; next: owner setup)_
 
 ## Milestones
 
@@ -12,6 +12,7 @@ _Last updated: 2026-10-06 by Claude Code (M5 + #18 merged into develop; 0002 run
 | M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
 | M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
 | M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
+| M5A Accounts  | 🔨 built  | #20 | Draft. ACCT-1–12 built and tested (330 tests + e2e). Needs the owner's setup steps before it can be tried            |
 | M6 Reports    | ⏳        |     |                                                                                                                      |
 | M7 Demo + PWA | ⏳        |     |                                                                                                                      |
 | M8 Polish     | ⏳        |     |                                                                                                                      |
@@ -32,10 +33,11 @@ Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
 One database for everything (D15), so each migration runs once.
 
-| Migration                     | Applied                                                  |
-| ----------------------------- | -------------------------------------------------------- |
-| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login |
-| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                        |
+| Migration                     | Applied                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------- |
+| `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
+| `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
+| `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
 
 ## Owner's manual steps
 
@@ -68,8 +70,56 @@ One database for everything (D15), so each migration runs once.
 - [x] Run `supabase/migrations/0002_tasks_without_node.sql` in the Supabase SQL Editor (lets tasks be "Other")
 - [x] After 0002: try "Other (no track)", "+ New track…" (task form) and Add track (Tracks screen) on
       https://develop--streakwise-ap.netlify.app (real data: delete test items afterwards)
+- [x] Run `supabase/migrations/0003_accounts.sql` in the Supabase SQL Editor (owner, 2026-10-08)
+- [x] Create a free Brevo account, verify your Gmail as a sender, and create an SMTP key (owner, 2026-10-08)
+- [x] Supabase custom SMTP saved with the Brevo details (owner, 2026-10-08)
+- [x] Supabase: both email templates pasted, URL configuration set (Site URL + 3 redirect URLs),
+      "Allow new users to sign up" and "Confirm email" on (owner, 2026-10-09)
+- [x] Try accounts on the PR #20 preview with throwaway `+test` addresses: sign-up, confirmation email
+      (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
+      deleted, 9 original nodes untouched (owner, 2026-10-09)
+- [ ] OK to merge #20 into `develop`
+- [ ] Say yes/no to release R3 (M5 + M5A accounts)
+- [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
+- [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
 ## Current work / next step
+
+**2026-10-08: M5A Accounts (SPEC D17, ACCT-1–12), branch `feat/accounts`, draft PR #20.** The owner asked
+for accounts for other people: open sign-up, email + password, reset emails, one Claude link per
+person, built now (before M6). On a developer's advice the owner chose **Supabase Auth**; emails go
+through **Brevo** SMTP sent from the owner's Gmail (no domain; owner accepted the spam risk).
+
+Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped):
+
+- `0003_accounts.sql`: `user_id` on every data table with same-owner composite keys,
+  `user_settings` (incl. hashed Claude token, `sessions_valid_after`), `auth_requests`, per-user RPCs,
+  `claim_unclaimed_data`. Backward compatible with the deployed code, so it can run any time.
+- Server: Supabase Auth wrapper, sign-up / login / passcode-claim / forgot / resend / password /
+  delete-account endpoints, `/auth/confirm` for email links, per-user repositories, per-user MCP links.
+- UI: login (email + password, old passcode, resend confirmation), sign-up, forgot and reset password,
+  Settings → Account (change password, delete account), Claude link made in Settings (shown once).
+- Docs: SPEC (M5A, ACCT-1–12, D17, ACCT-3 and MCP-1 wording), architecture.md, `.env.example`,
+  `docs/email-templates/`.
+
+**Next (in order):**
+
+1. Done: owner ran `0003` (2026-10-08).
+2. Done (2026-10-09): owner set up Brevo and Supabase email (explain in detail, checking current Brevo/Supabase docs first):
+   Brevo account + verified Gmail sender + SMTP key → Supabase Authentication → Emails (SMTP settings);
+   paste both templates from `docs/email-templates/`; Authentication → URL Configuration: Site URL
+   `https://streakwise-ap.netlify.app`, redirect URLs for production, `develop--…` and `deploy-preview-*--…`;
+   make sure "Confirm email" is on.
+3. Done (2026-10-09): owner tried it on the PR #20 preview with `+test` addresses. Claiming the real
+   data is deliberately left until right after R3, so nothing logged on the old live site is left out.
+4. Mark PR #20 ready, merge into `develop`, then release R3 (M5 + M5A) after the owner says yes.
+5. After R3: owner makes a new Claude link in Settings and replaces the Claude connector; then
+   migration `0004` removes the old single-user leftovers (`settings` table, old RPCs, `MCP_SECRET`,
+   later `APP_PASSCODE`) and makes `user_id` required.
+6. Then M6 Reports (shared reports are per user now: `shared_reports.user_id`).
+
+Known limits / deferred: Supabase Auth's own per-IP rate limits see Netlify's IPs (all users share
+them; fine at small scale). No CAPTCHA on sign-up (ACCT-10 per-IP limits only). Previous plan text below.
 
 Setup is done (R0 live; Step 8.7 explained to the owner). Blank local dev page fixed in #6.
 
@@ -127,6 +177,17 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 ## Open questions for the owner
 
 ## Decisions made during the build
+
+- M5A: sessions are our own signed cookie with the user id (not Supabase's tokens), so requests don't
+  call Supabase Auth; a password change revokes older cookies via `sessions_valid_after` (cached 60 s).
+- M5A: Supabase Auth is called with the secret key through a fresh client per call, so a sign-in
+  never replaces the database client's key.
+- M5A: the login page makes no request until the visitor acts (no "status" call), so the demo e2e
+  still sees zero API calls. The old-passcode form is behind "Used Streakwise before accounts?".
+- M5A: the claim cookie is SameSite=Lax (it must reach `/auth/confirm` from an email link); the
+  session cookie stays Strict.
+- M5A: Claude link tokens are 32 random bytes; only the SHA-256 hash is stored, so the link is shown
+  once and "Make a new link" replaces it.
 
 - App name: **Streakwise** (repo `streakwise`), public repo, MIT license under "Hammad Sheikh".
 - Netlify CLI installed globally; npm skipped its optional postinstall scripts (new npm allow-scripts

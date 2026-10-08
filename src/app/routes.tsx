@@ -2,11 +2,14 @@ import { Navigate, Outlet } from 'react-router';
 import type { RouteObject } from 'react-router';
 
 import { AppLayout } from '@/app/AppLayout';
-import { LoginPage } from '@/app/LoginPage';
 import { RequireAuth } from '@/app/RequireAuth';
 import { ComingSoonPage, MorePage } from '@/app/SimplePages';
 import type { DataSource } from '@/data/DataSource';
 import { DataSourceProvider } from '@/data/DataSourceContext';
+import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
+import { LoginPage } from '@/features/auth/LoginPage';
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
+import { SignUpPage } from '@/features/auth/SignUpPage';
 import { HomePage } from '@/features/dashboard/HomePage';
 import { DemoLayout } from '@/features/demo/DemoLayout';
 import { HistoryPage } from '@/features/history/HistoryPage';
@@ -60,6 +63,9 @@ export function createRoutes(apiDataSource: DataSource): RouteObject[] {
       ),
       children: [
         { path: 'login', element: <LoginPage /> },
+        { path: 'signup', element: <SignUpPage /> },
+        { path: 'forgot-password', element: <ForgotPasswordPage /> },
+        { path: 'reset-password', element: <ResetPasswordPage /> },
         { element: <RequireAuth />, children: appPages },
       ],
     },

@@ -177,9 +177,21 @@ export interface Settings {
   lastMcpCallAt: string | null;
 }
 
-/** SET-4: how to connect Claude. `url` is null when the server has no MCP secret configured. */
+/** A new user's settings (SPEC §B4). */
+export const DEFAULT_SETTINGS: Readonly<Settings> = {
+  studentName: '',
+  neglectDays: 3,
+  lastExportAt: null,
+  lastMcpCallAt: null,
+};
+
+/**
+ * SET-4, ACCT-8: the user's Claude link. Only a hash is stored, so `url` is set only in the answer
+ * that creates the link; `hasLink` says whether one exists.
+ */
 export interface ClaudeConnection {
   url: string | null;
+  hasLink: boolean;
   lastMcpCallAt: string | null;
 }
 

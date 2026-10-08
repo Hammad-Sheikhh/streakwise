@@ -86,17 +86,17 @@ describe('toErrorResponse', () => {
 
 describe('GET /api/keepalive (OPS-2)', () => {
   it('pings the database without needing a session', async () => {
-    const ping = vi.fn(async () => {});
-    const { deps } = testDeps({ ping });
+    const { deps, accounts } = testDeps();
     const response = await createKeepaliveHandler(() => deps)(get('/api/keepalive'), context);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
-    expect(ping).toHaveBeenCalledOnce();
+    expect(accounts.pings).toBe(1);
   });
 
   it('fails visibly when the database is unreachable', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { deps } = testDeps({ ping: () => Promise.reject(new Error('down')) });
+    const { deps, accounts } = testDeps();
+    accounts.ping = () => Promise.reject(new Error('down'));
     const response = await createKeepaliveHandler(() => deps)(get('/api/keepalive'), context);
     expect(response.status).toBe(500);
     spy.mockRestore();

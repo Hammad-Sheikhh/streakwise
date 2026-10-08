@@ -5,17 +5,14 @@ import type { TrackOverview, TreeNode } from '../../src/core/domain/types';
 import { createLoginHandler } from '../functions/auth-login';
 import { createNodesHandler } from '../functions/nodes';
 import { createTrackHandler } from '../functions/track';
-import { context, cookieFrom, post, TEST_PASSCODE, testDeps } from './fakes';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
 
 describe('/api/tracks/:id (TRACK-1)', () => {
   it('needs a session, returns a track overview, and 404s for anything else', async () => {
     const t = testDeps();
     const getDeps = () => t.deps;
     const cookie = cookieFrom(
-      await createLoginHandler(getDeps)(
-        post('/api/auth/login', { passcode: TEST_PASSCODE }),
-        context,
-      ),
+      await createLoginHandler(getDeps)(post('/api/auth/login', LOGIN), context),
     );
     const get = (id: string, withCookie = true) =>
       createTrackHandler(getDeps)(
