@@ -73,8 +73,8 @@ One database for everything (D15), so each migration runs once.
 - [x] Run `supabase/migrations/0003_accounts.sql` in the Supabase SQL Editor (owner, 2026-10-08)
 - [x] Create a free Brevo account, verify your Gmail as a sender, and create an SMTP key (owner, 2026-10-08)
 - [x] Supabase custom SMTP saved with the Brevo details (owner, 2026-10-08)
-- [ ] Supabase: paste the two email templates, set the URL configuration (Site URL + redirect URLs),
-      keep "Confirm email" on (M5A)
+- [x] Supabase: both email templates pasted, URL configuration set (Site URL + 3 redirect URLs),
+      "Allow new users to sign up" and "Confirm email" on (owner, 2026-10-09)
 - [ ] Try accounts on the PR #20 preview, including claiming your data with the old passcode (M5A)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
@@ -100,7 +100,7 @@ Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped
 **Next (in order):**
 
 1. Done: owner ran `0003` (2026-10-08).
-2. Owner sets up Brevo and Supabase email (explain in detail, checking current Brevo/Supabase docs first):
+2. Done (2026-10-09): owner set up Brevo and Supabase email (explain in detail, checking current Brevo/Supabase docs first):
    Brevo account + verified Gmail sender + SMTP key → Supabase Authentication → Emails (SMTP settings);
    paste both templates from `docs/email-templates/`; Authentication → URL Configuration: Site URL
    `https://streakwise-ap.netlify.app`, redirect URLs for production, `develop--…` and `deploy-preview-*--…`;
