@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-09 by Claude Code (M6 merged as #21; R3 held by the owner; next M7)_
+_Last updated: 2026-10-09 by Claude Code (R3 released as #23; next: owner claims data, then M7)_
 
 ## Milestones
 
@@ -25,7 +25,9 @@ _Last updated: 2026-10-09 by Claude Code (M6 merged as #21; R3 held by the owner
 | R1      | 2026-10-03 | M1 foundation, M2 logging, M3 dashboard (#10, merge commit). Owner approved. Live check: `/login` 200, `/api/health` ok, `/api/dashboard` 401 without login (new build).                               |
 | R2      | 2026-10-06 | M4 Claude connection, MCP `/.well-known` fix, owner-task rule (#15, merge commit). Owner approved. Live check: `/api/health` ok, `/api/claude-connection` 401, `/mcp/wrong` 404, `/.well-known/*` 404. |
 
-Production builds this month (Oct 2026): **4** (~60 credits, counted conservatively).
+| R3 | 2026-10-09 | M5 progress, M5A accounts, M6 reports, sample tracks (#16–#22; release #23, merge commit). Owner approved. Live check: `/api/health` ok, `/api/reports` 401, `/api/share/<unknown>` 404 "no longer available", `/r/*` sends `X-Robots-Tag: noindex`, `/signup` 200, unknown `/mcp/*` 404. |
+
+Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -80,10 +82,10 @@ One database for everything (D15), so each migration runs once.
       deleted, 9 original nodes untouched (owner, 2026-10-09)
 - [x] OK to merge #20 into `develop` (owner, 2026-10-09; merged)
 - [x] OK to merge #21 (M6 Reports) into `develop` (owner, 2026-10-09; merged)
-- [ ] Try M6 Reports on https://develop--streakwise-ap.netlify.app (demo mode first: `/demo/reports`)
-- [ ] Say yes/no to release R3 (M5 + M5A accounts + M6 reports)
-- [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
-- [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
+- [x] Tried M6 Reports (owner confirmed it works, 2026-10-09)
+- [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
+- [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
+- [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
 
 ## Current work / next step
 
@@ -91,8 +93,13 @@ One database for everything (D15), so each migration runs once.
 building and do their open tasks later. Delivered: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`;
 no migration. 378 tests + e2e green; main bundle ~223 KB gzipped (Reports lazy-loaded).
 
+**R3 released 2026-10-09 (#23).** Before it, the owner asked that their own track names never appear
+in the public app: #22 (D18) made new accounts and the demo start with general sample tracks.
+
 **Next (in order):**
 
+0. Done: owner claimed the old data (2026-10-09). New Claude link done (2026-10-09). Possible later improvement (owner asked how per-user MCP works): OAuth sign-in
+   for the connector instead of a secret link.
 1. Done: #21 merged into `develop` (2026-10-09, owner's OK). Owner can still try it on the develop
    site (share links and export on the real login write to the shared database).
 2. Owner decides on release R3 (now M5 + M5A + M6), then the claim and new-Claude-link steps.
@@ -282,8 +289,7 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
   "other" for one-off ones (the score dialog lets the owner change it). The completion note is
   also the score's note. Sub-task progress counts direct sub-tasks only.
 - M5: SCORE-5 "default views" = each track's chart opens on the kind it records most (latest wins
-  a tie), instead of matching track names, so renaming a track doesn't break it. With the usual
-  habits it gives past papers for Improvement, quizzes for Certification, revision for German.
+  a tie), instead of matching track names, so renaming a track doesn't break it.
 - M5: SCORE-4 trend = average of the last 3 results minus the 3 before them; with fewer than 4
   results, the oldest is "before" and the rest are "last". Shown from 2 results on.
 - M5: the score chart is hand-drawn SVG (no chart library, keeps the bundle at ~211 KB gzipped).
