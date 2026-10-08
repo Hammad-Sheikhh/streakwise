@@ -75,7 +75,12 @@ One database for everything (D15), so each migration runs once.
 - [x] Supabase custom SMTP saved with the Brevo details (owner, 2026-10-08)
 - [x] Supabase: both email templates pasted, URL configuration set (Site URL + 3 redirect URLs),
       "Allow new users to sign up" and "Confirm email" on (owner, 2026-10-09)
-- [ ] Try accounts on the PR #20 preview, including claiming your data with the old passcode (M5A)
+- [x] Try accounts on the PR #20 preview with throwaway `+test` addresses: sign-up, confirmation email
+      (arrived in Spam), log out/in, forgot + reset password, delete account; all worked, test accounts
+      deleted, 9 original nodes untouched (owner, 2026-10-09)
+- [ ] OK to merge #20 into `develop`
+- [ ] Say yes/no to release R3 (M5 + M5A accounts)
+- [ ] Right after R3: on the live site, claim your data with the old passcode (then create your account)
 - [ ] After R3: make a new Claude link in Settings → Claude connection and replace the Claude connector
 
 ## Current work / next step
@@ -105,8 +110,8 @@ Built and tested (lint, typecheck, 330 tests, e2e, build; bundle ~211 KB gzipped
    paste both templates from `docs/email-templates/`; Authentication → URL Configuration: Site URL
    `https://streakwise-ap.netlify.app`, redirect URLs for production, `develop--…` and `deploy-preview-*--…`;
    make sure "Confirm email" is on.
-3. Owner tries it on the PR #20 preview (real database! sign up with a test address, then delete
-   that account in Settings), including claiming the existing data with the old passcode.
+3. Done (2026-10-09): owner tried it on the PR #20 preview with `+test` addresses. Claiming the real
+   data is deliberately left until right after R3, so nothing logged on the old live site is left out.
 4. Mark PR #20 ready, merge into `develop`, then release R3 (M5 + M5A) after the owner says yes.
 5. After R3: owner makes a new Claude link in Settings and replaces the Claude connector; then
    migration `0004` removes the old single-user leftovers (`settings` table, old RPCs, `MCP_SECRET`,
