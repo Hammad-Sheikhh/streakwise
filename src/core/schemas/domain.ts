@@ -83,6 +83,7 @@ export const settingsSchema = z.object({
 
 export const claudeConnectionSchema = z.object({
   url: z.url().nullable(),
+  hasLink: z.boolean(),
   lastMcpCallAt: timestamp.nullable(),
 }) satisfies z.ZodType<ClaudeConnection>;
 

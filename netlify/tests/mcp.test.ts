@@ -5,14 +5,15 @@ import { seedIfEmpty } from '../../src/core/services/seed';
 import { addDeadline } from '../../src/core/services/deadlines';
 import { logSession } from '../../src/core/services/sessions';
 import { addNode, updateNode } from '../../src/core/services/structure';
-import { mcpSecretMatches } from '../functions/_lib/mcpSecret';
+import { generateMcpToken, hashMcpToken } from '../functions/_lib/mcpToken';
 import { createMcpFunction } from '../functions/mcp';
 import { testDeps } from './fakes';
 
 // MCP-1–9 against the in-memory repository, through the real HTTP handler and SDK. Requests use
 // the 2025 protocol (no handshake needed in stateless mode); one test covers the 2026 envelope.
 
-const SECRET = 'test-mcp-secret-0123456789abcdefghijklmnop';
+// A fixed, well-formed test token (43 base64url characters).
+const SECRET = 'test-mcp-token-0123456789abcdefghijklmnopqr';
 let setup: ReturnType<typeof testDeps>;
 let handler: ReturnType<typeof createMcpFunction>;
 let rpcId = 0;
@@ -75,29 +76,42 @@ async function byName(name: string): Promise<TreeNode> {
 
 beforeEach(async () => {
   setup = testDeps();
-  setup.deps.env.MCP_SECRET = SECRET;
+  await setup.accounts.setMcpTokenHash(setup.user.id, hashMcpToken(SECRET));
   handler = createMcpFunction(() => setup.deps);
   await seedIfEmpty(setup.repo, setup.deps.newId);
 });
 
-describe('the secret URL (MCP-1)', () => {
-  it('compares secrets and refuses missing or short ones', () => {
-    expect(mcpSecretMatches(SECRET, SECRET)).toBe(true);
-    expect(mcpSecretMatches(`${SECRET}x`, SECRET)).toBe(false);
-    expect(mcpSecretMatches('', undefined)).toBe(false);
-    expect(mcpSecretMatches('short', 'short')).toBe(false);
+describe('the secret URL (MCP-1, ACCT-8)', () => {
+  it('makes long random tokens and stores only their hash', () => {
+    const token = generateMcpToken();
+    expect(token).toMatch(/^[\w-]{43}$/);
+    expect(generateMcpToken()).not.toBe(token);
+    expect(hashMcpToken(token)).toMatch(/^[0-9a-f]{64}$/);
+    expect([...setup.accounts.mcpTokenHashes.values()]).not.toContain(SECRET);
   });
 
-  it('answers 404 for a wrong secret, before looking at the method or body', async () => {
-    const wrong = await mcpRequest({}, { secret: 'wrong-secret-0123456789abcdefghijklmnop' });
+  it('answers 404 for a wrong token, before looking at the method or body', async () => {
+    const wrong = await mcpRequest({}, { secret: 'wrong-token-0123456789abcdefghijklmnopqrstu' });
     expect(wrong.status).toBe(404);
     expect(await wrong.text()).toBe('Not found');
     expect((await mcpRequest({}, { secret: 'nope', method: 'GET' })).status).toBe(404);
   });
 
-  it('answers 404 for everyone when MCP_SECRET isn’t set', async () => {
-    setup.deps.env.MCP_SECRET = undefined;
-    expect((await mcpRequest({})).status).toBe(404);
+  it("reaches only the link owner's data", async () => {
+    const other = setup.auth.addUser('other@example.com', 'other password');
+    const otherToken = generateMcpToken();
+    await setup.accounts.setMcpTokenHash(other.id, hashMcpToken(otherToken));
+    const reply = await mcpRequest(
+      {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: 'get_structure', arguments: {} },
+      },
+      { secret: otherToken },
+    );
+    expect(reply.status).toBe(200);
+    expect(await reply.text()).not.toContain('German');
   });
 
   it('only accepts POST', async () => {

@@ -98,6 +98,8 @@ create table public.user_settings (
   last_export_at timestamptz,
   last_mcp_call_at timestamptz,
   mcp_token_hash text unique check (char_length(mcp_token_hash) = 64),
+  -- Login cookies issued before this time are refused (set when the password changes).
+  sessions_valid_after timestamptz,
   created_at timestamptz not null default now()
 );
 

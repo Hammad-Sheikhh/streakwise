@@ -14,6 +14,7 @@ describe('Settings → Claude connection (SET-4)', () => {
     const api = fakeApi({ loggedIn: true });
     api.getClaudeConnection = async () => ({
       url: URL_WITH_SECRET,
+      hasLink: true,
       lastMcpCallAt: '2026-10-03T09:30:00.000Z',
     });
     renderRoutes('/settings', api);
@@ -34,7 +35,7 @@ describe('Settings → Claude connection (SET-4)', () => {
 
   it('says when the server isn’t set up and when Claude hasn’t called yet', async () => {
     const api = fakeApi({ loggedIn: true });
-    api.getClaudeConnection = async () => ({ url: null, lastMcpCallAt: null });
+    api.getClaudeConnection = async () => ({ url: null, hasLink: false, lastMcpCallAt: null });
     renderRoutes('/settings', api);
     const section = await screen.findByRole('region', { name: 'Claude connection' });
     expect(await within(section).findByText(/Not set up yet/)).toBeInTheDocument();

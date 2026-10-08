@@ -10,7 +10,7 @@ import { createRecentNodesHandler } from '../functions/recent-nodes';
 import { createSessionHandler } from '../functions/session';
 import { createSessionsHandler } from '../functions/sessions';
 import { createSettingsHandler } from '../functions/settings';
-import { context, cookieFrom, post, TEST_PASSCODE, testDeps } from './fakes';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
 
 // The M2 endpoints, end to end on the in-memory repository: auth → validation → service → JSON.
 
@@ -18,9 +18,7 @@ async function setup() {
   const t = testDeps();
   const getDeps = () => t.deps;
   const login = createLoginHandler(getDeps);
-  const cookie = cookieFrom(
-    await login(post('/api/auth/login', { passcode: TEST_PASSCODE }), context),
-  );
+  const cookie = cookieFrom(await login(post('/api/auth/login', LOGIN), context));
 
   const request = (method: string, path: string, body?: unknown, withCookie = true) =>
     new Request(`http://localhost${path}`, {

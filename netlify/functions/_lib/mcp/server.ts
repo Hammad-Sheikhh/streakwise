@@ -30,7 +30,7 @@ import { addScore } from '../../../../src/core/services/scores';
 import { deleteSession, listSessions, logSession } from '../../../../src/core/services/sessions';
 import { addNode, listTree, setTopicStatus } from '../../../../src/core/services/structure';
 import { completeTask, createTask, listTaskItems } from '../../../../src/core/services/tasks';
-import type { ServerDeps } from '../deps';
+import type { UserDeps } from '../deps';
 import { describeError, log } from '../log';
 
 // MCP-2–9: the Claude connection. A fresh server is built for every request (stateless), and every
@@ -172,8 +172,11 @@ const WRITE = {
   openWorldHint: false,
 } as const;
 
-/** Builds the server for one request. Each tool call also stamps the "last MCP call" time. */
-export function buildMcpServer(deps: ServerDeps): McpServer {
+/**
+ * Builds the server for one request, for the user whose link was used (ACCT-8). Each tool call also
+ * stamps that user's "last MCP call" time.
+ */
+export function buildMcpServer(deps: UserDeps): McpServer {
   const { repo, clock, newId } = deps;
   const server = new McpServer(
     { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },

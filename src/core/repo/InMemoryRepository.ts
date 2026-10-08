@@ -1,4 +1,5 @@
 import { conflict, invalid, notFound } from '../domain/errors';
+import { DEFAULT_SETTINGS } from '../domain/types';
 import type {
   Clock,
   Deadline,
@@ -43,12 +44,7 @@ export class InMemoryRepository implements Repository {
   private completions: TaskCompletion[] = [];
   private scores: Score[] = [];
   private deadlines: Deadline[] = [];
-  private settings: Settings = {
-    studentName: '',
-    neglectDays: 3,
-    lastExportAt: null,
-    lastMcpCallAt: null,
-  };
+  private settings: Settings = { ...DEFAULT_SETTINGS };
   // Creation times must be strictly increasing so "newest first" is stable, even when the clock
   // is frozen in tests.
   private lastStamp = 0;
