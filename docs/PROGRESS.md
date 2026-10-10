@@ -42,7 +42,7 @@ One database for everything (D15), so each migration runs once.
 | `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
 | `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
 | `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
-| `0004_accounts_cleanup.sql`   | ⏳ not run yet (safe before or after the code change; refuses if any row has no owner) |
+| `0004_accounts_cleanup.sql`   | ✅ 2026-10-10 (owner, SQL Editor): "Success"                                           |
 
 ## Owner's manual steps
 
@@ -92,7 +92,7 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge #26 (M7) into `develop` (owner, 2026-10-10; merged)
 - [ ] Try M7 (demo sample data; optional "Install app" on the phone) on
       https://develop--streakwise-ap.netlify.app/demo (not yet confirmed by the owner)
-- [ ] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor
+- [x] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor (owner, 2026-10-10: success)
 - [ ] OK to merge the cleanup PR (`chore/accounts-cleanup`) into `develop`
 - [ ] Later, after the release that includes the cleanup: delete `APP_PASSCODE` and `MCP_SECRET` from
       Netlify's environment variables and from `.env` (both unused by then)
@@ -112,7 +112,7 @@ One database for everything (D15), so each migration runs once.
 - Order doesn't matter: the new code never used the dropped parts, and the live R3 code only used
   them for the old-passcode form (nothing left to claim).
 
-**Next (in order):** owner runs `0004` and OKs the PR; then M8 Polish (`chore/polish`) and R4.
+**Next (in order):** `0004` done (owner, 2026-10-10); owner OKs PR #27; then M8 Polish (`chore/polish`) and R4.
 
 **2026-10-10: M7 Demo + PWA built on `feat/demo-pwa`.**
 
