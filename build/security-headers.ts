@@ -51,6 +51,11 @@ export const headerRules: HeaderRule[] = [
     headers: { 'Cache-Control': 'no-cache' },
   },
   {
+    // Netlify doesn't know the .webmanifest extension and would send application/octet-stream.
+    path: '/manifest.webmanifest',
+    headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'no-cache' },
+  },
+  {
     // Hashed build assets never change, so browsers can cache them for a year.
     path: '/assets/*',
     headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },

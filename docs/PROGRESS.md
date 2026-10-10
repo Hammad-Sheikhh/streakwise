@@ -14,7 +14,7 @@ _Last updated: 2026-10-10 by Claude Code (M7 built on `feat/demo-pwa`; PR open i
 | M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                    |
 | M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                     |
 | M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)               |
-| M7 Demo + PWA | 🔍 review |     | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Awaiting the owner's try on the preview + OK to merge |
+| M7 Demo + PWA | 🔍 review | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Awaiting the owner's try on the preview + OK to merge |
 | M8 Polish     | ⏳        |     |                                                                                                                             |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
