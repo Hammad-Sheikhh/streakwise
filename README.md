@@ -1,6 +1,6 @@
 # Streakwise
 
-A study tracker for students, multitaskers, and high achievers who juggle several long-term goals.
+A convenience tool for multitaskers: track several goals, courses, and projects side by side.
 Log study time in seconds, see where your hours go, keep a streak alive, share clean reports with
 teachers and parents, and let Claude log sessions and analyse your progress for you.
 
@@ -10,8 +10,8 @@ teachers and parents, and let Claude log sessions and analyse your progress for 
 **Live app:** [streakwise-ap.netlify.app](https://streakwise-ap.netlify.app) ·
 **Try it without an account:** [demo mode](https://streakwise-ap.netlify.app/demo)
 
-> 🚧 **Active development.** Core features are live. A richer demo, an installable app, and a final
-> polish pass are next (see [Roadmap](#roadmap)).
+> 🚧 **Active development.** Core features are live. A final polish pass is next
+> (see [Roadmap](#roadmap)).
 
 ## Features
 
@@ -53,6 +53,13 @@ teachers and parents, and let Claude log sessions and analyse your progress for 
 - Sign up with email and password, confirm by email, reset a forgotten password, change it, or
   delete your account and all its data.
 
+**Try it and install it**
+
+- **Demo mode** opens the full app on 12 weeks of realistic sample data, right in your browser:
+  nothing is sent anywhere, and a reload starts fresh.
+- **Install it** to your phone's home screen or your desktop; it opens full-screen like an app, and
+  still opens when you're offline.
+
 ## How it works
 
 ```
@@ -86,10 +93,11 @@ Vitest · React Testing Library · Playwright · GitHub Actions
 
 ## Quality
 
-- **370+ automated tests:** pure logic, services on an in-memory store, API handlers, the MCP server
-  through the real SDK, database migrations on PGlite, React screens, and an end-to-end journey in
-  demo mode that asserts zero network calls.
-- CI on every pull request: lint, Prettier, type-check, tests, and a production build.
+- **390+ automated tests:** pure logic, services on an in-memory store, API handlers, the MCP server
+  through the real SDK, database migrations on PGlite, React screens, and end-to-end tests (phone
+  and desktop) of the demo journey, which assert zero network calls, and of the installable app.
+- CI on every pull request: lint, Prettier, type-check, tests, a production build, and the
+  end-to-end tests.
 - Accessible by design: labelled inputs, keyboard navigation, visible focus, 44 px tap targets, and
   light/dark themes that follow the system.
 
@@ -129,8 +137,6 @@ docs/            specification, architecture, setup, progress
 
 ## Roadmap
 
-- **Demo and installable app:** realistic sample data in demo mode, and install-to-home-screen
-  (PWA).
 - **Polish:** accessibility and performance pass, empty states, screenshots.
 - **Later ideas:** sign-in (OAuth) for the Claude connector, drag-and-drop in the structure editor,
   heatmap per track.
