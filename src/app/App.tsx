@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import { createRoutes } from '@/app/routes';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { ApiDataSource } from '@/data/ApiDataSource';
 
 const router = createBrowserRouter(createRoutes(new ApiDataSource()));
@@ -13,6 +14,7 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <OfflineBanner />
       <RouterProvider router={router} />
     </QueryClientProvider>
   );

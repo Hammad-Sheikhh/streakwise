@@ -1,21 +1,21 @@
 # Progress
 
-_Last updated: 2026-10-09 by Claude Code (R3 released as #23; next: owner claims data, then M7)_
+_Last updated: 2026-10-10 by Claude Code (M7 built on `feat/demo-pwa`; PR open into `develop`)_
 
 ## Milestones
 
-| #             | Status    | PR  | Notes / deferred items                                                                                               |
-| ------------- | --------- | --- | -------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1  |                                                                                                                      |
-| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
-| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
-| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
-| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
-| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
-| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                              |
-| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)        |
-| M7 Demo + PWA | ⏳        |     |                                                                                                                      |
-| M8 Polish     | ⏳        |     |                                                                                                                      |
+| #             | Status    | PR  | Notes / deferred items                                                                                                      |
+| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                             |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                      |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                     |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)        |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector        |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                    |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                     |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)               |
+| M7 Demo + PWA | 🔍 review | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Awaiting the owner's try on the preview + OK to merge |
+| M8 Polish     | ⏳        |     |                                                                                                                             |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -88,8 +88,31 @@ One database for everything (D15), so each migration runs once.
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
+- [ ] Try M7 on the PR #26 preview (https://deploy-preview-26--streakwise-ap.netlify.app/demo): sample
+      data everywhere, reload resets it, optional "Install app" on the phone; then OK to merge #26
 
 ## Current work / next step
+
+**2026-10-10: M7 Demo + PWA built on `feat/demo-pwa`.**
+
+- DEMO-3: `src/core/demo/sampleData.ts` gives the demo 12 weeks of seeded sample data ("Demo
+  Student", topics in every status, nested/weekly/overdue/"Other" tasks, scores, 3 deadlines,
+  Science neglected). DEMO-1/2/4/5 were already in place and are now covered by e2e tests.
+- PWA-1–3: manifest + icons, a build-generated service worker that caches only the app shell (never
+  `/api`, `/mcp`, `/auth`), and a "You're offline" banner.
+- E2E: the full SPEC §B13 journey on phone and desktop (zero `/api`/`/mcp` calls), DEMO-5, and PWA
+  checks (install files, offline). New CI job "End-to-end (demo, PWA)".
+- Owner's request: the GitHub repo description now reads "A convenience tool for multitaskers: …"
+  (changed on GitHub 2026-10-10; `package.json` and the README intro match).
+- 391 unit/component tests + 8 e2e; main bundle ~223 KB gzipped (unchanged).
+
+**Next (in order):**
+
+1. Owner tries the demo and "install" on the PR preview, then OKs merging into `develop`.
+2. Migration `0004` (remove single-user leftovers, make `user_id` required), then M8 Polish and R4.
+3. Release (R4 or earlier, owner's choice); the service worker only matters once it's live.
+
+Previous notes:
 
 **2026-10-09: M6 Reports built on `feat/reports`, PR #21 (into `develop`).** The owner said to keep
 building and do their open tasks later. Delivered: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`;

@@ -29,7 +29,28 @@ flowchart LR
 | `netlify/functions`   | Thin API handlers and the MCP server (every top-level file is deployed)             |
 | `netlify/tests`       | Tests for the functions (kept out of `netlify/functions` so they aren't deployed)   |
 | `supabase/migrations` | Numbered SQL migrations                                                             |
-| `e2e`                 | Playwright tests (run against `/demo`)                                              |
+| `e2e`                 | Playwright tests (the demo journey and the PWA checks; run in CI)                   |
+
+## Demo data
+
+`src/core/demo/sampleData.ts` fills the demo's `InMemoryRepository` (DEMO-3): about 12 weeks of
+sessions, topics in every status, nested, weekly, overdue, and "Other" tasks, past scores, 3
+deadlines, and one neglected subtask (Science). Dates are relative to today and choices come from a
+seeded generator (`random.ts`, mulberry32), so every visit and every test sees the same data. Today
+is left empty so the visitor logs the day's first session. New accounts still start from the plain
+seed (`services/seed.ts`); component tests use that seed too (`fakeApi`).
+
+## Installable app (PWA)
+
+- `public/manifest.webmanifest` and `public/icons/` (made from `favicon.svg` by
+  `scripts/make-icons.mjs`) make the app installable (PWA-1).
+- `build/service-worker.ts` writes `dist/sw.js` from `build/sw-template.js` on every production
+  build, with that build's file list and a version hash, so each deploy gets a new worker and the old
+  cache is deleted (PWA-2). It caches only the app shell: page loads try the network first and fall
+  back to the cached `index.html`; hashed files come from the cache. It never handles `/api`, `/mcp`,
+  `/auth`, or `/.well-known` requests, so data is never stored on the device.
+- `src/lib/serviceWorker.ts` registers the worker in production builds only. `OfflineBanner` shows
+  "You're offline" (PWA-3). `/sw.js` is served with `Cache-Control: no-cache`.
 
 ## Validation
 
