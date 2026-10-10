@@ -3,15 +3,12 @@ import { z } from 'zod';
 
 import { throwDbError } from './dbErrors';
 
-// Account-level data that isn't part of one user's study data: claiming the data from before
-// accounts (ACCT-7), Claude link tokens (ACCT-8), session revocation, and request limits (ACCT-10).
+// Account-level data that isn't part of one user's study data: Claude link tokens (ACCT-8),
+// session revocation, and request limits (ACCT-10).
 
 export type AuthRequestKind = 'signup' | 'reset';
 
 export interface AccountStore {
-  hasUnclaimedData(): Promise<boolean>;
-  /** Atomically gives every unclaimed row to the user. Raises conflict if that's not possible. */
-  claimUnclaimedData(userId: string): Promise<void>;
   /** The user whose Claude link has this token hash, if any. */
   userIdForMcpTokenHash(tokenHash: string): Promise<string | null>;
   hasMcpToken(userId: string): Promise<boolean>;
@@ -30,17 +27,6 @@ const RETENTION_MS = 24 * 60 * 60_000;
 
 export class SupabaseAccountStore implements AccountStore {
   constructor(private readonly db: SupabaseClient) {}
-
-  async hasUnclaimedData(): Promise<boolean> {
-    const { data, error } = await this.db.rpc('has_unclaimed_data');
-    if (error) throwDbError(error);
-    return z.boolean().parse(data);
-  }
-
-  async claimUnclaimedData(userId: string): Promise<void> {
-    const { error } = await this.db.rpc('claim_unclaimed_data', { p_user_id: userId });
-    if (error) throwDbError(error);
-  }
 
   async userIdForMcpTokenHash(tokenHash: string): Promise<string | null> {
     const { data, error } = await this.db

@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-10 by Claude Code (M7 merged into `develop` as #26; next: migration 0004, then M8)_
+_Last updated: 2026-10-10 by Claude Code (migration 0004 + cleanup on `chore/accounts-cleanup`; next: owner runs 0004, then M8)_
 
 ## Milestones
 
@@ -42,6 +42,7 @@ One database for everything (D15), so each migration runs once.
 | `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
 | `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
 | `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
+| `0004_accounts_cleanup.sql`   | ⏳ not run yet (safe before or after the code change; refuses if any row has no owner) |
 
 ## Owner's manual steps
 
@@ -91,8 +92,27 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge #26 (M7) into `develop` (owner, 2026-10-10; merged)
 - [ ] Try M7 (demo sample data; optional "Install app" on the phone) on
       https://develop--streakwise-ap.netlify.app/demo (not yet confirmed by the owner)
+- [ ] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor
+- [ ] OK to merge the cleanup PR (`chore/accounts-cleanup`) into `develop`
+- [ ] Later, after the release that includes the cleanup: delete `APP_PASSCODE` and `MCP_SECRET` from
+      Netlify's environment variables and from `.env` (both unused by then)
 
 ## Current work / next step
+
+**2026-10-10: single-user cleanup on `chore/accounts-cleanup` (D19).**
+
+- `0004_accounts_cleanup.sql`: makes `user_id` required on every data table; drops the old
+  `settings` table, the 0001 RPCs (`seed_if_empty`, `delete_node_tree`, `complete_task`,
+  `uncomplete_task`) and the claim functions. Stops and changes nothing if any row has no owner.
+  Tested on PGlite, including that refusal.
+- Code: removed the old-passcode form on the login page, `/api/auth/passcode`, the `sw_claim` cookie,
+  `APP_PASSCODE` from the env schema and `.env.example`; login no longer returns `claimed`.
+- Docs: SPEC D19 + ACCT-7 marked done/removed, architecture.md.
+- 388 unit/component tests + 8 e2e, lint, typecheck, build all green locally.
+- Order doesn't matter: the new code never used the dropped parts, and the live R3 code only used
+  them for the old-passcode form (nothing left to claim).
+
+**Next (in order):** owner runs `0004` and OKs the PR; then M8 Polish (`chore/polish`) and R4.
 
 **2026-10-10: M7 Demo + PWA built on `feat/demo-pwa`.**
 

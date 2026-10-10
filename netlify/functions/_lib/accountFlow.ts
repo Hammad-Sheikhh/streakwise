@@ -2,16 +2,7 @@ import { LOCKOUT_LOOKBACK_MS, lockedUntil } from '../../../src/core/logic/lockou
 import { seedIfEmpty } from '../../../src/core/services/seed';
 import type { AuthRequestKind } from './accounts';
 import type { ApiRequest } from './api';
-import {
-  CLAIM_COOKIE,
-  clearCookie,
-  createSessionToken,
-  hashIp,
-  isValidClaimToken,
-  readCookie,
-  setCookie,
-  SESSION_COOKIE,
-} from './auth';
+import { createSessionToken, hashIp, setCookie, SESSION_COOKIE } from './auth';
 import type { ServerDeps } from './deps';
 import { HttpError } from './http';
 import { log } from './log';
@@ -19,36 +10,15 @@ import { log } from './log';
 // Steps shared by the auth endpoints: starting a login session, the lockout (AUTH-5), and the
 // sign-up/reset request limit (ACCT-10).
 
-/**
- * Logs the user in on this device: claims the data from before accounts if this browser proved
- * the old passcode (ACCT-7), seeds a new account (ACCT-6), and returns the cookies to set.
- */
-export async function startSession(
-  deps: ServerDeps,
-  request: Request,
-  userId: string,
-): Promise<{ cookies: string[]; claimed: boolean }> {
-  const now = deps.clock();
-  const cookies = [
-    setCookie(SESSION_COOKIE, createSessionToken(deps.env.SESSION_SECRET, userId, now)),
-  ];
-  let claimed = false;
-
-  const claimToken = readCookie(request, CLAIM_COOKIE);
-  if (claimToken !== undefined) {
-    cookies.push(clearCookie(CLAIM_COOKIE));
-    if (
-      isValidClaimToken(deps.env.SESSION_SECRET, deps.env.APP_PASSCODE, claimToken, now) &&
-      (await deps.accounts.hasUnclaimedData())
-    ) {
-      await deps.accounts.claimUnclaimedData(userId);
-      claimed = true;
-    }
-  }
-
+/** Logs the user in on this device: seeds a new account (ACCT-6) and returns the cookie to set. */
+export async function startSession(deps: ServerDeps, userId: string): Promise<string[]> {
+  const cookie = setCookie(
+    SESSION_COOKIE,
+    createSessionToken(deps.env.SESSION_SECRET, userId, deps.clock()),
+  );
   const seeded = await seedIfEmpty(deps.repoFor(userId), deps.newId);
-  log.info('session_started', { claimed, seeded });
-  return { cookies, claimed };
+  log.info('session_started', { seeded });
+  return [cookie];
 }
 
 function lockedOut(until: Date, now: Date): HttpError {
@@ -62,7 +32,7 @@ function lockedOut(until: Date, now: Date): HttpError {
 }
 
 /**
- * AUTH-5 around a password or passcode check: refuses while this IP is locked out, records a
+ * AUTH-5 around a password check: refuses while this IP is locked out, records a
  * failure when `check` raises a 401, and clears the IP's failures on success.
  */
 export async function withLockout<T>(

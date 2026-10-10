@@ -17,8 +17,8 @@ const LINK_MESSAGES: Record<string, string> = {
   error: 'Something went wrong with that link. Please try again.',
 };
 
-// ACCT-3: email + password login, links to sign-up and password reset, the old-passcode claim
-// (ACCT-7), and the demo. Makes no request until the visitor acts, so the demo stays offline.
+// ACCT-3: email + password login, links to sign-up and password reset, and the demo. Makes no
+// request until the visitor acts, so the demo stays offline.
 export function LoginPage() {
   const account = useAccount();
   const queryClient = useQueryClient();
@@ -29,8 +29,7 @@ export function LoginPage() {
 
   const login = useMutation({
     mutationFn: () => account.login({ email, password }),
-    onSuccess: async ({ claimed }) => {
-      if (claimed) toast.success('Your existing data is now in this account.');
+    onSuccess: async () => {
       await queryClient.invalidateQueries();
       void navigate('/', { replace: true });
     },
@@ -105,8 +104,6 @@ export function LoginPage() {
         </div>
       </form>
 
-      <OldPasscode />
-
       <div className="flex flex-col gap-2 border-t pt-6 text-center">
         <p className="text-sm text-muted-foreground">Just looking around?</p>
         <Button asChild variant="outline" className="h-11">
@@ -114,65 +111,5 @@ export function LoginPage() {
         </Button>
       </div>
     </AuthLayout>
-  );
-}
-
-/** ACCT-7: the owner's way to move the data from before accounts into their account. */
-function OldPasscode() {
-  const account = useAccount();
-  const [open, setOpen] = useState(false);
-  const [passcode, setPasscode] = useState('');
-  const enter = useMutation({ mutationFn: () => account.enterPasscode({ passcode }) });
-
-  if (!open) {
-    return (
-      <Button
-        variant="link"
-        className="h-auto self-center p-0 text-sm text-muted-foreground"
-        onClick={() => setOpen(true)}
-      >
-        Used Streakwise before accounts?
-      </Button>
-    );
-  }
-
-  if (enter.isSuccess) {
-    return (
-      <p role="status" className="rounded-md border bg-muted p-3 text-sm">
-        Passcode accepted. Now log in, or create an account and confirm it from this browser: your
-        existing data will move into that account.
-      </p>
-    );
-  }
-
-  return (
-    <form
-      className="flex flex-col gap-4 rounded-md border p-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        enter.mutate();
-      }}
-      noValidate
-    >
-      <AuthField
-        label="Old passcode"
-        hint="Enter it once to move your existing data into your account."
-        type="password"
-        autoComplete="off"
-        value={passcode}
-        onChange={(event) => setPasscode(event.target.value)}
-        error={enter.error?.message}
-        required
-        autoFocus
-      />
-      <Button
-        type="submit"
-        variant="outline"
-        className="h-11"
-        disabled={enter.isPending || passcode === ''}
-      >
-        Continue
-      </Button>
-    </form>
   );
 }

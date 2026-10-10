@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { fakeApi, TEST_EMAIL, TEST_PASSCODE, TEST_PASSWORD } from '@/test/fakeApi';
+import { fakeApi, TEST_EMAIL, TEST_PASSWORD } from '@/test/fakeApi';
 import { renderRoutes } from '@/test/renderRoutes';
 
 describe('login (ACCT-3, AUTH-4)', () => {
@@ -70,30 +70,6 @@ describe('login (ACCT-3, AUTH-4)', () => {
       await screen.findByRole('button', { name: 'Send the confirmation email again' }),
     );
     expect(resend).toHaveBeenCalledWith({ email: 'new@example.com' });
-  });
-
-  it('claims the old data with the passcode, then a login (ACCT-7)', async () => {
-    const user = userEvent.setup();
-    const api = fakeApi();
-    renderRoutes('/login', api);
-    await user.click(
-      await screen.findByRole('button', { name: 'Used Streakwise before accounts?' }),
-    );
-    await user.type(screen.getByLabelText('Old passcode'), 'wrong');
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByText('That passcode isn’t right.')).toBeInTheDocument();
-
-    await user.clear(screen.getByLabelText('Old passcode'));
-    await user.type(screen.getByLabelText('Old passcode'), TEST_PASSCODE);
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByText(/Passcode accepted/)).toBeInTheDocument();
-    expect(api.claimReady).toBe(true);
-
-    await user.type(screen.getByLabelText('Email'), TEST_EMAIL);
-    await user.type(screen.getByLabelText('Password'), TEST_PASSWORD);
-    await user.click(screen.getByRole('button', { name: 'Log in' }));
-    await waitFor(() => expect(api.loggedIn).toBe(true));
-    expect(api.claimReady).toBe(false);
   });
 });
 

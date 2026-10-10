@@ -25,7 +25,7 @@ export function createConfirmHandler(getDeps: () => ServerDeps): NetlifyHandler 
     try {
       const deps = getDeps();
       const user = await deps.auth.verifyEmailLink(link.data.token_hash, link.data.type);
-      const { cookies } = await startSession(deps, request, user.id);
+      const cookies = await startSession(deps, user.id);
       if (link.data.type === 'recovery') {
         const token = createRecoveryToken(deps.env.SESSION_SECRET, user.id, deps.clock());
         return redirect('/reset-password', [...cookies, setCookie(RECOVERY_COOKIE, token)]);

@@ -31,8 +31,7 @@ const sessionResponse = z.object({ session: sessionSchema });
 const recentResponse = z.object({ nodeIds: z.array(z.uuid()) });
 const settingsResponse = z.object({ settings: settingsSchema });
 const okResponse = z.object({ ok: z.literal(true) });
-const loginResponse = z.object({ authenticated: z.literal(true), claimed: z.boolean() });
-const claimResponse = z.object({ claimReady: z.literal(true) });
+const loginResponse = z.object({ authenticated: z.literal(true) });
 const deadlineResponse = z.object({ deadline: deadlineSchema });
 const deadlinesResponse = z.object({ deadlines: z.array(deadlineSchema) });
 const taskResponse = z.object({ task: taskSchema });
@@ -99,13 +98,9 @@ export class ApiDataSource implements DataSource {
   readonly account: AccountApi = {
     me: () => this.request('auth/me', meSchema),
     login: async (body) => {
-      const { claimed } = await this.request('auth/login', loginResponse, { method: 'POST', body });
-      return { claimed };
+      await this.request('auth/login', loginResponse, { method: 'POST', body });
     },
     signUp: (body) => this.request('auth/signup', signUpResultSchema, { method: 'POST', body }),
-    enterPasscode: async (body) => {
-      await this.request('auth/passcode', claimResponse, { method: 'POST', body });
-    },
     forgotPassword: async (body) => {
       await this.request('auth/forgot', okResponse, { method: 'POST', body });
     },
