@@ -1,8 +1,8 @@
 # Streakwise
 
-A convenience tool for multitaskers: track several goals, courses, and projects side by side.
-Log study time in seconds, see where your hours go, keep a streak alive, share clean reports with
-teachers and parents, and let Claude log sessions and analyse your progress for you.
+A convenience tool for multitaskers. Juggle courses, projects, and goals side by side in one
+place: log time in a few taps, see where your hours go, keep a streak alive, share clean reports,
+and let Claude log sessions and analyse your progress for you.
 
 [![CI](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
