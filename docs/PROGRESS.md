@@ -4,19 +4,19 @@ _Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel;
 
 ## Milestones
 
-| #             | Status    | PR  | Notes / deferred items                                                                                                            |
-| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                   |
-| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                            |
-| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                           |
-| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)              |
-| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector              |
-| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                          |
-| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                           |
-| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                     |
-| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); not live yet |
-| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                         |
-| M8 Polish     | ⏳        |     |                                                                                                                                   |
+| #             | Status    | PR  | Notes / deferred items                                                                                                                        |
+| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                               |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                        |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                       |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                          |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                          |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                      |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                       |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                 |
+| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10) |
+| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                     |
+| M8 Polish     | ⏳        |     |                                                                                                                                               |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -30,11 +30,13 @@ _Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel;
 
 | Docs | 2026-10-09 | New README and progress notes only (#24; release #25, merge commit). Owner approved. Netlify skipped the build (Markdown only), so it isn't counted. |
 
-Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
+| R3a | 2026-10-10 | M7 demo sample data + installable app (#26), single-user cleanup (#27), README (release #28, merge commit). Owner approved; last Netlify release before the Vercel move. Live check: `/api/health` ok, `/api/dashboard` 401, `/api/auth/passcode` 404 (removed), `/demo` 200, `manifest.webmanifest` and `sw.js` 200, login page has no old-passcode option. |
+
+Production builds this month (Oct 2026): **6** (~90 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
 
 **2026-10-10: the owner reports 230 of 300 Netlify credits are left** (usage period 2026-10-03 → resets
-2026-11-03). The owner asked for one more Netlify release (R3a: M7, cleanup #27, README) before moving to Vercel;
-after that, no more Netlify production deploys.
+2026-11-03). R3a (M7, cleanup #27, README) was released 2026-10-10 as the last Netlify release; no more Netlify
+production deploys.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
