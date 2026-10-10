@@ -46,6 +46,11 @@ export const headerRules: HeaderRule[] = [
     },
   },
   {
+    // PWA-2: the worker and manifest must be checked on every visit, so a new release is picked up.
+    path: '/sw.js',
+    headers: { 'Cache-Control': 'no-cache' },
+  },
+  {
     // Hashed build assets never change, so browsers can cache them for a year.
     path: '/assets/*',
     headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },

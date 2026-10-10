@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // End-to-end tests run against a production build served by `vite preview`.
-// The full demo-mode suite arrives in M7 (SPEC §B13); until then there is one smoke test.
+// The demo-mode journey (SPEC §B13) and the installable-app checks (PWA-1 to PWA-3).
 const PORT = 4173;
 
 export default defineConfig({
