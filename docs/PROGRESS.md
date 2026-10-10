@@ -32,10 +32,9 @@ _Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel;
 
 Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
 
-**2026-10-10: the owner reports Netlify has used 230 of 300 credits** (usage period 2026-10-03 → resets 2026-11-03;
-nothing over its limit yet). Most of it is usage, not deploys. **No more Netlify production deploys:** never merge into
-`main` on Netlify. If credits run out, Netlify pauses the live site ("Site not available") until 2026-11-03; the
-data is safe in Supabase.
+**2026-10-10: the owner reports 230 of 300 Netlify credits are left** (usage period 2026-10-03 → resets
+2026-11-03). The owner asked for one more Netlify release (R3a: M7, cleanup #27, README) before moving to Vercel;
+after that, no more Netlify production deploys.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -112,9 +111,9 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-10-10: owner's decision (D20): move hosting from Netlify to Vercel's free Hobby plan.** Netlify
-has used 230 of 300 credits this month. The owner is short on time, so the move is the **next session's
-work**, before M8. Releases: only the final version (R4, v1.0.0) goes live, on Vercel.
+**2026-10-10: owner's decision (D20): move hosting from Netlify to Vercel's free Hobby plan.** The owner
+released once more on Netlify (R3a) and then moves. The move is the **next session's work**, before M8.
+After it, releases go to Vercel; R4 (v1.0.0) is the final one.
 
 Why Vercel (checked in Vercel's docs 2026-10-10): no cost per deploy (Hobby: 100 deployments/day),
 1M function invocations, 100 GB transfer, 1M requests a month. Limits: non-commercial personal use only
