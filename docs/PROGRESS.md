@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-10 by Claude Code (migration 0004 + cleanup on `chore/accounts-cleanup`; next: owner runs 0004, then M8)_
+_Last updated: 2026-10-10 by Claude Code (cleanup #27 merged, 0004 applied; next: M8 Polish, then the final release R4)_
 
 ## Milestones
 
@@ -15,6 +15,7 @@ _Last updated: 2026-10-10 by Claude Code (migration 0004 + cleanup on `chore/acc
 | M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                           |
 | M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                     |
 | M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); not live yet |
+| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                         |
 | M8 Polish     | ⏳        |     |                                                                                                                                   |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
@@ -90,10 +91,10 @@ One database for everything (D15), so each migration runs once.
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
 - [x] OK to merge #26 (M7) into `develop` (owner, 2026-10-10; merged)
-- [ ] Try M7 (demo sample data; optional "Install app" on the phone) on
-      https://develop--streakwise-ap.netlify.app/demo (not yet confirmed by the owner)
+- [x] Try M7 (demo sample data; optional "Install app" on the phone) on
+      https://develop--streakwise-ap.netlify.app/demo (owner confirmed, 2026-10-10)
 - [x] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor (owner, 2026-10-10: success)
-- [ ] OK to merge the cleanup PR (`chore/accounts-cleanup`) into `develop`
+- [x] OK to merge the cleanup PR #27 into `develop` (owner, 2026-10-10; merged)
 - [ ] Later, after the release that includes the cleanup: delete `APP_PASSCODE` and `MCP_SECRET` from
       Netlify's environment variables and from `.env` (both unused by then)
 
@@ -112,7 +113,11 @@ One database for everything (D15), so each migration runs once.
 - Order doesn't matter: the new code never used the dropped parts, and the live R3 code only used
   them for the old-passcode form (nothing left to claim).
 
-**Next (in order):** `0004` done (owner, 2026-10-10); owner OKs PR #27; then M8 Polish (`chore/polish`) and R4.
+**Owner's decision (2026-10-10): no more releases until the final version.** The next production
+deploy is R4 (v1.0.0) after M8. Until then the live site keeps R3 (it still shows the old-passcode
+option; it does nothing useful).
+
+**Next (in order):** `0004` done (owner, 2026-10-10); #27 merged (2026-10-10); then M8 Polish (`chore/polish`) and R4.
 
 **2026-10-10: M7 Demo + PWA built on `feat/demo-pwa`.**
 
