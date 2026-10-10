@@ -1,4 +1,4 @@
-// AUTH-5: 5 wrong passcodes from one IP within 15 minutes lock login from that IP for 15 minutes.
+// AUTH-5: 5 wrong passwords from one IP within 15 minutes lock login from that IP for 15 minutes.
 
 export const LOCKOUT_MAX_FAILURES = 5;
 export const LOCKOUT_WINDOW_MS = 15 * 60_000;

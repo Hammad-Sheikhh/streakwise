@@ -1,4 +1,3 @@
-import { conflict } from '../../src/core/domain/errors';
 import { InMemoryRepository } from '../../src/core/repo/InMemoryRepository';
 import type { AccountStore, AuthRequestKind } from '../functions/_lib/accounts';
 import type {
@@ -124,8 +123,6 @@ export class FakeAuthProvider implements AuthProvider {
 /** Per-user repositories plus the account-level tables, mirroring 0003's rules. */
 export class InMemoryAccountStore implements AccountStore {
   readonly repos = new Map<string, InMemoryRepository>();
-  /** Data from before accounts; null once claimed. */
-  unclaimed: InMemoryRepository | null = null;
   readonly mcpTokenHashes = new Map<string, string>();
   readonly validAfter = new Map<string, Date>();
   readonly requests: { ipHash: string; kind: AuthRequestKind; at: Date }[] = [];
@@ -140,17 +137,6 @@ export class InMemoryAccountStore implements AccountStore {
       this.repos.set(userId, repo);
     }
     return repo;
-  }
-
-  async hasUnclaimedData(): Promise<boolean> {
-    return this.unclaimed !== null && (await this.unclaimed.listNodes()).length > 0;
-  }
-
-  async claimUnclaimedData(userId: string): Promise<void> {
-    if (!this.unclaimed || !(await this.hasUnclaimedData())) throw conflict('nothing_to_claim');
-    if ((await this.repoFor(userId).listNodes()).length > 0) throw conflict('account_has_data');
-    this.repos.set(userId, this.unclaimed);
-    this.unclaimed = null;
   }
 
   async userIdForMcpTokenHash(tokenHash: string): Promise<string | null> {
@@ -188,7 +174,6 @@ export class InMemoryAccountStore implements AccountStore {
   }
 }
 
-export const TEST_PASSCODE = 'correct horse battery';
 export const TEST_EMAIL = 'student@example.com';
 export const TEST_PASSWORD = 'test password 123';
 /** The body that logs the default test user in. */
@@ -207,7 +192,6 @@ export function testDeps(overrides: Partial<ServerDeps> = {}) {
     env: {
       SUPABASE_URL: 'https://example.supabase.co',
       SUPABASE_SECRET_KEY: 'test-secret-key',
-      APP_PASSCODE: TEST_PASSCODE,
       SESSION_SECRET: 'test-session-secret-that-is-at-least-32-chars',
     },
     repoFor: (userId) => accounts.repoFor(userId),

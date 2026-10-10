@@ -2,7 +2,7 @@
   "name": "streakwise",
   "private": true,
   "version": "0.1.0",
-  "description": "A study tracker for long-term goals: GitHub-style heatmap, streaks, weekly targets, shareable reports, and a Claude (MCP) connection.",
+  "description": "A convenience tool for multitaskers: track several goals, courses, and projects side by side with streaks, a heatmap, weekly targets, shareable reports, and a Claude (MCP) connection.",
   "license": "MIT",
   "author": "Hammad Sheikh",
   "type": "module",

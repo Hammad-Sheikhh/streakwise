@@ -1,24 +1,20 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
-// Signed cookies (ACCT-3, ACCT-7). Supabase Auth checks the password once, at login; after that a
+// Signed cookies (ACCT-3, ACCT-4). Supabase Auth checks the password once, at login; after that a
 // cookie signed with SESSION_SECRET says who the user is, so most requests need no call to
 // Supabase Auth. Nothing is stored on the server except `sessions_valid_after` (see api.ts).
 //
 // Token shape: `<field>.<field>....<expiry ms>.<signature>`. The purpose is part of the signed
-// message, so a claim token can't be used as a login session and the other way round.
+// message, so a recovery token can't be used as a login session and the other way round.
 
 export const SESSION_COOKIE = 'sw_session';
 export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
-
-/** ACCT-7: proof that the old passcode was entered; lasts long enough to confirm an email. */
-export const CLAIM_COOKIE = 'sw_claim';
-export const CLAIM_MAX_AGE_SECONDS = 24 * 60 * 60;
 
 /** ACCT-4: lets a reset-link visitor choose a new password without the old one. */
 export const RECOVERY_COOKIE = 'sw_recovery';
 export const RECOVERY_MAX_AGE_SECONDS = 30 * 60;
 
-type Purpose = 'session.v2' | 'claim.v1' | 'recovery.v1';
+type Purpose = 'session.v2' | 'recovery.v1';
 
 function hmac(key: string, message: string): Buffer {
   return createHmac('sha256', key).update(message).digest();
@@ -86,31 +82,6 @@ export function readSessionToken(
   return { userId: fields[0], issuedAt: new Date(Number(fields[1])) };
 }
 
-/** The claim proof also covers a digest of the passcode, so changing APP_PASSCODE revokes it. */
-function passcodeDigest(passcode: string): string {
-  return createHash('sha256').update(passcode).digest('base64url');
-}
-
-export function createClaimToken(secret: string, passcode: string, now: Date): string {
-  return createToken(
-    secret,
-    'claim.v1',
-    [passcodeDigest(passcode)],
-    now.getTime() + CLAIM_MAX_AGE_SECONDS * 1000,
-  );
-}
-
-export function isValidClaimToken(
-  secret: string,
-  passcode: string | undefined,
-  token: string | undefined,
-  now: Date,
-): boolean {
-  if (!passcode) return false;
-  const fields = readToken(secret, 'claim.v1', token, 1, now);
-  return fields?.[0] === passcodeDigest(passcode);
-}
-
 export function createRecoveryToken(secret: string, userId: string, now: Date): string {
   return createToken(
     secret,
@@ -128,25 +99,15 @@ export function recoveryUserId(
   return readToken(secret, 'recovery.v1', token, 1, now)?.[0] ?? null;
 }
 
-/** Constant-time passcode check: both sides are hashed to equal-length digests first. */
-export function passcodeMatches(input: string, expected: string): boolean {
-  const digest = (value: string) => createHash('sha256').update(value).digest();
-  return safeEqual(digest(input), digest(expected));
-}
-
 /** AUTH-5, ACCT-10: IPs are stored only as salted (keyed) hashes. */
 export function hashIp(ip: string, sessionSecret: string): string {
   return hmac(sessionSecret, `ip.v1.${ip}`).toString('hex');
 }
 
-// Strict for the login session. The claim proof is Lax because it must reach /auth/confirm when
-// the owner opens the confirmation link from their email (a cross-site navigation).
 const STRICT = 'Path=/; HttpOnly; Secure; SameSite=Strict';
-const LAX = 'Path=/; HttpOnly; Secure; SameSite=Lax';
 
 const COOKIES = {
   [SESSION_COOKIE]: { maxAge: SESSION_MAX_AGE_SECONDS, attributes: STRICT },
-  [CLAIM_COOKIE]: { maxAge: CLAIM_MAX_AGE_SECONDS, attributes: LAX },
   [RECOVERY_COOKIE]: { maxAge: RECOVERY_MAX_AGE_SECONDS, attributes: STRICT },
 } as const;
 

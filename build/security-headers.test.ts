@@ -36,4 +36,9 @@ describe('security headers', () => {
   it('keeps shared reports out of search engines (SHARE-2)', () => {
     expect(file).toContain('/r/*\n  X-Robots-Tag: noindex, nofollow\n');
   });
+
+  it('serves the PWA files fresh and with the right type (PWA-1/2)', () => {
+    expect(file).toContain('/sw.js\n  Cache-Control: no-cache\n');
+    expect(file).toContain('/manifest.webmanifest\n  Content-Type: application/manifest+json\n');
+  });
 });

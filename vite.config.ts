@@ -6,11 +6,12 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 import { securityHeaders } from './build/security-headers.ts';
+import { serviceWorker } from './build/service-worker.ts';
 
 const srcDir = fileURLToPath(new URL('./src', import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), securityHeaders()],
+  plugins: [react(), tailwindcss(), securityHeaders(), serviceWorker()],
   resolve: {
     alias: {
       '@': path.resolve(srcDir),

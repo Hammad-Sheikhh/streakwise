@@ -1,21 +1,22 @@
 # Progress
 
-_Last updated: 2026-10-09 by Claude Code (R3 released as #23; next: owner claims data, then M7)_
+_Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel; next session: the Vercel move, then M8 and R4)_
 
 ## Milestones
 
-| #             | Status    | PR  | Notes / deferred items                                                                                               |
-| ------------- | --------- | --- | -------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1  |                                                                                                                      |
-| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                               |
-| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                              |
-| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track) |
-| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector |
-| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                             |
-| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                              |
-| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)        |
-| M7 Demo + PWA | ⏳        |     |                                                                                                                      |
-| M8 Polish     | ⏳        |     |                                                                                                                      |
+| #             | Status    | PR  | Notes / deferred items                                                                                                            |
+| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                   |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                            |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                           |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)              |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector              |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                          |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                           |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                     |
+| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); not live yet |
+| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                         |
+| M8 Polish     | ⏳        |     |                                                                                                                                   |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -27,7 +28,13 @@ _Last updated: 2026-10-09 by Claude Code (R3 released as #23; next: owner claims
 
 | R3 | 2026-10-09 | M5 progress, M5A accounts, M6 reports, sample tracks (#16–#22; release #23, merge commit). Owner approved. Live check: `/api/health` ok, `/api/reports` 401, `/api/share/<unknown>` 404 "no longer available", `/r/*` sends `X-Robots-Tag: noindex`, `/signup` 200, unknown `/mcp/*` 404. |
 
+| Docs | 2026-10-09 | New README and progress notes only (#24; release #25, merge commit). Owner approved. Netlify skipped the build (Markdown only), so it isn't counted. |
+
 Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
+
+**2026-10-10: the owner reports 230 of 300 Netlify credits are left** (usage period 2026-10-03 → resets
+2026-11-03). The owner asked for one more Netlify release (R3a: M7, cleanup #27, README) before moving to Vercel;
+after that, no more Netlify production deploys.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -40,6 +47,7 @@ One database for everything (D15), so each migration runs once.
 | `0001_initial.sql`            | ✅ 2026-10-03 (owner, SQL Editor); seeded on first login                               |
 | `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
 | `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
+| `0004_accounts_cleanup.sql`   | ✅ 2026-10-10 (owner, SQL Editor): "Success"                                           |
 
 ## Owner's manual steps
 
@@ -86,8 +94,95 @@ One database for everything (D15), so each migration runs once.
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
+- [x] OK to merge #26 (M7) into `develop` (owner, 2026-10-10; merged)
+- [x] Try M7 (demo sample data; optional "Install app" on the phone) on
+      https://develop--streakwise-ap.netlify.app/demo (owner confirmed, 2026-10-10)
+- [x] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor (owner, 2026-10-10: success)
+- [x] OK to merge the cleanup PR #27 into `develop` (owner, 2026-10-10; merged)
+- [ ] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (unused since #27). They are simply not copied to
+      Vercel; Netlify's copies go away when the Netlify project is deleted
+- [ ] Vercel move (next session, explain each in detail, checking current Vercel docs first):
+  - [ ] Create a free Vercel account with "Continue with GitHub" (Hobby plan, no card)
+  - [ ] Import the `streakwise` repo into Vercel (or let Claude Code do it with the Vercel CLI after `vercel login`)
+  - [ ] Supabase → Authentication → URL Configuration: new Site URL + redirect URLs for the Vercel addresses
+  - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
+        connector in Claude
+  - [ ] Delete the Netlify project (only after Vercel is confirmed working)
 
 ## Current work / next step
+
+**2026-10-10: owner's decision (D20): move hosting from Netlify to Vercel's free Hobby plan.** The owner
+released once more on Netlify (R3a) and then moves. The move is the **next session's work**, before M8.
+After it, releases go to Vercel; R4 (v1.0.0) is the final one.
+
+Why Vercel (checked in Vercel's docs 2026-10-10): no cost per deploy (Hobby: 100 deployments/day),
+1M function invocations, 100 GB transfer, 1M requests a month. Limits: non-commercial personal use only
+(fine: the app is free); runtime logs kept 1 hour; going over a limit pauses that feature up to 30 days.
+
+**Plan for the Vercel move (branch `chore/vercel` from `develop`, PR into `develop`):**
+
+1. Check current Vercel docs first (fast-changing): Node.js functions with web `Request`/`Response`,
+   routing/rewrites in `vercel.json`, headers, `ignoreCommand`, Node 24, `vercel dev`, Git branch
+   previews, env vars via CLI. Pick the approach (likely one catch-all function for `/api/*`, `/auth/*`,
+   `/mcp/*`, `/.well-known/*` that dispatches to the existing handlers, so `netlify/functions/*`
+   handler code is reused; each file exports a `create…Handler` plus a Netlify `config.path`).
+2. Replace Netlify-only pieces: `netlify.toml` (build, SPA fallback, `ignore` via
+   `scripts/netlify-ignore.sh`), `build/security-headers.ts` writing `dist/_headers` (→ `vercel.json`
+   headers, keep the same CSP), `@netlify/functions` `Config` types, `netlify dev` in `npm run dev`,
+   the CI test that forbids tests in `netlify/functions/`. Consider renaming `netlify/` → `server/`.
+3. Keep: Supabase (data doesn't move), all core code, tests, the e2e suite on `/demo`.
+4. Env vars on Vercel (Production + Preview): `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SESSION_SECRET`.
+   Set them with the Vercel CLI from `.env` without printing values. Not `APP_PASSCODE`/`MCP_SECRET`.
+   Note: a new `SESSION_SECRET` would log everyone out; reusing it is fine.
+5. Update: `PROD_URL` repo variable (keepalive workflow), README links, `docs/SETUP.md`,
+   `docs/architecture.md`, CLAUDE.md "Branches and deploys" (Vercel, no credit budget; keep "release
+   only with the owner's OK"), SPEC §B14.1/OPS-4 and D20 in §B15, email templates if they hard-code the
+   site URL, Supabase redirect URLs (owner step).
+6. Verify on a Vercel preview: `/api/health`, login/logout, sign-up email link opens the right site,
+   `/mcp/<token>` with MCP Inspector, `/r/<slug>` sends `X-Robots-Tag: noindex`, `/.well-known/*` 404,
+   service worker never caches `/api`, `/mcp`, `/auth`.
+7. Then the owner makes a new Claude link on the Vercel site; old share links (`/r/...` on netlify.app)
+   stop working once Netlify is deleted.
+
+**2026-10-10: single-user cleanup on `chore/accounts-cleanup` (D19).**
+
+- `0004_accounts_cleanup.sql`: makes `user_id` required on every data table; drops the old
+  `settings` table, the 0001 RPCs (`seed_if_empty`, `delete_node_tree`, `complete_task`,
+  `uncomplete_task`) and the claim functions. Stops and changes nothing if any row has no owner.
+  Tested on PGlite, including that refusal.
+- Code: removed the old-passcode form on the login page, `/api/auth/passcode`, the `sw_claim` cookie,
+  `APP_PASSCODE` from the env schema and `.env.example`; login no longer returns `claimed`.
+- Docs: SPEC D19 + ACCT-7 marked done/removed, architecture.md.
+- 388 unit/component tests + 8 e2e, lint, typecheck, build all green locally.
+- Order doesn't matter: the new code never used the dropped parts, and the live R3 code only used
+  them for the old-passcode form (nothing left to claim).
+
+**Owner's decision (2026-10-10): no more releases until the final version.** The next production
+deploy is R4 (v1.0.0) after M8. Until then the live site keeps R3 (it still shows the old-passcode
+option; it does nothing useful).
+
+**Next (in order):** `0004` done (owner, 2026-10-10); #27 merged (2026-10-10); then M8 Polish (`chore/polish`) and R4.
+
+**2026-10-10: M7 Demo + PWA built on `feat/demo-pwa`.**
+
+- DEMO-3: `src/core/demo/sampleData.ts` gives the demo 12 weeks of seeded sample data ("Demo
+  Student", topics in every status, nested/weekly/overdue/"Other" tasks, scores, 3 deadlines,
+  Science neglected). DEMO-1/2/4/5 were already in place and are now covered by e2e tests.
+- PWA-1–3: manifest + icons, a build-generated service worker that caches only the app shell (never
+  `/api`, `/mcp`, `/auth`), and a "You're offline" banner.
+- E2E: the full SPEC §B13 journey on phone and desktop (zero `/api`/`/mcp` calls), DEMO-5, and PWA
+  checks (install files, offline). New CI job "End-to-end (demo, PWA)".
+- Owner's request: the GitHub repo description now reads "A convenience tool for multitaskers: …"
+  (changed on GitHub 2026-10-10; `package.json` and the README intro match).
+- 391 unit/component tests + 8 e2e; main bundle ~223 KB gzipped (unchanged).
+
+**Next (in order):**
+
+1. Done: #26 merged into `develop` (2026-10-10, owner's OK). README intro reworded too (owner's words).
+2. Migration `0004` (remove single-user leftovers, make `user_id` required), then M8 Polish and R4.
+3. Release (R4 or earlier, owner's choice); the service worker only matters once it's live.
+
+Previous notes:
 
 **2026-10-09: M6 Reports built on `feat/reports`, PR #21 (into `develop`).** The owner said to keep
 building and do their open tasks later. Delivered: REP-1–9, SHARE-1–6, SET-2–3, MCP `get_report`;
@@ -201,6 +296,8 @@ https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the fi
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
 ## Open questions for the owner
+
+- Vercel project name / address (e.g. `streakwise.vercel.app` if free): ask at the start of the move.
 
 ## Decisions made during the build
 

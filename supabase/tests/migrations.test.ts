@@ -16,7 +16,8 @@ const migrations = readdirSync(migrationsDir)
 // Migrating once and copying the data directory for each test is much faster than migrating again.
 let migratedSnapshot: Promise<File | Blob> | undefined;
 
-async function migrate(): Promise<File | Blob> {
+/** A new database with Supabase's built-in roles and the first `count` migrations applied. */
+async function migratedUpTo(count: number): Promise<PGlite> {
   const db = new PGlite();
   // Supabase's built-in roles.
   await db.exec(`
@@ -26,7 +27,12 @@ async function migrate(): Promise<File | Blob> {
     create schema auth;
     create table auth.users (id uuid primary key);
   `);
-  for (const sql of migrations) await db.exec(sql);
+  for (const sql of migrations.slice(0, count)) await db.exec(sql);
+  return db;
+}
+
+async function migrate(): Promise<File | Blob> {
+  const db = await migratedUpTo(migrations.length);
   const snapshot = await db.dumpDataDir('none');
   await db.close();
   return snapshot;
@@ -47,24 +53,32 @@ async function errorOf(promise: Promise<unknown>): Promise<string> {
 }
 
 const ids = {
+  user: '00000000-0000-4000-8000-0000000000f1',
   track: '00000000-0000-4000-8000-000000000001',
   subtask: '00000000-0000-4000-8000-000000000002',
   topic: '00000000-0000-4000-8000-000000000003',
   task: '00000000-0000-4000-8000-000000000004',
 };
 
+/** Every data row needs an owner (0004); most tests use this one user. */
+async function insertUser(db: PGlite): Promise<void> {
+  await db.query('insert into auth.users (id) values ($1)', [ids.user]);
+}
+
 async function insertTree(db: PGlite): Promise<void> {
+  await insertUser(db);
   await db.query(
-    `insert into nodes (id, parent_id, name, color) values ($1, null, 'Track', 'amber')`,
-    [ids.track],
+    `insert into nodes (id, user_id, parent_id, name, color) values ($1, $2, null, 'Track', 'amber')`,
+    [ids.track, ids.user],
   );
-  await db.query(`insert into nodes (id, parent_id, name) values ($1, $2, 'Subtask')`, [
-    ids.subtask,
-    ids.track,
-  ]);
   await db.query(
-    `insert into nodes (id, parent_id, name, topic_status) values ($1, $2, 'Topic', 'not_started')`,
-    [ids.topic, ids.subtask],
+    `insert into nodes (id, user_id, parent_id, name) values ($1, $2, $3, 'Subtask')`,
+    [ids.subtask, ids.user, ids.track],
+  );
+  await db.query(
+    `insert into nodes (id, user_id, parent_id, name, topic_status)
+     values ($1, $2, $3, 'Topic', 'not_started')`,
+    [ids.topic, ids.user, ids.subtask],
   );
 }
 
@@ -75,17 +89,43 @@ describe('migrations', () => {
   }, 30_000);
   afterEach(() => db.close());
 
-  it('creates the single settings row with defaults', async () => {
-    const { rows } = await db.query<{ student_name: string; neglect_days: number }>(
-      'select student_name, neglect_days from settings',
-    );
-    expect(rows).toEqual([{ student_name: '', neglect_days: 3 }]);
-    expect(await errorOf(db.query('insert into settings (id) values (false)'))).toMatch(/check/);
+  describe('cleanup after accounts (0004)', () => {
+    it('requires an owner on every data row', async () => {
+      expect(
+        await errorOf(db.query(`insert into nodes (name, color) values ('No owner', 'amber')`)),
+      ).toMatch(/user_id/);
+      const { rows } = await db.query<{ table_name: string }>(
+        `select table_name from information_schema.columns
+         where table_schema = 'public' and column_name = 'user_id' and is_nullable = 'YES'`,
+      );
+      expect(rows).toEqual([]);
+    });
+
+    it('removes the single-user table and functions', async () => {
+      const { rows } = await db.query<{ name: string }>(
+        `select proname as name from pg_proc where pronamespace = 'public'::regnamespace
+         and proname in ('seed_if_empty', 'delete_node_tree', 'complete_task', 'uncomplete_task',
+                         'has_unclaimed_data', 'claim_unclaimed_data')`,
+      );
+      expect(rows).toEqual([]);
+      expect(await errorOf(db.query('select 1 from settings'))).toMatch(/does not exist/);
+    });
+
+    it('refuses to run while unclaimed data exists, changing nothing', async () => {
+      const db0003 = await migratedUpTo(3);
+      await db0003.query(`insert into nodes (name, color) values ('Old', 'amber')`);
+      expect(await errorOf(db0003.exec(migrations[3] ?? ''))).toMatch(/unclaimed_data/);
+      await db0003.exec('rollback');
+      const { rows } = await db0003.query<{ n: number }>('select count(*)::int as n from settings');
+      expect(rows[0]?.n).toBe(1);
+      await db0003.close();
+    }, 30_000);
   });
 
   describe('nodes', () => {
+    beforeEach(() => insertTree(db));
+
     it('derives depth from the parent', async () => {
-      await insertTree(db);
       const { rows } = await db.query<{ name: string; depth: number }>(
         'select name, depth from nodes order by depth',
       );
@@ -97,55 +137,67 @@ describe('migrations', () => {
     });
 
     it('rejects a fourth level', async () => {
-      await insertTree(db);
       expect(
         await errorOf(
           db.query(
-            `insert into nodes (parent_id, name, topic_status) values ($1, 'Too deep', 'done')`,
-            [ids.topic],
+            `insert into nodes (user_id, parent_id, name, topic_status)
+             values ($1, $2, 'Too deep', 'done')`,
+            [ids.user, ids.topic],
           ),
         ),
       ).toBe('max_depth');
     });
 
     it('rejects duplicate sibling names case-insensitively, including tracks', async () => {
-      await insertTree(db);
       expect(
-        await errorOf(db.query(`insert into nodes (name, color) values ('TRACK', 'blue')`)),
+        await errorOf(
+          db.query(`insert into nodes (user_id, name, color) values ($1, 'TRACK', 'blue')`, [
+            ids.user,
+          ]),
+        ),
       ).toMatch(/duplicate key/);
       expect(
         await errorOf(
-          db.query(`insert into nodes (parent_id, name) values ($1, 'subtask')`, [ids.track]),
+          db.query(`insert into nodes (user_id, parent_id, name) values ($1, $2, 'subtask')`, [
+            ids.user,
+            ids.track,
+          ]),
         ),
       ).toMatch(/duplicate key/);
     });
 
     it('keeps track-only and topic-only fields in their level', async () => {
-      await insertTree(db);
       expect(
         await errorOf(
-          db.query(`insert into nodes (parent_id, name, color) values ($1, 'X', 'blue')`, [
-            ids.track,
-          ]),
+          db.query(
+            `insert into nodes (user_id, parent_id, name, color) values ($1, $2, 'X', 'blue')`,
+            [ids.user, ids.track],
+          ),
         ),
       ).toMatch(/nodes_track_fields/);
-      expect(await errorOf(db.query(`insert into nodes (name) values ('No color')`))).toMatch(
-        /nodes_track_has_color/,
-      );
       expect(
         await errorOf(
-          db.query(`insert into nodes (parent_id, name) values ($1, 'No status')`, [ids.subtask]),
+          db.query(`insert into nodes (user_id, name) values ($1, 'No color')`, [ids.user]),
+        ),
+      ).toMatch(/nodes_track_has_color/);
+      expect(
+        await errorOf(
+          db.query(`insert into nodes (user_id, parent_id, name) values ($1, $2, 'No status')`, [
+            ids.user,
+            ids.subtask,
+          ]),
         ),
       ).toMatch(/nodes_topic_fields/);
     });
   });
 
-  describe('delete_node_tree', () => {
+  describe('delete_user_node_tree', () => {
+    const deleteTree = (node: string) =>
+      db.query<{ n: number }>('select delete_user_node_tree($1, $2) as n', [ids.user, node]);
+
     it('deletes an unused subtree and returns the count', async () => {
       await insertTree(db);
-      const { rows } = await db.query<{ n: number }>('select delete_node_tree($1) as n', [
-        ids.track,
-      ]);
+      const { rows } = await deleteTree(ids.track);
       expect(rows[0]?.n).toBe(3);
       expect((await db.query('select * from nodes')).rows).toEqual([]);
     });
@@ -153,29 +205,26 @@ describe('migrations', () => {
     it('refuses when a descendant has a session, and deletes nothing', async () => {
       await insertTree(db);
       await db.query(
-        `insert into sessions (node_id, studied_on, minutes) values ($1, '2026-10-01', 30)`,
-        [ids.topic],
+        `insert into sessions (user_id, node_id, studied_on, minutes)
+         values ($1, $2, '2026-10-01', 30)`,
+        [ids.user, ids.topic],
       );
-      expect(await errorOf(db.query('select delete_node_tree($1)', [ids.track]))).toBe(
-        'node_in_use',
-      );
+      expect(await errorOf(deleteTree(ids.track))).toBe('node_in_use');
       expect((await db.query('select * from nodes')).rows).toHaveLength(3);
     });
 
     it('reports a missing node', async () => {
-      expect(await errorOf(db.query('select delete_node_tree($1)', [ids.track]))).toBe(
-        'node_not_found',
-      );
+      expect(await errorOf(deleteTree(ids.track))).toBe('node_not_found');
     });
   });
 
-  describe('complete_task and uncomplete_task', () => {
+  describe('complete_user_task and uncomplete_user_task', () => {
     beforeEach(async () => {
       await insertTree(db);
       await db.query(
-        `insert into tasks (id, node_id, title, recurrence, is_scored, default_max_score)
-         values ($1, $2, 'Weekly self-test', 'weekly', true, 20)`,
-        [ids.task, ids.track],
+        `insert into tasks (id, user_id, node_id, title, recurrence, is_scored, default_max_score)
+         values ($1, $2, $3, 'Weekly self-test', 'weekly', true, 20)`,
+        [ids.task, ids.user, ids.track],
       );
     });
 
@@ -188,67 +237,61 @@ describe('migrations', () => {
       max_score: 20,
     };
 
+    const complete = (periodStart: string, withScore: object | null) =>
+      db.query<{ id: string }>(`select complete_user_task($1, $2, $3, now(), null, $4) as id`, [
+        ids.user,
+        ids.task,
+        periodStart,
+        withScore,
+      ]);
+
     it('records a completion with its score atomically, once per week', async () => {
-      const complete = () =>
-        db.query<{ id: string }>(`select complete_task($1, '2026-09-28', now(), null, $2) as id`, [
-          ids.task,
-          score,
-        ]);
-      const { rows } = await complete();
+      const { rows } = await complete('2026-09-28', score);
       const scores = await db.query<{ task_completion_id: string }>(
         'select task_completion_id from scores',
       );
       expect(scores.rows).toEqual([{ task_completion_id: rows[0]?.id }]);
 
-      expect(await errorOf(complete())).toBe('already_completed');
+      expect(await errorOf(complete('2026-09-28', score))).toBe('already_completed');
       expect((await db.query('select * from scores')).rows).toHaveLength(1);
     });
 
     it('rolls back the completion when the score is invalid', async () => {
-      const bad = { ...score, score: 25 };
-      expect(
-        await errorOf(
-          db.query(`select complete_task($1, '2026-09-28', now(), null, $2)`, [ids.task, bad]),
-        ),
-      ).toMatch(/scores_score_within_max/);
+      expect(await errorOf(complete('2026-09-28', { ...score, score: 25 }))).toMatch(
+        /scores_score_within_max/,
+      );
       expect((await db.query('select * from task_completions')).rows).toEqual([]);
     });
 
     it('rejects a weekly period that does not start on Monday', async () => {
-      expect(
-        await errorOf(
-          db.query(`select complete_task($1, '2026-09-29', now(), null, null)`, [ids.task]),
-        ),
-      ).toMatch(/check/);
+      expect(await errorOf(complete('2026-09-29', null))).toMatch(/check/);
     });
 
     it('uncompletes and removes the linked score', async () => {
-      const { rows } = await db.query<{ id: string }>(
-        `select complete_task($1, '2026-09-28', now(), null, $2) as id`,
-        [ids.task, score],
-      );
-      await db.query('select uncomplete_task($1)', [rows[0]?.id]);
+      const { rows } = await complete('2026-09-28', score);
+      await db.query('select uncomplete_user_task($1, $2)', [ids.user, rows[0]?.id]);
       expect((await db.query('select * from task_completions')).rows).toEqual([]);
       expect((await db.query('select * from scores')).rows).toEqual([]);
     });
 
     it('allows tasks without a node ("Other"), but not scored ones (0002)', async () => {
-      const other = '00000000-0000-4000-8000-000000000009';
-      await db.query(`insert into tasks (id, node_id, title) values ($1, null, 'Renew card')`, [
-        other,
-      ]);
+      await db.query(
+        `insert into tasks (user_id, node_id, title) values ($1, null, 'Renew card')`,
+        [ids.user],
+      );
       expect(
         await errorOf(
           db.query(
-            `insert into tasks (node_id, title, is_scored, default_max_score)
-             values (null, 'Scored', true, 10)`,
+            `insert into tasks (user_id, node_id, title, is_scored, default_max_score)
+             values ($1, null, 'Scored', true, 10)`,
+            [ids.user],
           ),
         ),
       ).toMatch(/tasks_scored_needs_node/);
     });
   });
 
-  describe('seed_if_empty', () => {
+  describe('seed_user_if_empty', () => {
     const payload = {
       nodes: [
         { id: ids.track, parent_id: null, name: 'Track', color: 'amber', sort_order: 0 },
@@ -268,12 +311,14 @@ describe('migrations', () => {
     };
 
     it('seeds once and is a no-op afterwards', async () => {
-      const first = await db.query<{ seeded: boolean }>('select seed_if_empty($1) as seeded', [
-        payload,
-      ]);
-      const second = await db.query<{ seeded: boolean }>('select seed_if_empty($1) as seeded', [
-        payload,
-      ]);
+      await insertUser(db);
+      const seed = () =>
+        db.query<{ seeded: boolean }>('select seed_user_if_empty($1, $2) as seeded', [
+          ids.user,
+          payload,
+        ]);
+      const first = await seed();
+      const second = await seed();
       expect([first.rows[0]?.seeded, second.rows[0]?.seeded]).toEqual([true, false]);
       expect((await db.query('select * from nodes')).rows).toHaveLength(2);
       expect((await db.query('select * from tasks')).rows).toHaveLength(1);
@@ -376,61 +421,6 @@ describe('migrations', () => {
       ).toBe('completion_not_found');
     });
 
-    it('claims all unclaimed data and the old settings for one user, once', async () => {
-      await insertTree(db);
-      await db.query(
-        `insert into tasks (id, node_id, title, recurrence, is_scored, default_max_score)
-         values ($1, $2, 'Weekly self-test', 'weekly', true, 20)`,
-        [ids.task, ids.track],
-      );
-      await db.query(`insert into tasks (node_id, parent_task_id, title) values ($1, $2, 'Sub')`, [
-        ids.track,
-        ids.task,
-      ]);
-      const score = {
-        node_id: ids.track,
-        kind: 'revision',
-        title: 'R',
-        taken_on: '2026-09-29',
-        score: 1,
-        max_score: 2,
-      };
-      await db.query(`select complete_task($1, '2026-09-28', now(), null, $2)`, [ids.task, score]);
-      await db.query(
-        `insert into sessions (node_id, studied_on, minutes) values ($1, '2026-10-01', 30)`,
-        [ids.topic],
-      );
-      await db.query(`update settings set student_name = 'Demo Student', neglect_days = 5`);
-
-      const unclaimed = () =>
-        db.query<{ v: boolean }>('select has_unclaimed_data() as v').then((r) => r.rows[0]?.v);
-      expect(await unclaimed()).toBe(true);
-      const { rows } = await db.query<{ n: number }>('select claim_unclaimed_data($1) as n', [
-        userA,
-      ]);
-      expect(rows[0]?.n).toBe(3);
-      for (const table of ['nodes', 'tasks', 'task_completions', 'sessions', 'scores']) {
-        const left = await db.query(`select 1 from ${table} where user_id is null`);
-        expect(left.rows, table).toEqual([]);
-      }
-      const settings = await db.query(
-        'select student_name, neglect_days from user_settings where user_id = $1',
-        [userA],
-      );
-      expect(settings.rows).toEqual([{ student_name: 'Demo Student', neglect_days: 5 }]);
-      expect(await unclaimed()).toBe(false);
-      expect(await errorOf(db.query('select claim_unclaimed_data($1)', [userA]))).toBe(
-        'nothing_to_claim',
-      );
-    });
-
-    it("won't claim into an account that already has a structure", async () => {
-      await insertTree(db);
-      expect(await errorOf(db.query('select claim_unclaimed_data($1)', [userB]))).toBe(
-        'account_has_data',
-      );
-    });
-
     it("deletes all of a user's data when the account is deleted", async () => {
       const sub = '00000000-0000-4000-8000-0000000000b4';
       const topic = '00000000-0000-4000-8000-0000000000b5';
@@ -463,7 +453,6 @@ describe('migrations', () => {
       'scores',
       'deadlines',
       'shared_reports',
-      'settings',
       'login_attempts',
       'user_settings',
       'auth_requests',
@@ -501,7 +490,7 @@ describe('migrations', () => {
 
     it('lets the server role call the RPC functions', async () => {
       const { rows } = await db.query<{ ok: boolean }>(
-        `select has_function_privilege('service_role', 'public.delete_node_tree(uuid)', 'execute') as ok`,
+        `select has_function_privilege('service_role', 'public.delete_user_node_tree(uuid, uuid)', 'execute') as ok`,
       );
       expect(rows[0]?.ok).toBe(true);
     });

@@ -1,13 +1,14 @@
+import { loadSampleData } from '@/core/demo/sampleData';
 import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
 import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
+import type { Repository } from '@/core/repo/Repository';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
 import * as exportsService from '@/core/services/exports';
 import * as reports from '@/core/services/reports';
 import * as scores from '@/core/services/scores';
-import { seedIfEmpty } from '@/core/services/seed';
 import * as sessions from '@/core/services/sessions';
 import * as shares from '@/core/services/shares';
 import * as settings from '@/core/services/settings';
@@ -18,14 +19,16 @@ import * as tracks from '@/core/services/tracks';
 import { DataSourceError } from './DataSource';
 import type { DataSource } from './DataSource';
 
-// Demo mode (DEMO-2): the same core services as the server, on an in-memory store that resets on
-// reload. It never calls /api. For now it holds the starting structure; M7 adds full sample data.
+// Demo mode (DEMO-2): the same core services as the server, on an in-memory store filled with
+// sample data (DEMO-3) that resets on reload. It never calls /api.
 
 const STATUS_BY_KIND: Record<DomainError['kind'], number> = {
   validation: 400,
   not_found: 404,
   conflict: 409,
 };
+
+export type DemoFill = (repo: Repository, clock: Clock, newId: IdGenerator) => Promise<unknown>;
 
 export class DemoDataSource implements DataSource {
   readonly mode: DataSource['mode'] = 'demo';
@@ -36,9 +39,11 @@ export class DemoDataSource implements DataSource {
   constructor(
     private readonly clock: Clock = () => new Date(),
     private readonly newId: IdGenerator = () => crypto.randomUUID(),
+    /** What the store starts with; component tests use the plain seed of a new account instead. */
+    fill: DemoFill = loadSampleData,
   ) {
     this.repo = new InMemoryRepository(clock);
-    this.ready = seedIfEmpty(this.repo, newId);
+    this.ready = fill(this.repo, clock, newId);
   }
 
   /** Runs a service once the seed is in, with errors shaped like the API's. */

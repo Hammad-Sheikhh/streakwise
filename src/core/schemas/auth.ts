@@ -27,12 +27,6 @@ export type SignUpInput = z.infer<typeof signUpInputSchema>;
 export const loginInputSchema = z.object({ email, password: existingPassword });
 export type LoginInput = z.infer<typeof loginInputSchema>;
 
-/** ACCT-7: the old single-user passcode, used once to claim the data from before accounts. */
-export const passcodeInputSchema = z.object({
-  passcode: z.string().min(1, 'Enter your passcode.').max(200),
-});
-export type PasscodeInput = z.infer<typeof passcodeInputSchema>;
-
 export const emailInputSchema = z.object({ email });
 export type EmailInput = z.infer<typeof emailInputSchema>;
 

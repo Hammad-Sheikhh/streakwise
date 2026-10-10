@@ -1,18 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 
-import { seedIfEmpty } from '../../src/core/services/seed';
 import { createAccountHandler } from '../functions/auth-account';
 import { createConfirmHandler } from '../functions/auth-confirm';
 import { createForgotHandler } from '../functions/auth-forgot';
 import { createLoginHandler } from '../functions/auth-login';
 import { createLogoutHandler } from '../functions/auth-logout';
 import { createMeHandler } from '../functions/auth-me';
-import { createPasscodeHandler } from '../functions/auth-passcode';
 import { createPasswordHandler } from '../functions/auth-password';
 import { createSignUpHandler } from '../functions/auth-signup';
 import { createNodesHandler } from '../functions/nodes';
-import { InMemoryRepository } from '../../src/core/repo/InMemoryRepository';
 import {
   context,
   cookieFrom,
@@ -20,7 +17,6 @@ import {
   LOGIN,
   post,
   TEST_EMAIL,
-  TEST_PASSCODE,
   TEST_PASSWORD,
   testDeps,
 } from './fakes';
@@ -36,7 +32,6 @@ function setup() {
     signUp: createSignUpHandler(getDeps),
     confirm: createConfirmHandler(getDeps),
     forgot: createForgotHandler(getDeps),
-    passcode: createPasscodeHandler(getDeps),
     password: createPasswordHandler(getDeps),
     account: createAccountHandler(getDeps),
     nodes: createNodesHandler(getDeps),
@@ -275,55 +270,6 @@ describe('forgot and change password (ACCT-4, ACCT-9)', () => {
   });
 });
 
-describe('claiming the data from before accounts (ACCT-7)', () => {
-  async function withOldData() {
-    const t = setup();
-    const old = new InMemoryRepository(t.deps.clock);
-    await seedIfEmpty(old, t.deps.newId);
-    await old.updateSettings({ studentName: 'Demo Student' });
-    t.accounts.unclaimed = old;
-    return { ...t, old };
-  }
-
-  it('moves the old data to the account that logs in after the passcode', async () => {
-    const { passcode, login, nodes, accounts, user, old } = await withOldData();
-    const wrong = await passcode(post('/api/auth/passcode', { passcode: 'nope' }), context);
-    expect(await errorCode(wrong)).toBe('wrong_passcode');
-    const right = await passcode(post('/api/auth/passcode', { passcode: TEST_PASSCODE }), context);
-    const claimCookie = cookieFrom(right);
-    expect(right.headers.get('set-cookie')).toContain('SameSite=Lax');
-
-    const loggedIn = await login(post('/api/auth/login', LOGIN, { cookie: claimCookie }), context);
-    expect(await loggedIn.json()).toEqual({ authenticated: true, claimed: true });
-    expect(loggedIn.headers.getSetCookie().some((c) => c.startsWith('sw_claim=;'))).toBe(true);
-    expect(accounts.repos.get(user.id)).toBe(old);
-    expect((await old.getSettings()).studentName).toBe('Demo Student');
-
-    const cookie = cookieFrom(loggedIn);
-    const tree = (await (await nodes(get('/api/nodes', { cookie }), context)).json()) as {
-      nodes: unknown[];
-    };
-    expect(tree.nodes).toHaveLength(7);
-    expect(await accounts.hasUnclaimedData()).toBe(false);
-  });
-
-  it('does nothing without the passcode step', async () => {
-    const { login, accounts, user, old } = await withOldData();
-    await login(post('/api/auth/login', LOGIN), context);
-    expect(accounts.repos.get(user.id)).not.toBe(old);
-    expect(accounts.unclaimed).toBe(old);
-  });
-
-  it('refuses the passcode once nothing is left to claim', async () => {
-    const { passcode } = setup();
-    const response = await passcode(
-      post('/api/auth/passcode', { passcode: TEST_PASSCODE }),
-      context,
-    );
-    expect(await errorCode(response)).toBe('nothing_to_claim');
-  });
-});
-
 describe('sessions, logout, and deleting the account (AUTH-3, AUTH-4, ACCT-5, ACCT-9)', () => {
   it('keeps each user to their own data', async () => {
     const { login, nodes, auth, accounts } = setup();
@@ -381,8 +327,8 @@ describe('sessions, logout, and deleting the account (AUTH-3, AUTH-4, ACCT-5, AC
 });
 
 describe('logging (OPS-3)', () => {
-  it('never logs passwords, the passcode, emails, or the IP', async () => {
-    const { login, passcode } = setup();
+  it('never logs passwords, emails, or the IP', async () => {
+    const { login } = setup();
     const spies = (['warn', 'info', 'error'] as const).map((level) =>
       vi.spyOn(console, level).mockImplementation(() => {}),
     );
@@ -391,10 +337,9 @@ describe('logging (OPS-3)', () => {
       context,
     );
     await login(post('/api/auth/login', LOGIN), context);
-    await passcode(post('/api/auth/passcode', { passcode: TEST_PASSCODE }), context);
     const output = spies.flatMap((spy) => spy.mock.calls.flat()).join('\n');
     expect(output).toContain('login_failed');
-    for (const secret of ['my-wrong-guess', TEST_PASSWORD, TEST_PASSCODE, TEST_EMAIL, context.ip]) {
+    for (const secret of ['my-wrong-guess', TEST_PASSWORD, TEST_EMAIL, context.ip]) {
       expect(output).not.toContain(secret);
     }
     for (const spy of spies) spy.mockRestore();
