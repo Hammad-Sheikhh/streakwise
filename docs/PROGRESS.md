@@ -88,6 +88,8 @@ One database for everything (D15), so each migration runs once.
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
+- [ ] Try M7 on the PR #26 preview (https://deploy-preview-26--streakwise-ap.netlify.app/demo): sample
+      data everywhere, reload resets it, optional "Install app" on the phone; then OK to merge #26
 
 ## Current work / next step
 
