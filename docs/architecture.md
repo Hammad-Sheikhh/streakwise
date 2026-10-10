@@ -70,15 +70,14 @@ if it ever grows too large, a Postgres view or RPC can pre-aggregate it.
 
 ## API endpoints
 
-All require a session cookie except `auth/login`, `auth/signup`, `auth/passcode`, `auth/forgot`,
+All require a session cookie except `auth/login`, `auth/signup`, `auth/forgot`,
 `auth/resend`, `auth/logout`, `health`, and `keepalive`. Every data endpoint reads and writes only the
 logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below).
 
 | Endpoint                 | Methods       | Purpose                                                    |
 | ------------------------ | ------------- | ---------------------------------------------------------- |
 | `/api/auth/signup`       | POST          | Create an account (Supabase Auth), limited per IP          |
-| `/api/auth/login`        | POST          | Email + password login (lockout), first-login seed, claim  |
-| `/api/auth/passcode`     | POST          | Old passcode → claim cookie (ACCT-7)                       |
+| `/api/auth/login`        | POST          | Email + password login (lockout), first-login seed         |
 | `/api/auth/forgot`       | POST          | Email a reset link (same answer for unknown emails)        |
 | `/api/auth/resend`       | POST          | Send the confirmation email again                          |
 | `/api/auth/password`     | POST          | Change password; logs out other devices                    |
@@ -117,13 +116,13 @@ logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below)
 - **Email links** use the token-hash flow: the templates in `docs/email-templates/` link to
   `<site>/auth/confirm?token_hash=…&type=signup|recovery`, which verifies the token on the server,
   logs the user in, and redirects (a reset link also sets the short-lived `sw_recovery` cookie).
-- **Per-user data:** `user_id` on every table (migration `0003`) with same-owner composite foreign
-  keys, so the database itself refuses a row that points at another user's row.
+- **Per-user data:** `user_id` on every table (migration `0003`, required since `0004`) with
+  same-owner composite foreign keys, so the database itself refuses a row that points at another user's row.
   `SupabaseRepository` is built per user and filters every query by `user_id`; RPCs take
   `p_user_id`. Core services didn't change: they receive the user's repository.
-- **Claiming old data (ACCT-7):** rows from before accounts have `user_id` null. Entering the old
-  `APP_PASSCODE` sets `sw_claim` (Lax, 24 h); the next login or confirmation in that browser runs
-  `claim_unclaimed_data` atomically. Migration `0004` (after release R3) will drop the leftovers.
+- **Claiming old data (ACCT-7, done):** the owner moved the data from before accounts into their
+  account with the old passcode after R3. Migration `0004` then made `user_id` required and removed
+  the claim, the old `settings` table, and the old single-user RPCs; the code no longer has them.
 
 ## Claude connection (MCP)
 

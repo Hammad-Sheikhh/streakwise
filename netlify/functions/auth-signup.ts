@@ -22,7 +22,7 @@ export function createSignUpHandler(getDeps: () => ServerDeps) {
         const body: SignUpResult = { status: 'confirm_email' };
         return json(body, { status: 201 });
       }
-      const { cookies } = await startSession(deps, request, result.user.id);
+      const cookies = await startSession(deps, result.user.id);
       const body: SignUpResult = { status: 'signed_in' };
       return json(body, { status: 201, cookies });
     },

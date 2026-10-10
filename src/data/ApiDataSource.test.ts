@@ -24,9 +24,9 @@ const node = {
 
 describe('ApiDataSource', () => {
   it('posts the email and password as JSON to /api/auth/login', async () => {
-    const fetchFn = respond(200, { authenticated: true, claimed: false });
+    const fetchFn = respond(200, { authenticated: true });
     const login = { email: 'student@example.com', password: 'secret password' };
-    expect(await new ApiDataSource(fetchFn).account.login(login)).toEqual({ claimed: false });
+    await expect(new ApiDataSource(fetchFn).account.login(login)).resolves.toBeUndefined();
     const [url, init] = fetchFn.mock.calls[0] ?? [];
     expect(url).toBe('/api/auth/login');
     expect(init).toMatchObject({ method: 'POST', credentials: 'same-origin' });

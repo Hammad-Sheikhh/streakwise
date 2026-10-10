@@ -7,13 +7,10 @@ import { DemoDataSource } from '@/data/DemoDataSource';
 export const TEST_NOW = new Date('2026-10-03T10:00:00Z');
 export const TEST_EMAIL = 'student@example.com';
 export const TEST_PASSWORD = 'letmein123';
-export const TEST_PASSCODE = 'old passcode';
 
 export interface FakeAccountState {
   loggedIn: boolean;
   password: string;
-  /** ACCT-7: whether this browser entered the old passcode. */
-  claimReady: boolean;
   /** Set right after a reset link. */
   recovering: boolean;
   /** Sign-ups that still need their email confirmed. */
@@ -43,7 +40,6 @@ export function fakeApi(options: { loggedIn?: boolean; now?: Date } = {}): FakeA
   const state: FakeAccountState = {
     loggedIn: options.loggedIn ?? false,
     password: TEST_PASSWORD,
-    claimReady: false,
     recovering: false,
     pending: [],
     deleted: false,
@@ -63,19 +59,10 @@ export function fakeApi(options: { loggedIn?: boolean; now?: Date } = {}): FakeA
       }
       if (email !== TEST_EMAIL || password !== api.password) throw wrongLogin();
       api.loggedIn = true;
-      const claimed = api.claimReady;
-      api.claimReady = false;
-      return { claimed };
     },
     async signUp({ email }) {
       api.pending.push(email);
       return { status: 'confirm_email' };
-    },
-    async enterPasscode({ passcode }) {
-      if (passcode !== TEST_PASSCODE) {
-        throw new DataSourceError(401, 'wrong_passcode', 'That passcode isn’t right.');
-      }
-      api.claimReady = true;
     },
     async forgotPassword() {},
     async resendConfirmation() {},

@@ -5,7 +5,6 @@ import type {
   EmailInput,
   LoginInput,
   Me,
-  PasscodeInput,
   SignUpInput,
   SignUpResult,
 } from '@/core/schemas/auth';
@@ -13,11 +12,8 @@ import type {
 // Accounts (ACCT-1–9) exist only in the real app; demo mode has none (DataSource.account is null).
 export interface AccountApi {
   me(): Promise<Me>;
-  /** `claimed`: the data from before accounts moved into this account (ACCT-7). */
-  login(input: LoginInput): Promise<{ claimed: boolean }>;
+  login(input: LoginInput): Promise<void>;
   signUp(input: SignUpInput): Promise<SignUpResult>;
-  /** ACCT-7: lets this browser's next login or sign-up claim the data from before accounts. */
-  enterPasscode(input: PasscodeInput): Promise<void>;
   forgotPassword(input: EmailInput): Promise<void>;
   resendConfirmation(input: EmailInput): Promise<void>;
   changePassword(input: ChangePasswordInput): Promise<void>;

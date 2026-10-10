@@ -7,8 +7,7 @@ import { serverDeps } from './_lib/deps';
 import type { ServerDeps } from './_lib/deps';
 import { json, readJson } from './_lib/http';
 
-// ACCT-3: email + password login, with the AUTH-5 lockout. Seeds a new account (ACCT-6) and claims
-// the old data if this browser entered the old passcode (ACCT-7).
+// ACCT-3: email + password login, with the AUTH-5 lockout. Seeds a new account (ACCT-6).
 export function createLoginHandler(getDeps: () => ServerDeps) {
   return apiHandler(
     { route: 'auth/login', auth: false },
@@ -16,8 +15,8 @@ export function createLoginHandler(getDeps: () => ServerDeps) {
     async ({ request, deps, ip }) => {
       const { email, password } = await readJson(request, loginInputSchema);
       const user = await withLockout(deps, ip, () => deps.auth.signIn(email, password));
-      const { cookies, claimed } = await startSession(deps, request, user.id);
-      return json({ authenticated: true, claimed }, { cookies });
+      const cookies = await startSession(deps, user.id);
+      return json({ authenticated: true }, { cookies });
     },
   );
 }
