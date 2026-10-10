@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-10 by Claude Code (cleanup #27 merged, 0004 applied; next: M8 Polish, then the final release R4)_
+_Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel; next session: the Vercel move, then M8 and R4)_
 
 ## Milestones
 
@@ -31,6 +31,11 @@ _Last updated: 2026-10-10 by Claude Code (cleanup #27 merged, 0004 applied; next
 | Docs | 2026-10-09 | New README and progress notes only (#24; release #25, merge commit). Owner approved. Netlify skipped the build (Markdown only), so it isn't counted. |
 
 Production builds this month (Oct 2026): **5** (~75 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
+
+**2026-10-10: the owner reports Netlify has used 230 of 300 credits** (usage period 2026-10-03 → resets 2026-11-03;
+nothing over its limit yet). Most of it is usage, not deploys. **No more Netlify production deploys:** never merge into
+`main` on Netlify. If credits run out, Netlify pauses the live site ("Site not available") until 2026-11-03; the
+data is safe in Supabase.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
 
@@ -95,10 +100,50 @@ One database for everything (D15), so each migration runs once.
       https://develop--streakwise-ap.netlify.app/demo (owner confirmed, 2026-10-10)
 - [x] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor (owner, 2026-10-10: success)
 - [x] OK to merge the cleanup PR #27 into `develop` (owner, 2026-10-10; merged)
-- [ ] Later, after the release that includes the cleanup: delete `APP_PASSCODE` and `MCP_SECRET` from
-      Netlify's environment variables and from `.env` (both unused by then)
+- [ ] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (unused since #27). They are simply not copied to
+      Vercel; Netlify's copies go away when the Netlify project is deleted
+- [ ] Vercel move (next session, explain each in detail, checking current Vercel docs first):
+  - [ ] Create a free Vercel account with "Continue with GitHub" (Hobby plan, no card)
+  - [ ] Import the `streakwise` repo into Vercel (or let Claude Code do it with the Vercel CLI after `vercel login`)
+  - [ ] Supabase → Authentication → URL Configuration: new Site URL + redirect URLs for the Vercel addresses
+  - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
+        connector in Claude
+  - [ ] Delete the Netlify project (only after Vercel is confirmed working)
 
 ## Current work / next step
+
+**2026-10-10: owner's decision (D20): move hosting from Netlify to Vercel's free Hobby plan.** Netlify
+has used 230 of 300 credits this month. The owner is short on time, so the move is the **next session's
+work**, before M8. Releases: only the final version (R4, v1.0.0) goes live, on Vercel.
+
+Why Vercel (checked in Vercel's docs 2026-10-10): no cost per deploy (Hobby: 100 deployments/day),
+1M function invocations, 100 GB transfer, 1M requests a month. Limits: non-commercial personal use only
+(fine: the app is free); runtime logs kept 1 hour; going over a limit pauses that feature up to 30 days.
+
+**Plan for the Vercel move (branch `chore/vercel` from `develop`, PR into `develop`):**
+
+1. Check current Vercel docs first (fast-changing): Node.js functions with web `Request`/`Response`,
+   routing/rewrites in `vercel.json`, headers, `ignoreCommand`, Node 24, `vercel dev`, Git branch
+   previews, env vars via CLI. Pick the approach (likely one catch-all function for `/api/*`, `/auth/*`,
+   `/mcp/*`, `/.well-known/*` that dispatches to the existing handlers, so `netlify/functions/*`
+   handler code is reused; each file exports a `create…Handler` plus a Netlify `config.path`).
+2. Replace Netlify-only pieces: `netlify.toml` (build, SPA fallback, `ignore` via
+   `scripts/netlify-ignore.sh`), `build/security-headers.ts` writing `dist/_headers` (→ `vercel.json`
+   headers, keep the same CSP), `@netlify/functions` `Config` types, `netlify dev` in `npm run dev`,
+   the CI test that forbids tests in `netlify/functions/`. Consider renaming `netlify/` → `server/`.
+3. Keep: Supabase (data doesn't move), all core code, tests, the e2e suite on `/demo`.
+4. Env vars on Vercel (Production + Preview): `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SESSION_SECRET`.
+   Set them with the Vercel CLI from `.env` without printing values. Not `APP_PASSCODE`/`MCP_SECRET`.
+   Note: a new `SESSION_SECRET` would log everyone out; reusing it is fine.
+5. Update: `PROD_URL` repo variable (keepalive workflow), README links, `docs/SETUP.md`,
+   `docs/architecture.md`, CLAUDE.md "Branches and deploys" (Vercel, no credit budget; keep "release
+   only with the owner's OK"), SPEC §B14.1/OPS-4 and D20 in §B15, email templates if they hard-code the
+   site URL, Supabase redirect URLs (owner step).
+6. Verify on a Vercel preview: `/api/health`, login/logout, sign-up email link opens the right site,
+   `/mcp/<token>` with MCP Inspector, `/r/<slug>` sends `X-Robots-Tag: noindex`, `/.well-known/*` 404,
+   service worker never caches `/api`, `/mcp`, `/auth`.
+7. Then the owner makes a new Claude link on the Vercel site; old share links (`/r/...` on netlify.app)
+   stop working once Netlify is deleted.
 
 **2026-10-10: single-user cleanup on `chore/accounts-cleanup` (D19).**
 
@@ -252,6 +297,8 @@ https://supabase.com/dashboard/project/ckoaxcyyxmdfgukkbuob/sql/new, with the fi
 With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify context.
 
 ## Open questions for the owner
+
+- Vercel project name / address (e.g. `streakwise.vercel.app` if free): ask at the start of the move.
 
 ## Decisions made during the build
 
