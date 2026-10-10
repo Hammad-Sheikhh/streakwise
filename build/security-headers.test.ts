@@ -38,11 +38,7 @@ describe('security headers', () => {
   });
 
   it('serves the PWA files fresh and with the right type (PWA-1/2)', () => {
-    expect(file).toContain('/sw.js
-  Cache-Control: no-cache
-');
-    expect(file).toContain('/manifest.webmanifest
-  Content-Type: application/manifest+json
-');
+    expect(file).toContain('/sw.js\n  Cache-Control: no-cache\n');
+    expect(file).toContain('/manifest.webmanifest\n  Content-Type: application/manifest+json\n');
   });
 });
