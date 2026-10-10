@@ -1,21 +1,21 @@
 # Progress
 
-_Last updated: 2026-10-10 by Claude Code (M7 built on `feat/demo-pwa`; PR open into `develop`)_
+_Last updated: 2026-10-10 by Claude Code (M7 merged into `develop` as #26; next: migration 0004, then M8)_
 
 ## Milestones
 
-| #             | Status    | PR  | Notes / deferred items                                                                                                      |
-| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1  |                                                                                                                             |
-| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                      |
-| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                     |
-| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)        |
-| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector        |
-| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                    |
-| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                     |
-| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)               |
-| M7 Demo + PWA | 🔍 review | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Awaiting the owner's try on the preview + OK to merge |
-| M8 Polish     | ⏳        |     |                                                                                                                             |
+| #             | Status    | PR  | Notes / deferred items                                                                                                            |
+| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                   |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                            |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                           |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)              |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector              |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                          |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                           |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                     |
+| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); not live yet |
+| M8 Polish     | ⏳        |     |                                                                                                                                   |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -88,8 +88,9 @@ One database for everything (D15), so each migration runs once.
 - [x] Say yes/no to release R3: yes (owner, 2026-10-09); released as #23 with the general sample tracks (D18, #22)
 - [x] Right after R3: claimed the old data with the old passcode and created an account (owner confirmed, 2026-10-09)
 - [x] After R3: made a new Claude link and replaced the Claude connector; works (owner confirmed, 2026-10-09)
-- [ ] Try M7 on the PR #26 preview (https://deploy-preview-26--streakwise-ap.netlify.app/demo): sample
-      data everywhere, reload resets it, optional "Install app" on the phone; then OK to merge #26
+- [x] OK to merge #26 (M7) into `develop` (owner, 2026-10-10; merged)
+- [ ] Try M7 (demo sample data; optional "Install app" on the phone) on
+      https://develop--streakwise-ap.netlify.app/demo (not yet confirmed by the owner)
 
 ## Current work / next step
 
@@ -108,7 +109,7 @@ One database for everything (D15), so each migration runs once.
 
 **Next (in order):**
 
-1. Owner tries the demo and "install" on the PR preview, then OKs merging into `develop`.
+1. Done: #26 merged into `develop` (2026-10-10, owner's OK). README intro reworded too (owner's words).
 2. Migration `0004` (remove single-user leftovers, make `user_id` required), then M8 Polish and R4.
 3. Release (R4 or earlier, owner's choice); the service worker only matters once it's live.
 
