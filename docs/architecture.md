@@ -7,7 +7,7 @@
 ```mermaid
 flowchart LR
   UI[React UI] --> DS{DataSource}
-  DS -->|real app| API[ApiDataSource → /api Netlify Functions]
+  DS -->|real app| API[ApiDataSource → /api Vercel Functions]
   DS -->|/demo| DEMO[DemoDataSource → core services + InMemoryRepository]
   API --> CORE[core services]
   MCP[MCP server /mcp/:secret] --> CORE
@@ -16,6 +16,10 @@ flowchart LR
 
 - The browser never talks to Supabase directly.
 - Business logic lives only in `src/core` and is shared by the API, the MCP server, and demo mode.
+- Hosting (D20, 2026-10): Vercel runs exactly one function (`api/server.ts`); the route table in
+  `server/functions/_lib/router.ts` maps each path and method to its handler, replacing Netlify's
+  per-file `config.path` routing. `vercel.json` carries the rewrites (API prefixes + SPA fallback),
+  the security headers, and the ignore command for docs-only commits.
 
 ## Folders
 
@@ -26,8 +30,9 @@ flowchart LR
 | `src/components`      | Shared UI (`components/ui` = shadcn/ui)                                             |
 | `src/data`            | `DataSource` interface and implementations                                          |
 | `src/core`            | Isomorphic domain types, Zod schemas, pure logic, services, repositories, demo data |
-| `netlify/functions`   | Thin API handlers and the MCP server (every top-level file is deployed)             |
-| `netlify/tests`       | Tests for the functions (kept out of `netlify/functions` so they aren't deployed)   |
+| `api`                 | The one deployed function (`server.ts`): dispatches everything it's rewritten to    |
+| `server/functions`    | Thin per-route API handlers and the MCP server                                      |
+| `server/tests`        | Tests for the functions (kept out of `api/` so they aren't deployed)                |
 | `supabase/migrations` | Numbered SQL migrations                                                             |
 | `e2e`                 | Playwright tests (the demo journey and the PWA checks; run in CI)                   |
 
@@ -126,7 +131,7 @@ logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below)
 
 ## Claude connection (MCP)
 
-`POST /mcp/<token>` (`netlify/functions/mcp.ts`) is a stateless Streamable HTTP server built
+`POST /mcp/<token>` (`server/functions/mcp.ts`) is a stateless Streamable HTTP server built
 with the official SDK v2 (`@modelcontextprotocol/server`, `createMcpHandler`). It answers both the
 2025 protocol and 2026-07-28 from one endpoint, building a fresh `McpServer` per request.
 
@@ -134,7 +139,7 @@ with the official SDK v2 (`@modelcontextprotocol/server`, `createMcpHandler`). I
   hash is stored (`user_settings.mcp_token_hash`); the server looks the user up by hash and serves
   only that user's data. Anything else gets a plain 404. Only POST is accepted (a serverless
   function can't hold the GET event stream open).
-- **Tools** (`netlify/functions/_lib/mcp/server.ts`) are thin wrappers: resolve node and date
+- **Tools** (`server/functions/_lib/mcp/server.ts`) are thin wrappers: resolve node and date
   references (`src/core/logic/nodeRef.ts`, `dateRef.ts`), call a core service, return compact JSON
   text. Input schemas live in `src/core/schemas/mcp.ts`. Domain errors come back as
   `isError` results with `{ error: { code, message } }`, so Claude can correct itself.
@@ -146,11 +151,11 @@ with the official SDK v2 (`@modelcontextprotocol/server`, `createMcpHandler`). I
 
 One Supabase project serves every environment (SPEC D15).
 
-| Branch           | Netlify         | Database                |
-| ---------------- | --------------- | ----------------------- |
-| Feature branches | Deploy previews | Supabase (shared, real) |
-| `develop`        | Branch deploy   | Supabase (shared, real) |
-| `main`           | Production      | Supabase (shared, real) |
+| Branch           | Vercel            | Database                |
+| ---------------- | ----------------- | ----------------------- |
+| Feature branches | Preview deploy    | Supabase (shared, real) |
+| `develop`        | `develop` preview | Supabase (shared, real) |
+| `main`           | Production        | Supabase (shared, real) |
 
 ## Decisions
 

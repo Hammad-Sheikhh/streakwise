@@ -9,8 +9,8 @@ import type { Plugin } from 'vite';
 
 const template = readFileSync(new URL('./sw-template.js', import.meta.url), 'utf8');
 
-// Netlify-only files and source maps are never requested by the app.
-const SKIPPED = [/^_headers$/, /^_redirects$/, /\.map$/, /^sw\.js$/];
+// Source maps are never requested by the app.
+const SKIPPED = [/\.map$/, /^sw\.js$/];
 
 export function precacheUrls(fileNames: readonly string[]): string[] {
   return fileNames

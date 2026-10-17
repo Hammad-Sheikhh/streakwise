@@ -7,7 +7,15 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'coverage', '.netlify', 'playwright-report', 'test-results', 'node_modules'],
+    ignores: [
+      'dist',
+      'coverage',
+      '.netlify',
+      '.vercel',
+      'playwright-report',
+      'test-results',
+      'node_modules',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],

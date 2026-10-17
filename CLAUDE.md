@@ -17,23 +17,24 @@
 - Explain every task the owner must perform in detail, never as a one-line pointer: why it's
   needed, where to go (full URL or exact menu path), every click and what to type, what they should
   see when it worked, what to do if it looks different, and whether it touches real data or costs
-  money/Netlify credits. Also explain what happens next once it's done (e.g. what "merge" or
-  "release" means and who does it).
+  host resources. Also explain what happens next once it's done (e.g. what "merge" or "release"
+  means and who does it).
 
 ## The owner
 - Not technical, on Windows (PowerShell). Explain each step in 1–2 plain sentences; define jargon once.
-- Ask before big decisions (stack, scope, data model, anything that costs money or Netlify credits).
+- Ask before big decisions (stack, scope, data model, anything that costs money or host resources).
 - Manual steps: one at a time, exact clicks/commands, then wait for confirmation.
 - When the owner pastes an error: fix the smallest thing, explain the cause in one sentence,
   and don't rewrite working code.
-- Never ask for secrets in chat. Secrets go only in `.env` (owner edits it) or Netlify. Never print secret values.
+- Never ask for secrets in chat. Secrets go only in `.env` (owner edits it) or Vercel. Never print
+  secret values.
 
 ## Source of truth
 docs/SPEC.md: requirement IDs, MUST/SHOULD/COULD priorities, milestones (§B14.2), definition of done
 (§B14.3), cut order (§B14.5). Don't change scope without the owner's OK; record changes in SPEC §B15.
 
 ## Commands
-- `npm run dev`        app + functions locally (netlify dev, uses the dev database)
+- `npm run dev`        app + functions locally (vercel dev, uses the dev database)
 - `npm run lint`       ESLint
 - `npm run typecheck`  tsc --noEmit
 - `npm test`           Vitest (unit, service, component, MCP)
@@ -41,13 +42,13 @@ docs/SPEC.md: requirement IDs, MUST/SHOULD/COULD priorities, milestones (§B14.2
 - `npm run build`      production build
 Run lint, typecheck, and test before every push.
 
-## Branches and deploys (Netlify free plan: 300 credits/month; ~15 per production deploy)
+## Branches and deploys (Vercel Hobby plan, free; ~100 deployments a day, personal non-commercial use only)
 - Feature branches from `develop`; PRs into `develop` (`gh pr create --base develop`), squash-merged when
-  CI is green. Previews are free.
+  CI is green. Previews are automatic and free (`develop` gets its own preview URL; GitHub comments link to it).
 - `main` = production. Merge `develop` → `main` only at release points (SPEC §B14.2) after the owner
-  says yes, using a merge commit (`gh pr merge --merge`), never a squash. Max 8 production deploys per
-  month; log each one in docs/PROGRESS.md.
-- Live-site bugs: fix branch → `develop` → a release the owner approves (counts toward the budget).
+  says yes, using a merge commit (`gh pr merge --merge`), never a squash. Log each release in
+  docs/PROGRESS.md.
+- Live-site bugs: fix branch → `develop` → a release the owner approves.
 - Never force-push `main` or `develop`. Never commit straight to them, except commits that change only
   docs/PROGRESS.md, which may go to `develop`.
 - Conventional commits: feat, fix, chore, docs, test, refactor.
@@ -56,13 +57,15 @@ Run lint, typecheck, and test before every push.
 - The browser never talks to Supabase. UI → DataSource → ApiDataSource (/api functions) or
   DemoDataSource (core services + InMemoryRepository in the browser).
 - Business logic lives only in `src/core` (isomorphic, pure where possible, clock injected).
-  API handlers and the MCP server are thin wrappers around core services.
+  Handlers live in `server/functions` and are dispatched by the single Vercel entry `api/server.ts`
+  (`server/functions/_lib/router.ts` holds the route table); they and the MCP server are thin
+  wrappers around core services.
 - Zod schemas in `src/core/schemas` validate every input on the server.
 - Time zone Asia/Karachi; weeks Mon–Sun; durations are integer minutes.
 - DB changes only via new numbered files in `supabase/migrations/`; never edit one that was applied.
   Atomic multi-step writes use Postgres functions (RPC).
-- For fast-changing APIs (Netlify Functions, MCP SDK, Supabase keys, shadcn/ui, Tailwind), check
-  current docs instead of relying on memory.
+- For fast-changing APIs (Vercel Functions, routing in `vercel.json`, MCP SDK, Supabase keys, shadcn/ui,
+  Tailwind), check current docs instead of relying on memory.
 
 ## Code style
 - TypeScript strict, no `any`. Functional React components with hooks.

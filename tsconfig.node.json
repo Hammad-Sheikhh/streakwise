@@ -23,5 +23,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "netlify", "e2e", "build", "supabase"]
+  "include": ["vite.config.ts", "playwright.config.ts", "server", "api", "e2e", "build", "supabase"]
 }

@@ -10,7 +10,7 @@
     "node": ">=24.0.0 <25.0.0"
   },
   "scripts": {
-    "dev": "netlify dev",
+    "dev": "vercel dev",
     "dev:vite": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -29,6 +29,7 @@
     "@modelcontextprotocol/server": "^2.3.0",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-query": "^5.104.1",
+    "@vercel/functions": "^3.10.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "date-fns": "^4.4.0",
@@ -45,7 +46,6 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
-    "@netlify/functions": "^6.0.2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",

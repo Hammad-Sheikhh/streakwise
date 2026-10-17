@@ -28,9 +28,9 @@ Everything else is Claude Code's job.
 |---|---|---|
 | Setup | Approve a few installs; log in to GitHub in your browser | ~10 min |
 | Setup | Choose the app's name from Claude Code's suggestions | 2 min |
-| Setup | Create free Netlify and Supabase accounts | ~10 min |
-| Setup | Create 2 Supabase databases (test + real) and paste their keys into the `.env` file | ~15 min |
-| Setup | Connect the repo to Netlify and add the secret settings | ~15 min |
+| Setup | Create free Vercel and Supabase accounts | ~10 min |
+| Setup | Create the Supabase database and paste its keys into the `.env` file | ~15 min |
+| Setup | Connect the repo to Vercel and add the secret settings | ~15 min |
 | After milestone 1 | Paste the database setup code into each Supabase database and click Run | ~5 min |
 | 4 times (after milestones 2, 4, 6, 8) | Say yes when Claude Code asks to update the live site | 1 min each |
 | After milestone 4 | Add the Claude connector, then test it in a chat | ~10 min |
@@ -47,15 +47,15 @@ Everything else is Claude Code's job.
 | Report a problem | "Something's wrong:" and paste the **whole** error or describe what you saw |
 | Undo something | "Undo the last change." or "Go back to how it was before this milestone." |
 | Stop for the day | "Save your progress, I'm stopping for today." |
-| Check the Netlify budget | "How many live updates have we used this month?" |
+| Check the Vercel project | "Is Vercel working? Any usage warnings?" |
 | Start fresh after a milestone | Type `/clear`, then the start phrase above |
 
 ## Golden rules
 
 1. **Start every session with the start phrase.** docs/PROGRESS.md remembers where you are, so nothing gets lost between sessions.
 2. **Type `/clear` after each milestone.** A fresh session works better than one long one.
-3. **Never paste secret keys into the chat.** They go only into the `.env` file (in VS Code) or into Netlify's settings.
-4. **Only say yes to "update the live site" when you're ready.** Each update uses about 15 of Netlify's 300 free monthly credits.
+3. **Never paste secret keys into the chat.** They go only into the `.env` file (in VS Code) or into Vercel's settings.
+4. **Only say yes to "update the live site" when you're ready.** Vercel's free Hobby plan lets us deploy every day, so updates are cheap — but a release still swaps out the live app, so say yes only when you've seen the change work.
 5. **When something breaks, paste the whole error.** Don't summarise it.
 
 ## If something goes wrong
@@ -65,7 +65,7 @@ Everything else is Claude Code's job.
 | You hit your Claude usage limit mid-work | Nothing important is lost, because Claude Code saves its work often. When your limit resets, use the start phrase. |
 | "running scripts is disabled on this system" | Tell Claude Code: "Fix the PowerShell script permission." |
 | Claude Code seems confused or goes in circles | Type `/clear`, then the start phrase. |
-| The live site stopped working | Say: "The live site is down — help me check Netlify credits and whether Supabase is paused." |
+| The live site stopped working | Say: "The live site is down — help me check Vercel and whether Supabase is paused." |
 | Claude can't reach your app | Say: "The Claude connector isn't working — help me debug it." |
 | You think a secret leaked (e.g. you pasted it somewhere public) | Say: "A secret may have leaked — help me replace it." |
 
@@ -81,10 +81,10 @@ Everything else is Claude Code's job.
 - **Explain as you build:** before each step, say in 1–2 plain sentences what you're doing and why.
   When you must use a technical word, define it once.
 - **Ask before big decisions:** changes to the stack, scope, or data model, and anything that costs money
-  or Netlify credits. Small implementation choices are yours.
+  or host resources. Small implementation choices are yours.
 - **Manual steps:** one step at a time, with exact clicks or commands, then wait for the owner to confirm.
 - **Never ask the owner to paste secrets into the chat.** Secrets go in `.env` (which the owner edits
-  in VS Code) or in Netlify. Never print secret values in the terminal.
+  in VS Code) or in Vercel. Never print secret values in the terminal.
 - This is a **portfolio project**. Work like a professional developer.
 - **docs/SPEC.md is the source of truth** for what to build: requirement IDs, priorities, milestones
   (§B14), and the definition of done (§B14.3).
@@ -107,7 +107,7 @@ Update PROGRESS.md "Current work" whenever the direction changes.
 
 **Where PROGRESS.md changes go:** on the current milestone branch. Between milestones (for example,
 logging a release), a commit that changes **only** `docs/PROGRESS.md` may go straight to `develop`.
-It's the only exception to "never commit straight to `develop`", and it doesn't trigger a Netlify build.
+It's the only exception to "never commit straight to `develop`", and it doesn't trigger a Vercel build.
 
 Until Step 4 creates these files, work from SETUP.md and SPEC.md in the project root.
 
@@ -122,7 +122,7 @@ In PowerShell, check each tool. Tell the owner what's missing before installing 
 | Node.js LTS (v20+) | `node -v` | `winget install OpenJS.NodeJS.LTS` |
 | Git | `git --version` | `winget install Git.Git` |
 | GitHub CLI | `gh --version` | `winget install GitHub.cli` |
-| Netlify CLI | `netlify --version` | `npm install -g netlify-cli` |
+| Vercel CLI | `vercel --version` | `npm install -g vercel` |
 
 - If `winget` isn't available, guide the owner to the official installer for each tool instead.
 - After any install, ask the owner to **close and reopen the VS Code terminal**.
@@ -143,17 +143,17 @@ The owner picks one. Use it as the **app name** (e.g. `StudyLoop`) and the **rep
 
 Confirm the owner has these, and walk them through creating any that are missing:
 1. **GitHub** (they already have one)
-2. **Netlify**, free plan: "Sign up with GitHub"
+2. **Vercel**, free Hobby plan: "Continue with GitHub"
 3. **Supabase**, free plan: "Continue with GitHub"
 
-Don't create the Supabase projects or the Netlify site yet. That happens in Steps 7 and 8.
+Don't create the Supabase projects or the Vercel project yet. That happens in Steps 7 and 8.
 
 ## Step 4 — Project files
 
 1. Move `SETUP.md` and `SPEC.md` into a `docs/` folder. Replace every `<APP_NAME>` in `docs/SPEC.md` with the chosen name.
 2. Create `CLAUDE.md` in the root with exactly the content in **Appendix A**, filling in `<APP_NAME>`.
 3. Create `docs/PROGRESS.md` from **Appendix B**.
-4. Create `.gitignore` (Node, Vite, `.env`, `.env.*` except `.env.example`, `.netlify`, `playwright-report`,
+4. Create `.gitignore` (Node, Vite, `.env`, `.env.*` except `.env.example`, `.vercel`, `playwright-report`,
    `test-results`) and `.gitattributes` (`* text=auto eol=lf`), so Windows line endings don't cause CI noise.
 
 ## Step 5 — Create the repository
@@ -178,22 +178,23 @@ Set up a professional foundation with no features yet, just a placeholder page.
 - Vitest + React Testing Library, with one sample test
 - Playwright installed and configured (the end-to-end tests come in later milestones)
 - `.nvmrc` and `engines` pinned to the Node LTS major version
-- npm scripts: `dev` (`netlify dev`; it works fully after Step 8 links the site), `build`, `preview`,
+- npm scripts: `dev` (`vercel dev`; it works fully after Step 8 links the Vercel project), `build`, `preview`,
   `lint`, `typecheck`, `test`, `test:e2e`, `format`
 
 **Structure:** create the folders from SPEC §B12, plus a sample pure function in `src/core/logic` with a test.
 
-**Backend:** a `health` function in `netlify/functions/` (OPS-1), in the modern function format with `config.path`.
+**Backend:** a `health` handler in `server/functions/` (OPS-1), imported by the single Vercel entry in `api/server.ts`.
 
 **Config and repo files**
-- `netlify.toml`:
-  - build command, publish dir, and functions dir
-  - `NODE_VERSION`
-  - SPA fallback
-  - an `ignore` command that skips builds when only docs or Markdown changed (SPEC §B14.1)
-- `build/security-headers.ts`: security headers, and `X-Robots-Tag: noindex` for `/r/*`, written to
-  `dist/_headers` only by builds on Netlify (in `netlify.toml` they would blank the local dev page)
-- `.env.example` with names only: `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `APP_PASSCODE`, `SESSION_SECRET`, `MCP_SECRET`
+- `vercel.json`:
+  - build command, install command, and `outputDirectory`
+  - regions close to the database (Singapore)
+  - SPA fallback (`/(.*)` → `/index.html`) and rewrites sending `/api/*`, `/auth/*`, `/mcp/*`,
+    `/.well-known/*` to `api/server.ts`
+  - an `ignoreCommand` (`scripts/vercel-ignore.sh`) that skips builds when only docs or Markdown changed (SPEC §B14.1)
+- `build/security-headers.ts`: the single source of the security headers, and `X-Robots-Tag: noindex`
+  for `/r/*`; a test keeps `vercel.json` in sync with it
+- `.env.example` with names only: `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SESSION_SECRET`
 - `.github/workflows/ci.yml`: on PRs to `develop`/`main` and pushes to them, run lint, typecheck, test, and build
   (Node LTS, npm cache). The end-to-end job is added in M7.
 - `.github/pull_request_template.md`: What · Why · Spec IDs · How to test (preview link) · Screenshots · Checklist
@@ -227,37 +228,33 @@ Walk the owner through this one step at a time:
    `APP_PASSCODE` and type it into `.env` themselves.
 5. Record both projects (names only, no keys) in PROGRESS.md.
 
-## Step 8 — Netlify (owner, with your guidance)
+## Step 8 — Vercel (owner, with your guidance)
 
-Walk the owner through this one step at a time. If a menu has moved, check the current Netlify docs.
+Walk the owner through this one step at a time. If a menu has moved, check the current Vercel docs.
 
-1. In Netlify, import the GitHub repo. The build settings come from `netlify.toml`.
-   The **production branch is `main`**.
-2. Turn on **branch deploys for `develop`** (free). Keep **deploy previews** on (free), and make sure they
-   also cover pull requests against branch-deploy branches, so PRs into `develop` get a preview.
-3. Add environment variables, **scoped by deploy context**:
+1. On **vercel.com**, create the project: Dashboard → **Add New → Project**, import the GitHub repo,
+   and pick a project name (this becomes `<name>.vercel.app`). The build settings come from
+   `vercel.json` (framework "Other"), and the **production branch is `main`**.
+2. Check **Settings → Git → Production Branch** is `main`; preview deployments for `develop` and
+   pull requests are automatic (no charge).
+3. In **Settings → General**, set the **Node.js Version** to 24.x (it should match `.nvmrc` and `engines`).
+4. Add environment variables (Settings → Environment Variables, or the Vercel CLI:
 
-   | Variable | Production | Deploy previews, branch deploys, local development |
+   | Variable | Production | Preview / Development |
    |---|---|---|
-   | `SUPABASE_URL` | prod project | dev project |
-   | `SUPABASE_SECRET_KEY` | prod project | dev project |
-   | `APP_PASSCODE` | the owner's passcode | the owner's passcode |
-   | `SESSION_SECRET` | the value from `.env` | the value from `.env` |
-   | `MCP_SECRET` | a **new** random value | the value from `.env` |
+   | `SUPABASE_URL` | the project's URL | the same value |
+   | `SUPABASE_SECRET_KEY` | the secret key | the same value |
+   | `SESSION_SECRET` | random ≥ 32 chars | the same value (a different one logs others out) |
 
-   - Production values must **never** be used outside the Production context.
-   - For the new production `MCP_SECRET`, write a random value into a temporary `.env.production.local` file
-     (gitignored by the `.env.*` rule) without printing it. The owner copies it into Netlify, then you
-     delete the file.
-   - The owner types the passcode and secret values into Netlify themselves.
-
-4. The first deploy of `main` counts as release **R0**. Record it in PROGRESS.md.
-   Check `https://<site>.netlify.app/api/health`.
-5. Save the production URL as a GitHub repo variable for the keep-alive workflow:
-   `gh variable set PROD_URL --body "https://<site>.netlify.app"`
-6. Run `netlify link` locally so `npm run dev` works with functions.
-7. Explain to the owner, in plain words, the difference between deploy previews, the `develop` branch deploy,
-   and the live site, and why only live updates cost credits.
+   With the CLI: `vercel env add SUPABASE_URL production preview` etc. Values are read from `.env`
+   via PowerShell piping so they never appear in the terminal.
+5. The first deploy of `main` counts as release **R0**. Record it in PROGRESS.md.
+   Check `https://<name>.vercel.app/api/health`.
+6. Save the production URL as a GitHub repo variable for the keep-alive workflow:
+   `gh variable set PROD_URL --body "https://<name>.vercel.app"`
+7. Run `vercel link` locally so `npm run dev` works with functions (`vercel dev` serves the app and the API).
+8. Explain to the owner, in plain words, the difference between preview deployments, the `develop`
+   preview, and production, and that Vercel's Hobby plan charges nothing per deploy (100 deploys a day).
 
 ## Step 9 — Build the app (M1 → M8)
 
@@ -272,8 +269,8 @@ For each milestone:
 5. Squash-merge and update `develop`. Give the owner the `develop` branch-deploy link and 2–4 things to
    try on their phone (optional for them).
 6. **At a release point (R1–R4):** say to the owner:
-   *"Ready to update the live site? It uses about 15 of the 300 free monthly credits; we've used N this month."*
-   Only when they say yes:
+   *"Ready to update the live site?"* Vercel's Hobby plan charges nothing per deploy, but the live app
+   still changes, so only proceed when they say yes:
    - Open a PR from `develop` → `main` titled "Release R#: …" and wait for CI.
    - Merge it with a **merge commit** (`gh pr merge --merge`), never a squash, so `main` and `develop` stay in sync.
    - Check `/api/health` on the live site.
@@ -287,11 +284,11 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
 ## Step 10 — Connect Claude (after R2)
 
 1. First test the MCP server yourself with MCP Inspector (`npx @modelcontextprotocol/inspector`) against
-   the `develop` branch deploy: `https://develop--<site>.netlify.app/mcp/<dev MCP_SECRET>`.
-2. Then walk the owner through adding the **production** URL `https://<site>.netlify.app/mcp/<prod MCP_SECRET>`
-   to Claude as a **custom connector**. The owner copies it from Settings → Claude connection (SET-4), or from
-   Netlify if SET-4 was cut. Check the current Claude help docs for where custom connectors are added;
-   don't guess menu paths.
+   the preview deployment for the `develop` branch (find its URL in the Vercel dashboard): it looks like
+   `https://streakwise-git-develop-<team>.vercel.app/mcp/<dev link token>`.
+2. Then walk the owner through adding the **production** URL `https://<name>.vercel.app/mcp/<their link>`
+   to Claude as a **custom connector**. The owner copies it from Settings → Claude connection (SET-4).
+   Check the current Claude help docs for where custom connectors are added; don't guess menu paths.
 3. Test together in a Claude chat:
    - "What tracks do I have?"
    - "Log 30 minutes of Exam Prep flashcards for today."
@@ -299,8 +296,8 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
 
    Confirm the session appears in the app with the "via Claude" badge.
 4. Tell the owner: **anyone with this URL can read and change their tracker. Never share it.**
-   If it leaks: generate a new `MCP_SECRET` for production in Netlify, release (this uses credits),
-   and update the connector URL in Claude.
+   If it leaks: they make a new link in Settings → Claude connection and update the connector URL in
+   Claude; the old link stops working at once.
 
 ## Step 11 — Finish (R4)
 
@@ -312,7 +309,7 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
    - how the MCP server works
    - local setup, environment variables (names only), and testing
    - future improvements
-3. GitHub repo description and topics: `react`, `typescript`, `vite`, `tailwindcss`, `netlify`, `supabase`, `mcp`, `pwa`.
+3. GitHub repo description and topics: `react`, `typescript`, `vite`, `tailwindcss`, `vercel`, `supabase`, `mcp`, `pwa`.
 4. Release R4, then tag it and create a GitHub release: `gh release create v1.0.0 --generate-notes`.
 5. Give the owner a 5-line project summary for their portfolio or LinkedIn.
 
@@ -323,9 +320,8 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
 | Situation | Action |
 |---|---|
 | CI fails | Read the failing job log with `gh run view --log-failed`, fix the smallest cause, and push. Don't disable checks. |
-| Netlify build fails | Ask the owner to open the deploy log and copy the error lines, or use the Netlify CLI. Fix and push. |
-| Netlify secret scanning fails the build | A secret value reached the bundle or build output. Find out why and remove it; never just silence the scanner. |
-| Netlify credits low | Stop releasing. Tell the owner the remaining budget and when it resets. |
+| Vercel build fails | Open the deployment in the Vercel dashboard (or `vercel logs`) and copy the error lines. Fix and push. |
+| A build deploys broken-looking pages locally | `vercel dev` proxies the function and the static app; make sure `vercel link` was run and env vars are set. |
 | Supabase **prod** project paused | Guide the owner to restore it from the Supabase dashboard. Then check the keep-alive workflow is running (GitHub disables scheduled workflows in public repos after 60 days without repository activity; re-enable it in the Actions tab). |
 | Supabase **dev** project paused | Expected after a week without building, because keep-alive only covers prod. Guide the owner to restore it from the dashboard before testing previews. |
 | The owner reports a bug on the live site | Fix it on a branch from `develop`, merge, then propose a release. It needs the owner's yes and counts toward the monthly budget. |
@@ -350,18 +346,18 @@ Record both runs in PROGRESS.md. Any later migration follows the same steps.
 
 ## The owner
 - Not technical, on Windows (PowerShell). Explain each step in 1–2 plain sentences; define jargon once.
-- Ask before big decisions (stack, scope, data model, anything that costs money or Netlify credits).
+- Ask before big decisions (stack, scope, data model, anything that costs money or host resources).
 - Manual steps: one at a time, exact clicks/commands, then wait for confirmation.
 - When the owner pastes an error: fix the smallest thing, explain the cause in one sentence,
   and don't rewrite working code.
-- Never ask for secrets in chat. Secrets go only in `.env` (owner edits it) or Netlify. Never print secret values.
+- Never ask for secrets in chat. Secrets go only in `.env` (owner edits it) or Vercel. Never print secret values.
 
 ## Source of truth
 docs/SPEC.md: requirement IDs, MUST/SHOULD/COULD priorities, milestones (§B14.2), definition of done
 (§B14.3), cut order (§B14.5). Don't change scope without the owner's OK; record changes in SPEC §B15.
 
 ## Commands
-- `npm run dev`        app + functions locally (netlify dev, uses the dev database)
+- `npm run dev`        app + functions locally (vercel dev, uses the dev database)
 - `npm run lint`       ESLint
 - `npm run typecheck`  tsc --noEmit
 - `npm test`           Vitest (unit, service, component, MCP)
@@ -369,7 +365,7 @@ docs/SPEC.md: requirement IDs, MUST/SHOULD/COULD priorities, milestones (§B14.2
 - `npm run build`      production build
 Run lint, typecheck, and test before every push.
 
-## Branches and deploys (Netlify free plan: 300 credits/month; ~15 per production deploy)
+## Branches and deploys (Vercel Hobby plan, free; ~100 deployments a day)
 - Feature branches from `develop`; PRs into `develop` (`gh pr create --base develop`), squash-merged when
   CI is green. Previews are free.
 - `main` = production. Merge `develop` → `main` only at release points (SPEC §B14.2) after the owner
@@ -389,7 +385,8 @@ Run lint, typecheck, and test before every push.
 - Time zone Asia/Karachi; weeks Mon–Sun; durations are integer minutes.
 - DB changes only via new numbered files in `supabase/migrations/`; never edit one that was applied.
   Atomic multi-step writes use Postgres functions (RPC).
-- For fast-changing APIs (Netlify Functions, MCP SDK, Supabase keys, shadcn/ui, Tailwind), check
+- For fast-changing APIs (Vercel Functions, `vercel.json` routing, the MCP SDK, Supabase keys,
+  Tailwind), check
   current docs instead of relying on memory.
 
 ## Code style
@@ -438,11 +435,12 @@ _Last updated: <date> by Claude Code_
 
 ## Owner's manual steps
 - [ ] GitHub CLI logged in
-- [ ] Netlify account
+- [ ] Vercel account
 - [ ] Supabase account
 - [ ] Supabase dev project created, keys in `.env`
 - [ ] Supabase prod project created
-- [ ] Netlify site connected, env vars set per context, branch deploys for `develop` on
+- [ ] Vercel project connected, env vars set, `develop` and PR previews automatic
+      (preview URLs for `develop`; production branch `main`)
 - [ ] PROD_URL repo variable set
 - [ ] Claude custom connector added (after R2)
 
