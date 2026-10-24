@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-10 by Claude Code (owner chose to move hosting to Vercel; next session: the Vercel move, then M8 and R4)_
+_Last updated: 2026-10-17 by Claude Code (built the Vercel move on `chore/vercel`: one dispatch function, `vercel.json`, header sync tests, docs; next: owner creates the Vercel account, first preview deploy, then M8 and R4)_
 
 ## Milestones
 
@@ -58,12 +58,9 @@ One database for everything (D15), so each migration runs once.
 - [x] Supabase account
 - [x] Supabase project `streakwise-dev` created (Southeast Asia / Singapore), keys in `.env`, connection verified
 - [x] ~~Supabase prod project created~~ Not needed: one project for everything (SPEC D15)
-- [x] Netlify site connected (`streakwise-ap`, production branch `main`)
-- [x] Netlify branch deploys for `develop` turned on by the owner (verified after #6:
-      https://develop--streakwise-ap.netlify.app)
-- [x] Netlify env vars set via the Netlify API from `.env` (5 vars; 4 marked secret, scopes builds/functions/runtime;
-      `MCP_SECRET` has its own Production value, temp file deleted)
-- [x] Netlify CLI logged in and folder linked (`netlify link`); `netlify dev` serves `/api/health` locally
+- [x] Netlify (previous host, being retired after the Vercel move): site `streakwise-ap` connected with
+      production branch `main`, branch deploys for `develop`, env vars via the Netlify API, CLI linked
+      (`netlify dev` served `/api/health` locally)
 - [x] PROD_URL repo variable set
 - [x] Run `supabase/migrations/0001_initial.sql` in the Supabase SQL Editor (M1)
 - [x] Try M2 on the deploy preview (owner logged, checked, and deleted a real test session)
@@ -103,15 +100,74 @@ One database for everything (D15), so each migration runs once.
 - [x] OK to merge the cleanup PR #27 into `develop` (owner, 2026-10-10; merged)
 - [ ] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (unused since #27). They are simply not copied to
       Vercel; Netlify's copies go away when the Netlify project is deleted
-- [ ] Vercel move (next session, explain each in detail, checking current Vercel docs first):
+- [ ] Vercel move (each step explained in detail when we reach it; current Vercel docs checked 2026-10-10
+      and code work is done on `chore/vercel`):
   - [ ] Create a free Vercel account with "Continue with GitHub" (Hobby plan, no card)
+  - [ ] Tell Claude Code the project name/address you picked (this decides `streakwise.vercel.app` and the
+        Supabase redirect URLs)
   - [ ] Import the `streakwise` repo into Vercel (or let Claude Code do it with the Vercel CLI after `vercel login`)
   - [ ] Supabase → Authentication → URL Configuration: new Site URL + redirect URLs for the Vercel addresses
+  - [ ] Check the Vercel preview together (the checklist in the session log below)
+  - [ ] Say yes to release R4-the-first-Vercel-release (or first an R4.0 preview check) when it works
   - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
         connector in Claude
   - [ ] Delete the Netlify project (only after Vercel is confirmed working)
 
 ## Current work / next step
+
+**2026-10-17: the Vercel move is built on `chore/vercel` (branch from `develop`, PR into `develop` next).**
+Waiting on the owner to create the Vercel account before anything deploys, so the branch is pushed for
+CI and the PR is opened with the owner's OK to merge.
+
+- One deployed function: `api/server.ts` (Vercel Function, web `Request`/`Response` via the
+  `fetch` handler). Vercel's docs recommend a single shared function with rewrites for framework-less
+  projects, so fluid compute can reuse warm instances across routes.
+- `server/functions/_lib/router.ts`: the route table with exactly the old `config.path` patterns and
+  method lists; extracts `:id`/`:secret`/`:slug` params, 405s wrong methods with `Allow`, and answers
+  the same plain 404 for unknown `/api`, `/auth`, `/mcp` paths (never the SPA shell).
+- The per-route handler files now export only `create…Handler(getDeps)` factories (no Netlify
+  default export, no `config`, no `@netlify/functions` import); `health`/`well-known` are named
+  functions. `server/functions/_lib/api.ts` defines `RequestHandler` + `HandlerContext { ip, params }`.
+- Folder renamed `netlify/` → `server/` (git rename), tests included; `netlify.toml` and
+  `scripts/netlify-ignore.sh` deleted; `scripts/vercel-ignore.sh` added (same docs-only skip rule,
+  using `VERCEL_GIT_PREVIOUS_SHA`).
+- `vercel.json`: framework null, build `npm run build`, output `dist`, dev `npm run dev:vite`,
+  regions `["sin1"]` (Singapore, same region as Supabase), `maxDuration` 30 for `api/server.ts`,
+  ignoreCommand, rewrites (4 API prefixes → `/api/server`, then SPA fallback `/(.*)` → `/index.html`),
+  and the same security headers (CSP unchanged, `/r/*` noindex, `/sw.js` no-cache, manifest
+  content-type, `assets/*` immutable).
+- `build/security-headers.ts` is now only the single source of header rules + conversion for
+  vercel.json patterns; its test asserts vercel.json matches it exactly (replaces the old
+  `dist/_headers` emission and the `NETLIFY=true` gate).
+- Dependencies: `@netlify/functions` removed, `@vercel/functions` added (3.10.1; `ipAddress(request)`
+  fills the handler `ip` for rate limiting).
+- Docs updated for Vercel: CLAUDE.md, README, SETUP.md (hosting parts; `APP_PASSCODE`/`MCP_SECRET`
+  dropped from its guides), SPEC (§A4, §B8, §B12, §B14.1, G6, ACCT-1, MCP-2, OPS-4, D8 note, D20 added),
+  architecture.md (diagram, folders, dispatch note, environments table).
+- Tests: 395 unit/component pass locally (7 new router tests pin params, 405s, 404s, no SPA
+  fallthrough); lint, typecheck, prettier, and the production build are green.
+
+**Next when the Vercel account exists (in order):**
+
+1. Owner: create the account with GitHub, tell us the project name; owner deletes the unused
+   `APP_PASSCODE`/`MCP_SECRET` from `.env` (their only remaining use).
+2. Claude Code: `vercel login` (owner's browser), link/create the project, set env vars on Vercel from
+   `.env` by piping (never printed): `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SESSION_SECRET`
+   (same values as before; a different `SESSION_SECRET` would log everyone out). Deploy the
+   `chore/vercel` branch as a preview first.
+3. Owner (Supabase dashboard): Authentication → URL Configuration — add the new Vercel URLs
+   (Site URL + redirects) next to the Netlify ones; Supabase Auth emails must open the new domain.
+4. Verify the preview: `/api/health` ok; login/logout; sign-up email link opens the right site;
+   `/api/nodes` reachable from the app; `/mcp/<token>` with MCP Inspector; `/r/<slug>` gets
+   `X-Robots-Tag: noindex` (and only `no-referrer` for Referrer-Policy); `/.well-known/*` 404; request
+   for a wrong method 405s; service worker never caches `/api`/`/mcp`/`/auth`.
+5. Merge `chore/vercel`, release R4.0 to Vercel production, then the owner makes a new Claude link and
+   replaces the connector; update `PROD_URL` repo variable to the Vercel production URL; update README
+   links with the real address.
+6. Only then: owner deletes the Netlify project (old `/r/...` share links and the old Claude connector
+   stop working at that point).
+
+Open question: Vercel project name/address (owner picks during account setup; e.g. `streakwise.vercel.app`).
 
 **2026-10-10: owner's decision (D20): move hosting from Netlify to Vercel's free Hobby plan.** The owner
 released once more on Netlify (R3a) and then moves. The move is the **next session's work**, before M8.

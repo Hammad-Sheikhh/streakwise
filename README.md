@@ -7,8 +7,8 @@ and let Claude log sessions and analyse your progress for you.
 [![CI](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Live app:** [streakwise-ap.netlify.app](https://streakwise-ap.netlify.app) ·
-**Try it without an account:** [demo mode](https://streakwise-ap.netlify.app/demo)
+**Live app:** hosted on Vercel (Hobby plan) — production URL is set after the first release ·
+**Try it without an account:** the `/demo` page of the live site opens the full app on sample data
 
 > 🚧 **Active development.** Core features are live. A final polish pass is next
 > (see [Roadmap](#roadmap)).
@@ -63,12 +63,12 @@ and let Claude log sessions and analyse your progress for you.
 ## How it works
 
 ```
-Browser (React)  ──►  DataSource  ──►  /api  (Netlify Functions)  ──►  Supabase Postgres
+Browser (React)  ──►  DataSource  ──►  /api  (Vercel Functions, one dispatcher)  ──►  Supabase Postgres
                          │                       ▲
                          │                       │ same core services
                          └─► Demo mode ──►  core services + in-memory store (in the browser)
 
-Claude  ──►  /mcp/<your link>  (Netlify Function, MCP server)  ──►  core services
+Claude  ──►  /mcp/<your link>  (MCP server function)  ──►  core services
 ```
 
 - **One set of business rules.** All calculations (roll-ups, streaks, targets, neglect, reports)
@@ -88,7 +88,7 @@ More detail: [Architecture](docs/architecture.md).
 ## Tech stack
 
 React 19 · TypeScript (strict) · Vite · Tailwind CSS · shadcn/ui · TanStack Query · React Router ·
-Zod · date-fns · Netlify Functions · Supabase (Postgres + Auth) · Model Context Protocol SDK ·
+Zod · date-fns · Vercel Functions · Supabase (Postgres + Auth) · Model Context Protocol SDK ·
 Vitest · React Testing Library · Playwright · GitHub Actions
 
 ## Quality
@@ -103,12 +103,12 @@ Vitest · React Testing Library · Playwright · GitHub Actions
 
 ## Running it locally
 
-Requirements: Node 24, a Supabase project, and the Netlify CLI.
+Requirements: Node 24, a Supabase project, and the Vercel CLI.
 
 ```bash
 npm install
 cp .env.example .env   # then fill in your own values (never commit .env)
-npm run dev            # app + functions via netlify dev
+npm run dev            # app + functions via vercel dev (run vercel link first)
 ```
 
 | Command             | What it does                             |
@@ -129,7 +129,7 @@ Full setup steps: [Setup guide](docs/SETUP.md).
 src/core/        business rules: types, Zod schemas, pure logic, services, in-memory store
 src/data/        DataSource interface, API and demo implementations, query hooks
 src/features/    screens: dashboard, log, history, tasks, scores, tracks, reports, settings, share
-netlify/functions/   thin API handlers and the MCP server
+server/functions/   thin API handlers and the MCP server (one dispatcher per request: api/server.ts)
 supabase/        migrations and their tests
 e2e/             Playwright tests
 docs/            specification, architecture, setup, progress

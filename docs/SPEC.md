@@ -80,14 +80,16 @@ Visitors to your portfolio get a **demo with made-up data**, so your real data s
 
 ## A4. How it stays free
 
-- **Netlify** (hosting): the free plan gives 300 credits a month. Each update of the **live site**
-  costs about 15 credits, so about 20 live updates a month. If the credits run out, the site can stop
-  working until the next month. **Test versions (previews) are free.** So Claude Code builds on a test
-  branch and updates the live site only about **5 times during the whole build**, and always asks you first.
+- **Vercel** (hosting, D20: the owner moved Streakwise from Netlify to Vercel's free Hobby plan on
+  2026-10-10): no cost per deploy (about 100 deployments a day on the Hobby plan) and 1M function
+  requests a month, which is far above what personal use needs. The plan is for non-commercial,
+  personal use only, which fits this app. **Test versions (previews) are free too.** Live-site
+  updates are still release points, and Claude Code always asks you first.
 - **Supabase** (database): the free plan **pauses a database after 7 days without use** and has no
   automatic backups. The app pings your real database automatically every few days, and you can
   download a full backup from Settings at any time.
-- **Two databases:** one for testing and one for your real data, so experiments never touch your real log.
+- **One database** (D15): a single Supabase project serves testing previews and the live site, so
+  migrations run once. Test features in demo mode first.
 - GitHub is free for public projects. Building uses your Claude subscription.
 
 ## A5. When you can start using it
@@ -113,8 +115,8 @@ The whole build takes roughly **10–13 Claude Code sessions**, split into 9 mil
 | **Production / live site** | The real site you use every day |
 | **Release** | Updating the live site with everything finished so far |
 | **Migration** | A file that creates or changes the database's tables |
-| **Environment variable** | A secret setting (like a password) stored in Netlify, never in the code |
-| **Netlify Function** | A small piece of server code that talks to the database |
+| **Environment variable** | A secret setting (like a password) stored in Vercel, never in the code |
+| **Function** | A small piece of server code that talks to the database |
 | **RLS** | A database lock that makes sure only the server can read your data |
 | **MCP / connector** | How Claude connects to your app |
 | **PWA** | A website you can install like an app |
@@ -132,7 +134,7 @@ The whole build takes roughly **10–13 Claude Code sessions**, split into 9 mil
 | G3 | Reports can be sent to a teacher or parent unchanged |
 | G4 | Claude can log sessions and analyse progress through MCP |
 | G5 | A portfolio visitor can use the full app in demo mode without touching real data |
-| G6 | Runs entirely on free tiers (Netlify, Supabase, GitHub) |
+| G6 | Runs entirely on free tiers (Vercel, Supabase, GitHub) |
 
 ## B2. Actors and access
 
@@ -200,7 +202,7 @@ Online Course      color: violet
 ### B5.1a Accounts (ACCT) — added by D17, replaces the passcode (AUTH-1, AUTH-2)
 | ID | Priority | Requirement |
 |---|---|---|
-| ACCT-1 | MUST | Accounts live in **Supabase Auth**, called only by Netlify Functions (D5 still holds: the browser never talks to Supabase). Anyone can sign up at `/signup` with name, email and a password of at least 8 characters. |
+| ACCT-1 | MUST | Accounts live in **Supabase Auth**, called only by the server functions (D5 still holds: the browser never talks to Supabase). Anyone can sign up at `/signup` with name, email and a password of at least 8 characters. |
 | ACCT-2 | MUST | When email sending is set up, a new account must confirm its email before it can log in. The confirmation link opens `/auth/confirm` on our site (token-hash flow), never a Supabase page. |
 | ACCT-3 | MUST | `/login` has email + password, "Forgot password?", "Create an account", and "Try the demo". A correct login sets a signed, httpOnly, Secure, SameSite=Strict session cookie for that user, valid for 30 days (Supabase Auth checks the password only at login). Changing the password logs out other devices. Wrong details show one calm message that doesn't reveal whether the email exists. |
 | ACCT-4 | MUST | Forgot password emails a one-time reset link that opens `/reset-password` on our site, where a new password is chosen. The response never reveals whether the email has an account. |
@@ -349,7 +351,7 @@ Online Course      color: violet
 | ID | Priority | Requirement |
 |---|---|---|
 | MCP-1 | MUST | The endpoint is `/mcp/:secret`. ~~The secret is compared to `MCP_SECRET` in constant time~~ Since D17 the secret is the user's own token (ACCT-8), looked up by its hash; no match returns 404. |
-| MCP-2 | MUST | Uses the official MCP TypeScript SDK with the Streamable HTTP transport, stateless, inside a Netlify Function. Check the current SDK docs and any current Netlify guidance on hosting MCP servers, and verify with MCP Inspector before connecting Claude. |
+| MCP-2 | MUST | Uses the official MCP TypeScript SDK with the Streamable HTTP transport, stateless, inside a server function. Check the current SDK docs and any current guidance on hosting MCP servers, and verify with MCP Inspector before connecting Claude. |
 | MCP-3 | MUST | The server's `instructions` explain tracks/subtasks/topics, tasks, scores, the time zone, and that durations are in minutes. |
 | MCP-4 | MUST | Tools call the core services directly (not over HTTP) and return compact JSON text. Lists are capped (default 50, max 200) with a `truncated` flag. Each call updates the "last MCP call" time. |
 | MCP-5 | MUST | Node references accept an id, or a path like `School Subjects > Maths > Chapter 3` (case-insensitive, `>`-separated; a unique partial name like `maths` also works). An ambiguous or unknown reference returns an error listing up to 5 closest matches. |
@@ -381,7 +383,7 @@ Online Course      color: violet
 | OPS-1 | MUST | `GET /api/health` returns `{ ok: true, version }` without touching the database. |
 | OPS-2 | MUST | `GET /api/keepalive` does one trivial database read. A scheduled GitHub Actions workflow calls it on the production URL every 3 days (and on manual dispatch). The workflow skips quietly if the `PROD_URL` repository variable isn't set yet. |
 | OPS-3 | MUST | Server logs are structured and never contain secrets, passcodes, or note text. |
-| OPS-4 | MUST | Releases follow the deploy budget in §B14.1. |
+| OPS-4 | MUST | A production release only happens with the owner's explicit OK, at the release points in §B14.2, and is logged in PROGRESS.md. |
 
 ## B6. Screens and navigation
 
@@ -426,10 +428,13 @@ Names and types may be refined, but the rules below must hold.
 - **Enable RLS on every table with no policies**, and revoke execute on the RPC functions from `anon`
   and `authenticated`. Only the server's secret key can read or write.
 
-## B8. API (Netlify Functions)
+## B8. API (Vercel Functions)
 
-- Use Netlify's modern function format (Web-standard `Request`/`Response` handlers with `config.path`
-  routing). Check current Netlify docs. Everything is under `/api/`.
+- Host one deployable function (`api/server.ts`) that dispatches every `/api`, `/auth`, `/mcp`, and
+  `/.well-known` request to per-route handlers (`server/functions/*`), with the route patterns and
+  method lists from a table in `server/functions/_lib/router.ts`. Use web-standard `Request`/`Response`
+  handlers. Check the current Vercel docs (`vercel.json` rewrites/headers, Node runtime). Everything
+  is under `/api/` except `/auth/confirm`, `/mcp/:secret`, and the `/.well-known/*` 404 stub.
 - Handlers are thin: check auth → validate with Zod → call a core service → return JSON.
 - Errors use the shape `{ "error": { "code", "message" } }` with the right status code:
   400 validation, 401 not logged in, 404 not found, 409 conflict, 429 locked out, 500 unexpected.
@@ -515,10 +520,10 @@ swatches. No navigation or buttons. Sections avoid page breaks inside them. A we
   at most about 250 KB gzipped. Charts and the reports module are lazy-loaded.
 - **Security:**
   - The browser never talks to Supabase. Secrets exist only in environment variables.
-  - Nothing secret ends up in the frontend bundle or build output. Netlify's secret scanning may fail the build if it does.
+  - Nothing secret ends up in the frontend bundle or build output.
   - Zod validates every input on the server.
-  - Netlify builds set security headers (a CSP that works with the chosen libraries, X-Frame-Options,
-    Referrer-Policy, X-Content-Type-Options), via `build/security-headers.ts` → `dist/_headers`.
+  - vercel.json sets security headers (a CSP that works with the chosen libraries, X-Frame-Options,
+    Referrer-Policy, X-Content-Type-Options), kept in sync with `build/security-headers.ts` by a test.
   - RLS is enabled, logins are rate-limited (AUTH-5), and the MCP secret is compared in constant time.
 - **Privacy:**
   - Notes are off by default in reports, and shared links expose only their snapshot.
@@ -546,9 +551,11 @@ src/
     services/   use cases (logSession, buildReport, findGaps, ...); depend only on Repository
     repo/       Repository interface + InMemoryRepository
     demo/       sample-data generator (seeded random generator)
-netlify/functions/
-  _lib/         SupabaseRepository, session/auth, rate limiting, HTTP helpers
-  *.ts          thin API handlers
+api/
+  server.ts     the one deployed Vercel function; dispatches to the handlers below
+server/functions/
+  _lib/         SupabaseRepository, session/auth, rate limiting, HTTP helpers, route table
+  *.ts          thin per-route API handlers
   mcp.ts        MCP server (calls core services)
 supabase/migrations/
 e2e/            Playwright tests (run against /demo)
@@ -562,8 +569,9 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
   Because both use the same services, demo mode always matches the real app, with no duplicated logic.
 - `SupabaseRepository` implements `Repository` on the server. Multi-step writes that must be atomic use RPC (§B7).
 - Services receive a clock, so tests are deterministic.
-- Use current stable versions of all libraries. For fast-changing APIs (Netlify Functions, the MCP SDK,
-  Supabase keys, shadcn/ui, Tailwind), check the current docs instead of relying on memory.
+- Use current stable versions of all libraries. For fast-changing APIs (Vercel Functions and
+  `vercel.json` routing, the MCP SDK, Supabase keys, shadcn/ui, Tailwind), check the current docs
+  instead of relying on memory.
 
 ## B13. Testing and quality gates
 
@@ -584,23 +592,22 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 
 ### B14.1 Environments and the deploy budget
 
-| Branch | Netlify | Database | Cost |
+| Branch | Vercel | Database | Cost |
 |---|---|---|---|
-| Feature branches (PRs) | Deploy previews | Supabase (shared, see D15) | Free |
-| `develop` | Branch deploy | Supabase (shared, see D15) | Free |
-| `main` | **Production** | Supabase (shared, see D15) | About 15 credits per deploy (the free plan has 300 a month) |
+| Feature branches (PRs) | Preview deploy | Supabase (shared, see D15) | Free |
+| `develop` | Preview deploy | Supabase (shared, see D15) | Free |
+| `main` | **Production** | Supabase (shared, see D15) | Free on the Hobby plan (§A4; no per-deploy cost) |
 
-- Feature PRs target `develop` and are squash-merged. Deploy previews must be on for PRs against
-  branch-deploy branches, so PRs into `develop` get a free preview.
+- Feature PRs target `develop` and are squash-merged. Preview deployments are automatic for all
+  branches and pull requests.
 - **`main` only receives release PRs from `develop`**, at the release points below, after the owner says yes.
   Release PRs are merged with a **merge commit** (`gh pr merge --merge`), never squashed, so `main` and
   `develop` keep a shared history and later release PRs stay clean.
-- **No more than 8 production deploys per calendar month.** Log each one in docs/PROGRESS.md.
-- An urgent fix to the live site goes through the same path: a fix branch → `develop` → a release that
-  the owner approves and that counts toward the budget.
-- `netlify.toml` uses an `ignore` command to skip builds when only docs or Markdown files changed.
-- If the month's count reaches 6, ask the owner to check the credit usage in Netlify before releasing again.
-  If credits run low, stop releasing and tell the owner.
+- Log each production release in docs/PROGRESS.md (the owner's yes is the gate; see D20).
+- An urgent fix to the live site goes through the same path: a fix branch → `develop` → a release
+  that the owner approves.
+- `vercel.json` uses an `ignoreCommand` (`scripts/vercel-ignore.sh`) to skip builds when only docs
+  or Markdown files changed.
 
 ### B14.2 Milestones and releases
 
@@ -617,7 +624,7 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | M7 | `feat/demo-pwa` | DEMO-1–5 complete (sample data, banner, disabled features), PWA-1–3, end-to-end suite | — | — |
 | M8 | `chore/polish` | Accessibility and performance pass, empty states, README, screenshots, architecture.md | Final checklist (§B17) | **R4:** v1.0.0 |
 
-COULD items are built only if time allows (§B14.5). OPS-4 (the deploy budget) applies to every release.
+COULD items are built only if time allows (§B14.5). OPS-4 (the owner's OK for releases) applies to every release.
 
 ### B14.3 Definition of done (every milestone)
 - Every MUST item in the milestone works. SHOULD items are done or listed in PROGRESS.md as deferred.
@@ -664,7 +671,7 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D5 | The browser never talks to Supabase; functions use the secret key; RLS on with no policies | Simple, strong security for one user |
 | D6 | Core services are isomorphic; demo mode runs them in the browser | Demo parity, less code, easy testing |
 | D7 | MCP protected by a secret URL path | Single user; the simplest option that's secure enough |
-| D8 | `develop`/`main` split; at most 8 production deploys a month | Netlify free plan credit limit |
+| D8 | `develop`/`main` split; at most 8 production deploys a month (superseded on hosting by D20: Vercel charges nothing per deploy, but releases still need the owner's OK per OPS-4) | Netlify free plan credit limit |
 | D9 | ~~Two Supabase projects (dev and prod)~~ Superseded by D15 | Previews never touch real data |
 | D10 | Full schema in the first migration; seed runs automatically on first login | Fewer manual SQL steps for the owner |
 | D11 | Reports in English; notes off by default | The audience is teachers and parents |
@@ -676,6 +683,7 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D17 | **Accounts for other people (owner's request, 2026-10-08)**, replacing D1 and D7: open sign-up with email + password via **Supabase Auth** (a developer's advice the owner chose), confirmation and reset emails through Brevo SMTP sent from the owner's Gmail (no domain; owner accepted that some emails may land in spam), per-user data with `user_id` on every table (migration `0003`, backward compatible with the deployed code; `0004` after R3 removes the old single-user parts), one Claude link per user, existing data claimed by the owner with the old passcode. Built now as M5A, before M6. | Other people asked to use the app |
 | D18 | **General sample tracks (owner's request, 2026-10-09):** the seed for new accounts and the demo use Exam Prep (Flashcards, Practice), School Subjects (Maths, English), and Online Course, with a scored "Weekly self-test". The owner's own track names appear nowhere in the code, docs, or tests. Existing accounts keep their data. | The app is public; the starter tracks should suit any student, multitasker, or high achiever, and not reveal the owner's studies |
 | D19 | **Single-user leftovers removed (2026-10-10, as planned in D17):** after the owner claimed the old data, migration `0004` makes `user_id` required on every data table and drops the old `settings` table, the old RPCs, and the claim functions. The code drops the old-passcode form, `/api/auth/passcode`, the `sw_claim` cookie, and `APP_PASSCODE`; `MCP_SECRET` was already unused since D17. | Nothing is left to claim; fewer moving parts and no secret that no longer does anything |
+| D20 | **Hosting moves from Netlify to Vercel's free Hobby plan (owner's decision, 2026-10-10).** R3a was the last Netlify release. Vercel charges nothing per deploy (about 100 deployments a day on Hobby, 1M function requests a month) and fits the app's non-commercial use; limits: runtime logs kept 1 hour, non-commercial personal use only. The server moves to one deployed function (`api/server.ts`) that dispatches `/api/*`, `/auth/*`, `/mcp/*`, `/.well-known/*` to the unchanged handlers. Releases still need the owner's OK (OPS-4); R4 (v1.0.0) is the first Vercel release. | No deployment budget; Netlify credits were nearly exhausted, and Vercel's free limits are far above this app's traffic |
 
 ## B16. Out of scope
 
