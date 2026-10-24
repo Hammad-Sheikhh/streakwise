@@ -4,9 +4,9 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 
-import { AuthLayout } from './AuthLayout';
-import { ChangePasswordForm } from './ChangePasswordForm';
-import { useAccount } from './useAccount';
+import { AuthLayout } from './AuthLayout.js';
+import { ChangePasswordForm } from './ChangePasswordForm.js';
+import { useAccount } from './useAccount.js';
 
 // ACCT-4: where a reset link lands (after /auth/confirm logged the visitor in).
 export function ResetPasswordPage() {

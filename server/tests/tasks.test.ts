@@ -1,15 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { Task, TaskCompletion, TaskItem, TreeNode } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createCompletionHandler } from '../functions/completion';
-import { createNodeStatusHandler } from '../functions/node-status';
-import { createNodesHandler } from '../functions/nodes';
-import { createTaskHandler } from '../functions/task';
-import { createTaskCompleteHandler } from '../functions/task-complete';
-import { createTasksHandler } from '../functions/tasks';
-import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
+import type { Task, TaskCompletion, TaskItem, TreeNode } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createCompletionHandler } from '../functions/completion.js';
+import { createNodeStatusHandler } from '../functions/node-status.js';
+import { createNodesHandler } from '../functions/nodes.js';
+import { createTaskHandler } from '../functions/task.js';
+import { createTaskCompleteHandler } from '../functions/task-complete.js';
+import { createTasksHandler } from '../functions/tasks.js';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes.js';
 
 async function setup() {
   const t = testDeps();

@@ -1,8 +1,8 @@
-import type { AccountStore } from './accounts';
-import { readCookie, readSessionToken, SESSION_COOKIE } from './auth';
-import { forUser } from './deps';
-import type { ServerDeps, UserDeps } from './deps';
-import { errorJson, toErrorResponse } from './http';
+import type { AccountStore } from './accounts.js';
+import { readCookie, readSessionToken, SESSION_COOKIE } from './auth.js';
+import { forUser } from './deps.js';
+import type { ServerDeps, UserDeps } from './deps.js';
+import { errorJson, toErrorResponse } from './http.js';
 
 // Wraps every /api handler: the login check (AUTH-3, ACCT-3, ACCT-5), then the handler, with all
 // errors turned into the standard JSON error shape.

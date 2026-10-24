@@ -1,16 +1,16 @@
-import type { Clock, Dashboard } from '../domain/types';
-import { localDate, weekStart } from '../logic/dates';
-import { heatmapRange } from '../logic/heatmap';
-import { neglectWarnings } from '../logic/neglect';
-import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
-import { compareDue } from '../logic/tasks';
-import { currentStreak, longestStreak } from '../logic/streak';
-import { hiddenIds } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
-import { selectUpcoming } from './deadlines';
-import { isBackupDue } from './exports';
-import { listTree } from './structure';
-import { listTaskItems } from './tasks';
+import type { Clock, Dashboard } from '../domain/types.js';
+import { localDate, weekStart } from '../logic/dates.js';
+import { heatmapRange } from '../logic/heatmap.js';
+import { neglectWarnings } from '../logic/neglect.js';
+import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
+import { compareDue } from '../logic/tasks.js';
+import { currentStreak, longestStreak } from '../logic/streak.js';
+import { hiddenIds } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
+import { selectUpcoming } from './deadlines.js';
+import { isBackupDue } from './exports.js';
+import { listTree } from './structure.js';
+import { listTaskItems } from './tasks.js';
 
 /** Home shows the next few deadlines (DEAD-2). */
 export const DASHBOARD_DEADLINES = 3;

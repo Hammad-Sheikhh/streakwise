@@ -35,7 +35,7 @@ import type {
   UpdateSettingsInput,
 } from '@/core/schemas/inputs';
 
-import type { AccountApi } from './AccountApi';
+import type { AccountApi } from './AccountApi.js';
 
 // The only way the UI reads or changes data (SPEC §B12). ApiDataSource calls /api; DemoDataSource
 // runs the same core services in the browser on an in-memory store.

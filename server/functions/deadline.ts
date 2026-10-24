@@ -1,8 +1,8 @@
-import { updateDeadlineInputSchema } from '../../src/core/schemas/inputs';
-import { deleteDeadline, updateDeadline } from '../../src/core/services/deadlines';
-import { apiHandler, byMethod, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { updateDeadlineInputSchema } from '../../src/core/schemas/inputs.js';
+import { deleteDeadline, updateDeadline } from '../../src/core/services/deadlines.js';
+import { apiHandler, byMethod, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // DEAD-1: edit or delete one deadline.
 export function createDeadlineHandler(getDeps: () => ServerDeps) {

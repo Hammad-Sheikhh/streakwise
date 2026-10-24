@@ -1,4 +1,4 @@
-import type { Score, ScoreKind, TreeNode } from '../domain/types';
+import type { Score, ScoreKind, TreeNode } from '../domain/types.js';
 
 // SCORE-2, SCORE-4, SCORE-5 and SPEC §B9.11: score percentages, chart lines, and trends. Pure.
 

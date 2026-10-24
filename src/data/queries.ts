@@ -3,8 +3,8 @@ import { toast } from 'sonner';
 
 import type { HistoryQuery } from '@/core/schemas/inputs';
 
-import type { DataSource } from './DataSource';
-import { useDataSource } from './useDataSource';
+import type { DataSource } from './DataSource.js';
+import { useDataSource } from './useDataSource.js';
 
 // Query and mutation hooks shared by the screens. Keys start with the data source's mode, so demo
 // data and real data never share a cache entry.

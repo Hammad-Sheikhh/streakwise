@@ -20,7 +20,7 @@ import { DataSourceError } from '@/data/DataSource';
 import { useDataMutation } from '@/data/queries';
 import { cn } from '@/lib/utils';
 
-import { LEVEL_NAMES } from './levels';
+import { LEVEL_NAMES } from './levels.js';
 
 // Manage one node: rename, recolor (tracks, TREE-4), add a child (TREE-1), archive or restore
 // (TREE-2, TREE-5), and delete when nothing has history (TREE-3).

@@ -24,7 +24,7 @@ import { useDataSource } from '@/data/useDataSource';
 import { copyText } from '@/lib/clipboard';
 import { shareUrl } from '@/lib/shareUrl';
 
-import { BackToSettings } from './BackToSettings';
+import { BackToSettings } from './BackToSettings.js';
 
 const STATUS_LABELS = { active: 'Active', expired: 'Expired', revoked: 'Revoked' } as const;
 

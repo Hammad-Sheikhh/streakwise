@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Report } from '../domain/types';
-import { formatRange, formatTimestamp } from './labels';
-import { reportAsMarkdown, reportAsWhatsApp } from './reportFormat';
+import type { Report } from '../domain/types.js';
+import { formatRange, formatTimestamp } from './labels.js';
+import { reportAsMarkdown, reportAsWhatsApp } from './reportFormat.js';
 
 function sampleReport(overrides: Partial<Report> = {}): Report {
   return {

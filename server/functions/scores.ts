@@ -1,8 +1,8 @@
-import { createScoreInputSchema } from '../../src/core/schemas/inputs';
-import { addScore, listScores } from '../../src/core/services/scores';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { createScoreInputSchema } from '../../src/core/schemas/inputs.js';
+import { addScore, listScores } from '../../src/core/services/scores.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // SCORE-1, SCORE-3: list scores (newest first) and record one.
 export function createScoresHandler(getDeps: () => ServerDeps) {

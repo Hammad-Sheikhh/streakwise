@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { ApiDataSource } from './ApiDataSource';
-import { DataSourceError } from './DataSource';
+import { ApiDataSource } from './ApiDataSource.js';
+import { DataSourceError } from './DataSource.js';
 
 function respond(status: number, body: unknown) {
   return vi.fn<typeof fetch>(async () => Response.json(body, { status }));

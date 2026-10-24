@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 import { TaskRow } from '@/features/tasks/TaskList';
 
-import { Heatmap } from './Heatmap';
+import { Heatmap } from './Heatmap.js';
 
 // DASH-1: Home answers "How am I doing this week, and what am I neglecting?" (G2).
 // Order on mobile: neglect → today and streak → targets → tasks due → deadlines → heatmap →

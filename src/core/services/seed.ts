@@ -1,5 +1,5 @@
-import type { IdGenerator } from '../domain/types';
-import type { Repository, SeedData } from '../repo/Repository';
+import type { IdGenerator } from '../domain/types.js';
+import type { Repository, SeedData } from '../repo/Repository.js';
 
 // SPEC §B4: the starting structure, written automatically on the first successful login when there
 // are no nodes. The same definition seeds the demo's in-memory store. No personal data here.

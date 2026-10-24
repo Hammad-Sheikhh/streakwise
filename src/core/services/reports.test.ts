@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { periodAsOf, resolvePeriod } from '../logic/reportPeriod';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { addDeadline } from './deadlines';
-import { buildReport } from './reports';
-import { addScore } from './scores';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
-import { addNode, setTopicStatus, updateNode } from './structure';
-import { completeTask } from './tasks';
-import { updateSettings } from './settings';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { periodAsOf, resolvePeriod } from '../logic/reportPeriod.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { addDeadline } from './deadlines.js';
+import { buildReport } from './reports.js';
+import { addScore } from './scores.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
+import { addNode, setTopicStatus, updateNode } from './structure.js';
+import { completeTask } from './tasks.js';
+import { updateSettings } from './settings.js';
 
 // The seed is created on 2026-09-20; "now" is Saturday 2026-10-03, 15:00 in Karachi, so this
 // week is Mon 28 Sep – Sun 4 Oct and last week is Mon 21 – Sun 27 Sep.

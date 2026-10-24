@@ -1,5 +1,5 @@
-import type { Report } from '../domain/types';
-import { formatDuration } from './duration';
+import type { Report } from '../domain/types.js';
+import { formatDuration } from './duration.js';
 import {
   formatDay,
   formatDaysLeft,
@@ -7,7 +7,7 @@ import {
   formatTimestamp,
   pluralDays,
   SCORE_KIND_LABELS,
-} from './labels';
+} from './labels.js';
 
 // SPEC §B10.1–2: the report as WhatsApp text and as Markdown for Claude. Pure, so the app, demo
 // mode, and tests produce exactly the same text.

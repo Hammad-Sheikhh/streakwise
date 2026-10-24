@@ -1,5 +1,5 @@
-import type { Task, TaskCompletion } from '../domain/types';
-import { addDays, weekStart } from './dates';
+import type { Task, TaskCompletion } from '../domain/types.js';
+import { addDays, weekStart } from './dates.js';
 
 // TASK-5, TASK-7, TASK-9 (SPEC §B9.9): when tasks count as done, due, or overdue. Pure; `today`
 // is a local date.

@@ -23,7 +23,7 @@ import { TaskTreeRows } from '@/features/tasks/TaskList';
 import { formatDay, formatDaysLeft, formatTargetHours } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-import { TopicStatusSelect } from './TopicStatusSelect';
+import { TopicStatusSelect } from './TopicStatusSelect.js';
 
 // TRACK-1: everything about one track on one page; topics get status controls (TOP-1) and every
 // subtask with topics shows its syllabus % (TOP-2).

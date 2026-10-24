@@ -1,8 +1,8 @@
-import { createDeadlineInputSchema } from '../../src/core/schemas/inputs';
-import { addDeadline, listDeadlines } from '../../src/core/services/deadlines';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { createDeadlineInputSchema } from '../../src/core/schemas/inputs.js';
+import { addDeadline, listDeadlines } from '../../src/core/services/deadlines.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // DEAD-1: list and add deadlines.
 export function createDeadlinesHandler(getDeps: () => ServerDeps) {

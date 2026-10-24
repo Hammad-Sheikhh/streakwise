@@ -1,6 +1,6 @@
-import type { TreeNode } from '../domain/types';
-import { daysBetween, localDate } from './dates';
-import { hiddenIds } from './tree';
+import type { TreeNode } from '../domain/types.js';
+import { daysBetween, localDate } from './dates.js';
+import { hiddenIds } from './tree.js';
 
 // SPEC §B9.5.
 

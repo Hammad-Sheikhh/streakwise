@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import pkg from '../../package.json' with { type: 'json' };
-import { healthHandler } from '../functions/health';
+import { healthHandler } from '../functions/health.js';
 
 describe('health handler', () => {
   it('returns ok with the app version', async () => {

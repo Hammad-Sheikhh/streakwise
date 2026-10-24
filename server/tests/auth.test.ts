@@ -1,15 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 
-import { createAccountHandler } from '../functions/auth-account';
-import { createConfirmHandler } from '../functions/auth-confirm';
-import { createForgotHandler } from '../functions/auth-forgot';
-import { createLoginHandler } from '../functions/auth-login';
-import { createLogoutHandler } from '../functions/auth-logout';
-import { createMeHandler } from '../functions/auth-me';
-import { createPasswordHandler } from '../functions/auth-password';
-import { createSignUpHandler } from '../functions/auth-signup';
-import { createNodesHandler } from '../functions/nodes';
+import { createAccountHandler } from '../functions/auth-account.js';
+import { createConfirmHandler } from '../functions/auth-confirm.js';
+import { createForgotHandler } from '../functions/auth-forgot.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createLogoutHandler } from '../functions/auth-logout.js';
+import { createMeHandler } from '../functions/auth-me.js';
+import { createPasswordHandler } from '../functions/auth-password.js';
+import { createSignUpHandler } from '../functions/auth-signup.js';
+import { createNodesHandler } from '../functions/nodes.js';
 import {
   context,
   cookieFrom,
@@ -19,7 +19,7 @@ import {
   TEST_EMAIL,
   TEST_PASSWORD,
   testDeps,
-} from './fakes';
+} from './fakes.js';
 
 function setup() {
   const t = testDeps();

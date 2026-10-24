@@ -1,5 +1,5 @@
-import { invalid } from '../domain/errors';
-import { addDays } from './dates';
+import { invalid } from '../domain/errors.js';
+import { addDays } from './dates.js';
 
 // MCP-6: dates from Claude may be "today", "yesterday", or YYYY-MM-DD, all in Asia/Karachi.
 

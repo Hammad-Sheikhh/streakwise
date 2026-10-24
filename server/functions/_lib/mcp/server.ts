@@ -1,14 +1,14 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { CallToolResult } from '@modelcontextprotocol/server';
 
-import { DomainError, notFound } from '../../../../src/core/domain/errors';
-import type { Score, Session, TaskItem, TreeNode } from '../../../../src/core/domain/types';
-import { localDate } from '../../../../src/core/logic/dates';
-import { resolveDateRef } from '../../../../src/core/logic/dateRef';
-import { resolveNodeRef } from '../../../../src/core/logic/nodeRef';
-import { scorePercent } from '../../../../src/core/logic/scores';
-import { compareDue } from '../../../../src/core/logic/tasks';
-import { hiddenIds, nodePath, subtreeIds } from '../../../../src/core/logic/tree';
+import { DomainError, notFound } from '../../../../src/core/domain/errors.js';
+import type { Score, Session, TaskItem, TreeNode } from '../../../../src/core/domain/types.js';
+import { localDate } from '../../../../src/core/logic/dates.js';
+import { resolveDateRef } from '../../../../src/core/logic/dateRef.js';
+import { resolveNodeRef } from '../../../../src/core/logic/nodeRef.js';
+import { scorePercent } from '../../../../src/core/logic/scores.js';
+import { compareDue } from '../../../../src/core/logic/tasks.js';
+import { hiddenIds, nodePath, subtreeIds } from '../../../../src/core/logic/tree.js';
 import {
   addNodeToolSchema,
   addTaskToolSchema,
@@ -24,16 +24,16 @@ import {
   logScoreToolSchema,
   logSessionToolSchema,
   setTopicStatusToolSchema,
-} from '../../../../src/core/schemas/mcp';
-import { upcomingDeadlines } from '../../../../src/core/services/deadlines';
-import { findGaps, getProgress } from '../../../../src/core/services/insights';
-import { buildReport } from '../../../../src/core/services/reports';
-import { addScore } from '../../../../src/core/services/scores';
-import { deleteSession, listSessions, logSession } from '../../../../src/core/services/sessions';
-import { addNode, listTree, setTopicStatus } from '../../../../src/core/services/structure';
-import { completeTask, createTask, listTaskItems } from '../../../../src/core/services/tasks';
-import type { UserDeps } from '../deps';
-import { describeError, log } from '../log';
+} from '../../../../src/core/schemas/mcp.js';
+import { upcomingDeadlines } from '../../../../src/core/services/deadlines.js';
+import { findGaps, getProgress } from '../../../../src/core/services/insights.js';
+import { buildReport } from '../../../../src/core/services/reports.js';
+import { addScore } from '../../../../src/core/services/scores.js';
+import { deleteSession, listSessions, logSession } from '../../../../src/core/services/sessions.js';
+import { addNode, listTree, setTopicStatus } from '../../../../src/core/services/structure.js';
+import { completeTask, createTask, listTaskItems } from '../../../../src/core/services/tasks.js';
+import type { UserDeps } from '../deps.js';
+import { describeError, log } from '../log.js';
 
 // MCP-2–9: the Claude connection. A fresh server is built for every request (stateless), and every
 // tool is a thin wrapper around the core services that returns compact JSON text.

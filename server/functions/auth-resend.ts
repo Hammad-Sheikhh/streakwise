@@ -1,8 +1,8 @@
-import { emailInputSchema } from '../../src/core/schemas/auth';
-import { limitAuthRequests, originOf } from './_lib/accountFlow';
-import { apiHandler } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { emailInputSchema } from '../../src/core/schemas/auth.js';
+import { limitAuthRequests, originOf } from './_lib/accountFlow.js';
+import { apiHandler } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // ACCT-2: sends the confirmation email again. Counts toward the sign-up limit (ACCT-10).
 export function createResendHandler(getDeps: () => ServerDeps) {

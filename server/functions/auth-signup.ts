@@ -1,9 +1,9 @@
-import { signUpInputSchema } from '../../src/core/schemas/auth';
-import type { SignUpResult } from '../../src/core/schemas/auth';
-import { limitAuthRequests, originOf, startSession } from './_lib/accountFlow';
-import { apiHandler } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { signUpInputSchema } from '../../src/core/schemas/auth.js';
+import type { SignUpResult } from '../../src/core/schemas/auth.js';
+import { limitAuthRequests, originOf, startSession } from './_lib/accountFlow.js';
+import { apiHandler } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // ACCT-1, ACCT-2: open sign-up, limited per IP (ACCT-10). With email confirmation on, the user
 // gets a link and is logged in when they open it; without it (no SMTP yet), they're logged in now.

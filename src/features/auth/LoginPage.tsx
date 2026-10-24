@@ -7,9 +7,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { DataSourceError } from '@/data/DataSource';
 
-import { AuthField } from './AuthField';
-import { AuthLayout } from './AuthLayout';
-import { useAccount } from './useAccount';
+import { AuthField } from './AuthField.js';
+import { AuthLayout } from './AuthLayout.js';
+import { useAccount } from './useAccount.js';
 
 const LINK_MESSAGES: Record<string, string> = {
   expired: 'That link has expired or was already used. Log in, or ask for a new link.',

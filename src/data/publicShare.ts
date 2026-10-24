@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Report } from '@/core/domain/types';
 import { reportSchema } from '@/core/schemas/domain';
 
-import { DataSourceError } from './DataSource';
+import { DataSourceError } from './DataSource.js';
 
 // SHARE-2: the public page's only request. It needs no login and no data source.
 

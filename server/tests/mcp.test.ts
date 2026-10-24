@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import type { TreeNode } from '../../src/core/domain/types';
-import { seedIfEmpty } from '../../src/core/services/seed';
-import { addDeadline } from '../../src/core/services/deadlines';
-import { logSession } from '../../src/core/services/sessions';
-import { addNode, updateNode } from '../../src/core/services/structure';
-import { generateMcpToken, hashMcpToken } from '../functions/_lib/mcpToken';
-import { createMcpFunction } from '../functions/mcp';
-import { testDeps } from './fakes';
+import type { TreeNode } from '../../src/core/domain/types.js';
+import { seedIfEmpty } from '../../src/core/services/seed.js';
+import { addDeadline } from '../../src/core/services/deadlines.js';
+import { logSession } from '../../src/core/services/sessions.js';
+import { addNode, updateNode } from '../../src/core/services/structure.js';
+import { generateMcpToken, hashMcpToken } from '../functions/_lib/mcpToken.js';
+import { createMcpFunction } from '../functions/mcp.js';
+import { testDeps } from './fakes.js';
 
 // MCP-1–9 against the in-memory repository, through the real HTTP handler and SDK. Requests use
 // the 2025 protocol (no handshake needed in stateless mode); one test covers the 2026 envelope.

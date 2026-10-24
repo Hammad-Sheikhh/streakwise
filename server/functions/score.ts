@@ -1,8 +1,8 @@
-import { updateScoreInputSchema } from '../../src/core/schemas/inputs';
-import { deleteScore, updateScore } from '../../src/core/services/scores';
-import { apiHandler, byMethod, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { updateScoreInputSchema } from '../../src/core/schemas/inputs.js';
+import { deleteScore, updateScore } from '../../src/core/services/scores.js';
+import { apiHandler, byMethod, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // SCORE-1: edit or delete one score.
 export function createScoreHandler(getDeps: () => ServerDeps) {

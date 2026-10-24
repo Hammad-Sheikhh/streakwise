@@ -1,13 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 
-import { DomainError } from '../../src/core/domain/errors';
-import { toDomainError } from '../functions/_lib/dbErrors';
-import { ConfigError, readServerEnv } from '../functions/_lib/env';
-import { toErrorResponse } from '../functions/_lib/http';
-import { redact } from '../functions/_lib/log';
-import { createKeepaliveHandler } from '../functions/keepalive';
-import { context, get, testDeps } from './fakes';
+import { DomainError } from '../../src/core/domain/errors.js';
+import { toDomainError } from '../functions/_lib/dbErrors.js';
+import { ConfigError, readServerEnv } from '../functions/_lib/env.js';
+import { toErrorResponse } from '../functions/_lib/http.js';
+import { redact } from '../functions/_lib/log.js';
+import { createKeepaliveHandler } from '../functions/keepalive.js';
+import { context, get, testDeps } from './fakes.js';
 
 describe('readServerEnv', () => {
   it('names missing variables without echoing any values', () => {

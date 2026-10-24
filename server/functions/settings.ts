@@ -1,8 +1,8 @@
-import { updateSettingsInputSchema } from '../../src/core/schemas/inputs';
-import { updateSettings } from '../../src/core/services/settings';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { updateSettingsInputSchema } from '../../src/core/schemas/inputs.js';
+import { updateSettings } from '../../src/core/services/settings.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // SET-1: read and change the student name and neglect threshold.
 export function createSettingsHandler(getDeps: () => ServerDeps) {

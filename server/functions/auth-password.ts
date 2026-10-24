@@ -1,6 +1,6 @@
-import { changePasswordInputSchema } from '../../src/core/schemas/auth';
-import { checkPassword } from './_lib/accountFlow';
-import { apiHandler, forgetSessionCache } from './_lib/api';
+import { changePasswordInputSchema } from '../../src/core/schemas/auth.js';
+import { checkPassword } from './_lib/accountFlow.js';
+import { apiHandler, forgetSessionCache } from './_lib/api.js';
 import {
   clearCookie,
   createSessionToken,
@@ -9,10 +9,10 @@ import {
   recoveryUserId,
   SESSION_COOKIE,
   setCookie,
-} from './_lib/auth';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
-import { log } from './_lib/log';
+} from './_lib/auth.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
+import { log } from './_lib/log.js';
 
 // ACCT-4, ACCT-9: sets a new password. Needs the current one, except right after a reset link.
 // Every other device is logged out; this one gets a fresh login cookie.

@@ -1,16 +1,16 @@
-import type { Clock, TreeNode, UpcomingDeadline } from '../domain/types';
-import { daysBetween, localDate, weekStart } from '../logic/dates';
-import { neglectWarnings } from '../logic/neglect';
-import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
-import { currentStreak, longestStreak } from '../logic/streak';
-import { compareDue } from '../logic/tasks';
-import { syllabusPercent } from '../logic/syllabus';
-import { isBehindPace, targetProgress } from '../logic/targets';
-import { hiddenIds, nodePath } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
-import { selectUpcoming } from './deadlines';
-import { listTree } from './structure';
-import { listTaskItems } from './tasks';
+import type { Clock, TreeNode, UpcomingDeadline } from '../domain/types.js';
+import { daysBetween, localDate, weekStart } from '../logic/dates.js';
+import { neglectWarnings } from '../logic/neglect.js';
+import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
+import { currentStreak, longestStreak } from '../logic/streak.js';
+import { compareDue } from '../logic/tasks.js';
+import { syllabusPercent } from '../logic/syllabus.js';
+import { isBehindPace, targetProgress } from '../logic/targets.js';
+import { hiddenIds, nodePath } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
+import { selectUpcoming } from './deadlines.js';
+import { listTree } from './structure.js';
+import { listTaskItems } from './tasks.js';
 
 // Summaries for Claude (MCP-9 `get_progress` and `find_gaps`). Names and paths are included so the
 // results read well without a second lookup.

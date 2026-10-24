@@ -1,7 +1,7 @@
 import { createClient, isAuthApiError } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { HttpError } from './http';
+import { HttpError } from './http.js';
 
 // ACCT-1: the server's only door to Supabase Auth. Tests use an in-memory fake (server/tests).
 // Calls are made with the secret key from the server, so D5 still holds: the browser never talks

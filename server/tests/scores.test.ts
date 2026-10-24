@@ -1,12 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { Score, TreeNode } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createNodesHandler } from '../functions/nodes';
-import { createScoreHandler } from '../functions/score';
-import { createScoresHandler } from '../functions/scores';
-import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
+import type { Score, TreeNode } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createNodesHandler } from '../functions/nodes.js';
+import { createScoreHandler } from '../functions/score.js';
+import { createScoresHandler } from '../functions/scores.js';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes.js';
 
 async function setup() {
   const t = testDeps();

@@ -1,11 +1,11 @@
-import { invalid, notFound } from '../domain/errors';
-import type { Clock, IdGenerator, Score } from '../domain/types';
-import { localDate } from '../logic/dates';
-import { hiddenIds } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
-import { createScoreInputSchema, updateScoreInputSchema } from '../schemas/inputs';
-import type { CreateScoreInput, UpdateScoreInput } from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
+import { invalid, notFound } from '../domain/errors.js';
+import type { Clock, IdGenerator, Score } from '../domain/types.js';
+import { localDate } from '../logic/dates.js';
+import { hiddenIds } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
+import { createScoreInputSchema, updateScoreInputSchema } from '../schemas/inputs.js';
+import type { CreateScoreInput, UpdateScoreInput } from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
 
 // SCORE-1: scores (past papers, quizzes, revision tests) on any node.
 

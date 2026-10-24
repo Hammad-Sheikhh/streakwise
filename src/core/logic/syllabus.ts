@@ -1,5 +1,5 @@
-import type { TreeNode } from '../domain/types';
-import { hiddenIds, subtreeIds } from './tree';
+import type { TreeNode } from '../domain/types.js';
+import { hiddenIds, subtreeIds } from './tree.js';
 
 // SPEC §B9.7: done topics ÷ non-archived topics in the subtree.
 

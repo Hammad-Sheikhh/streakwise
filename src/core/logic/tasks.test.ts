@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Task, TaskCompletion } from '../domain/types';
-import { currentCompletion, hiddenTaskIds, subtaskProgress, tasksDueThisWeek } from './tasks';
+import type { Task, TaskCompletion } from '../domain/types.js';
+import { currentCompletion, hiddenTaskIds, subtaskProgress, tasksDueThisWeek } from './tasks.js';
 
 // 2026-10-07 is a Wednesday; its week runs Mon 2026-10-05 to Sun 2026-10-11.
 const today = '2026-10-07';

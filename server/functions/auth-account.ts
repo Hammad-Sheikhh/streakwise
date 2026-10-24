@@ -1,10 +1,10 @@
-import { deleteAccountInputSchema } from '../../src/core/schemas/auth';
-import { checkPassword } from './_lib/accountFlow';
-import { apiHandler } from './_lib/api';
-import { clearCookie, RECOVERY_COOKIE, SESSION_COOKIE } from './_lib/auth';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
-import { log } from './_lib/log';
+import { deleteAccountInputSchema } from '../../src/core/schemas/auth.js';
+import { checkPassword } from './_lib/accountFlow.js';
+import { apiHandler } from './_lib/api.js';
+import { clearCookie, RECOVERY_COOKIE, SESSION_COOKIE } from './_lib/auth.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
+import { log } from './_lib/log.js';
 
 // ACCT-9: deletes the account and, through the database's cascades, all of its data.
 export function createAccountHandler(getDeps: () => ServerDeps) {

@@ -19,8 +19,8 @@ import { useDataSource } from '@/data/useDataSource';
 import { copyText } from '@/lib/clipboard';
 import { cn } from '@/lib/utils';
 
-import { ReportView } from './ReportView';
-import { ShareDialog } from './ShareDialog';
+import { ReportView } from './ReportView.js';
+import { ShareDialog } from './ShareDialog.js';
 
 // REP-1–8: pick a period, see the report, then print it, copy it, or share a link.
 

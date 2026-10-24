@@ -1,22 +1,22 @@
-import { invalid, notFound } from '../domain/errors';
-import type { Clock, IdGenerator, Task, TaskCompletion, TaskItem } from '../domain/types';
-import { localDate } from '../logic/dates';
+import { invalid, notFound } from '../domain/errors.js';
+import type { Clock, IdGenerator, Task, TaskCompletion, TaskItem } from '../domain/types.js';
+import { localDate } from '../logic/dates.js';
 import {
   currentCompletion,
   hiddenTaskIds,
   periodStartFor,
   subtaskProgress,
   tasksDueThisWeek,
-} from '../logic/tasks';
-import { hiddenIds } from '../logic/tree';
-import type { Repository, TaskPatch } from '../repo/Repository';
+} from '../logic/tasks.js';
+import { hiddenIds } from '../logic/tree.js';
+import type { Repository, TaskPatch } from '../repo/Repository.js';
 import {
   completeTaskInputSchema,
   createTaskInputSchema,
   updateTaskInputSchema,
-} from '../schemas/inputs';
-import type { CompleteTaskInput, CreateTaskInput, UpdateTaskInput } from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
+} from '../schemas/inputs.js';
+import type { CompleteTaskInput, CreateTaskInput, UpdateTaskInput } from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
 
 // TASK-1–9: tasks and sub-tasks, one-off or weekly, optionally scored.
 

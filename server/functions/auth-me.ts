@@ -1,14 +1,14 @@
-import type { Me } from '../../src/core/schemas/auth';
-import { apiHandler } from './_lib/api';
+import type { Me } from '../../src/core/schemas/auth.js';
+import { apiHandler } from './_lib/api.js';
 import {
   clearCookie,
   readCookie,
   RECOVERY_COOKIE,
   recoveryUserId,
   SESSION_COOKIE,
-} from './_lib/auth';
-import type { ServerDeps } from './_lib/deps';
-import { errorJson, json } from './_lib/http';
+} from './_lib/auth.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { errorJson, json } from './_lib/http.js';
 
 // Lets the app check whether it is logged in, and as whom; 401 means "show the login page".
 export function createMeHandler(getDeps: () => ServerDeps) {

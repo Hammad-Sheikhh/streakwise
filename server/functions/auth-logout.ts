@@ -1,7 +1,7 @@
-import { apiHandler } from './_lib/api';
-import { clearCookie, RECOVERY_COOKIE, SESSION_COOKIE } from './_lib/auth';
-import type { ServerDeps } from './_lib/deps';
-import { json } from './_lib/http';
+import { apiHandler } from './_lib/api.js';
+import { clearCookie, RECOVERY_COOKIE, SESSION_COOKIE } from './_lib/auth.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json } from './_lib/http.js';
 
 // AUTH-4: clears this device's login. Works even with an expired cookie, so it never gets stuck.
 export function createLogoutHandler(getDeps: () => ServerDeps) {

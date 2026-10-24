@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { exportData, isBackupDue, sessionsCsv } from './exports';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { exportData, isBackupDue, sessionsCsv } from './exports.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
 
 let now = new Date('2026-10-03T10:00:00Z');
 const clock = () => now;

@@ -6,7 +6,7 @@ import {
   SESSION_SOURCES,
   TOPIC_STATUSES,
   TRACK_COLORS,
-} from '../domain/types';
+} from '../domain/types.js';
 
 // Inputs from the UI, the API, and MCP. The server validates every request with these (SPEC §B8);
 // messages are written for the owner, because the UI shows them as they are.

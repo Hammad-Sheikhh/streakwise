@@ -1,4 +1,4 @@
-import { conflict, DomainError, notFound } from '../../../src/core/domain/errors';
+import { conflict, DomainError, notFound } from '../../../src/core/domain/errors.js';
 
 // Turns Postgres errors (as returned by supabase-js) into DomainErrors the API can map to a status.
 // Our RPC functions raise SQLSTATE P0001 with a short code as the message, or P0002 for "not found".

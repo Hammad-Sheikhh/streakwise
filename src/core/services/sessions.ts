@@ -1,4 +1,4 @@
-import { invalid, notFound } from '../domain/errors';
+import { invalid, notFound } from '../domain/errors.js';
 import type {
   Clock,
   HistoryDay,
@@ -7,23 +7,23 @@ import type {
   Session,
   SessionSource,
   TreeNode,
-} from '../domain/types';
-import { addDays, localDate } from '../logic/dates';
-import { hiddenIds, subtreeIds } from '../logic/tree';
-import type { Repository, SessionFilter, SessionPatch } from '../repo/Repository';
+} from '../domain/types.js';
+import { addDays, localDate } from '../logic/dates.js';
+import { hiddenIds, subtreeIds } from '../logic/tree.js';
+import type { Repository, SessionFilter, SessionPatch } from '../repo/Repository.js';
 import {
   historyQuerySchema,
   listSessionsQuerySchema,
   logSessionInputSchema,
   updateSessionInputSchema,
-} from '../schemas/inputs';
+} from '../schemas/inputs.js';
 import type {
   HistoryQuery,
   ListSessionsQuery,
   LogSessionInput,
   UpdateSessionInput,
-} from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
+} from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
 
 // LOG and HIST: logging, editing, and listing study sessions.
 

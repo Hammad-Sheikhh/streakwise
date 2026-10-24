@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { seedIfEmpty } from './seed';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { seedIfEmpty } from './seed.js';
 import {
   completeTask,
   createTask,
@@ -11,7 +11,7 @@ import {
   listTaskItems,
   uncompleteTask,
   updateTask,
-} from './tasks';
+} from './tasks.js';
 
 // Wednesday 2026-10-07, 15:00 in Karachi; the week runs Mon 10-05 to Sun 10-11.
 let now = new Date('2026-10-07T10:00:00Z');
