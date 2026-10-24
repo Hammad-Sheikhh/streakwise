@@ -98,7 +98,8 @@ One database for everything (D15), so each migration runs once.
       https://develop--streakwise-ap.netlify.app/demo (owner confirmed, 2026-10-10)
 - [x] Run `supabase/migrations/0004_accounts_cleanup.sql` in the Supabase SQL Editor (owner, 2026-10-10: success)
 - [x] OK to merge the cleanup PR #27 into `develop` (owner, 2026-10-10; merged)
-- [ ] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (unused since #27). They are simply not copied to
+- [x] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (owner confirmed deleted by 2026-10-24). Verified
+      by Claude Code: no trace of either name in `.env`. They are simply not copied to
       Vercel; Netlify's copies go away when the Netlify project is deleted
 - [ ] Vercel move (each step explained in detail when we reach it; current Vercel docs checked 2026-10-10
       and code work is done on `chore/vercel`):
@@ -115,9 +116,10 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-10-17: the Vercel move is built on `chore/vercel` (branch from `develop`, PR into `develop` next).**
-Waiting on the owner to create the Vercel account before anything deploys, so the branch is pushed for
-CI and the PR is opened with the owner's OK to merge.
+**2026-10-24: PR #29 (the Vercel move) merged into `develop` (owner's OK; squash-merged as f51cb89,
+branch deleted).** Waiting on the owner to create the Vercel account and tell us the project name;
+until then nothing deploys anywhere. The owner also deleted `APP_PASSCODE`/`MCP_SECRET` from `.env`
+(verified above).
 
 - One deployed function: `api/server.ts` (Vercel Function, web `Request`/`Response` via the
   `fetch` handler). Vercel's docs recommend a single shared function with rewrites for framework-less
