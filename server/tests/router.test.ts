@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 
-import type { RequestHandler } from '../functions/_lib/api';
+import type { RequestHandler } from '../functions/_lib/api.js';
 
 // The single dispatch entry replaces the old per-file `config.path`/`method` exports. These tests
 // pin the platform-level behavior: right params, right method rejection, unknown paths 404. Real
@@ -38,7 +38,7 @@ async function dispatcherWithStub(
   const handler = stubResponse();
   vi.doMock(moduleName, () => ({ [factoryName]: () => handler }));
   vi.resetModules();
-  const { createDispatcher: fresh } = await import('../functions/_lib/router');
+  const { createDispatcher: fresh } = await import('../functions/_lib/router.js');
   return Object.assign((request: Request, ip: string) => fresh(neverDeps)(request, ip), {
     handler,
   });
@@ -66,7 +66,7 @@ describe('router', () => {
 
   it('answers 405 with Allow when the method is not on the route', async () => {
     vi.resetModules();
-    const { createDispatcher: fresh } = await import('../functions/_lib/router');
+    const { createDispatcher: fresh } = await import('../functions/_lib/router.js');
     const response = await fresh(neverDeps)(realUrl('/api/health', 'POST'), '0.0.0.0');
     expect(response.status).toBe(405);
     expect(response.headers.get('Allow')).toBe('GET');
@@ -74,7 +74,7 @@ describe('router', () => {
 
   it('answers the plain 404 for unknown /api, /auth and /mcp paths', async () => {
     vi.resetModules();
-    const { createDispatcher: fresh } = await import('../functions/_lib/router');
+    const { createDispatcher: fresh } = await import('../functions/_lib/router.js');
     const d = fresh(neverDeps);
     for (const path of ['/', '/api/unknown', '/api/nodes/', '/auth/unknown', '/mcp/a/b']) {
       const response = await d(realUrl(path), '0.0.0.0');
@@ -85,14 +85,14 @@ describe('router', () => {
 
   it('routes GET /api/health to the trivial handler', async () => {
     vi.resetModules();
-    const { createDispatcher: fresh } = await import('../functions/_lib/router');
+    const { createDispatcher: fresh } = await import('../functions/_lib/router.js');
     const response = await fresh(neverDeps)(realUrl('/api/health'), '0.0.0.0');
     expect(response.status).toBe(200);
   });
 
   it('does not match route patterns across segment counts', async () => {
     vi.resetModules();
-    const { createDispatcher: fresh } = await import('../functions/_lib/router');
+    const { createDispatcher: fresh } = await import('../functions/_lib/router.js');
     const d = fresh(neverDeps);
     expect((await d(realUrl('/api/tasks/t1/undo'), '0.0.0.0')).status).toBe(404);
   });

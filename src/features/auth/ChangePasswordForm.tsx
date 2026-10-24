@@ -5,8 +5,8 @@ import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { changePasswordInputSchema } from '@/core/schemas/auth';
 
-import { AuthField } from './AuthField';
-import { useAccount } from './useAccount';
+import { AuthField } from './AuthField.js';
+import { useAccount } from './useAccount.js';
 
 /**
  * ACCT-4, ACCT-9: choose a new password, typed twice. The current password is asked for except

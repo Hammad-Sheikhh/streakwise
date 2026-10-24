@@ -33,10 +33,10 @@ import { useDataMutation, useScores, useTree } from '@/data/queries';
 import { useToday } from '@/data/useToday';
 import { formatDay, SCORE_KIND_LABELS } from '@/lib/format';
 
-import { ScoreChart } from './ScoreChart';
-import { ScoreForm } from './ScoreForm';
-import type { ScoreValues } from './ScoreForm';
-import { chartLines, filterScores } from './scoreView';
+import { ScoreChart } from './ScoreChart.js';
+import { ScoreForm } from './ScoreForm.js';
+import type { ScoreValues } from './ScoreForm.js';
+import { chartLines, filterScores } from './scoreView.js';
 
 // SCORE-1–5: record scores, chart them per subtask, and list every result.
 

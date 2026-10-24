@@ -15,9 +15,9 @@ import { localDate } from '@/core/logic/dates';
 import { useDataMutation } from '@/data/queries';
 import { formatDay, formatWeek } from '@/lib/format';
 
-import { TaskForm } from './TaskForm';
-import { EMPTY_TASK, FOR_OTHER, TASK_KEYS, toTaskInput } from './taskValues';
-import type { TaskValues } from './taskValues';
+import { TaskForm } from './TaskForm.js';
+import { EMPTY_TASK, FOR_OTHER, TASK_KEYS, toTaskInput } from './taskValues.js';
+import type { TaskValues } from './taskValues.js';
 
 /** TASK-2: a new task, or a sub-task of `parent` (which then suggests its node). */
 export function NewTaskDialog({

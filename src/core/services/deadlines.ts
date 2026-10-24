@@ -1,12 +1,12 @@
-import { invalid, notFound } from '../domain/errors';
-import type { Clock, Deadline, IdGenerator, TreeNode, UpcomingDeadline } from '../domain/types';
-import { daysBetween, localDate } from '../logic/dates';
-import { syllabusPercent } from '../logic/syllabus';
-import { hiddenIds } from '../logic/tree';
-import type { DeadlinePatch, Repository } from '../repo/Repository';
-import { createDeadlineInputSchema, updateDeadlineInputSchema } from '../schemas/inputs';
-import type { CreateDeadlineInput, UpdateDeadlineInput } from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
+import { invalid, notFound } from '../domain/errors.js';
+import type { Clock, Deadline, IdGenerator, TreeNode, UpcomingDeadline } from '../domain/types.js';
+import { daysBetween, localDate } from '../logic/dates.js';
+import { syllabusPercent } from '../logic/syllabus.js';
+import { hiddenIds } from '../logic/tree.js';
+import type { DeadlinePatch, Repository } from '../repo/Repository.js';
+import { createDeadlineInputSchema, updateDeadlineInputSchema } from '../schemas/inputs.js';
+import type { CreateDeadlineInput, UpdateDeadlineInput } from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
 
 // DEAD-1: deadlines (title, date, node).
 

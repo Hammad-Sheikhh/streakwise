@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { addDays } from '../logic/dates';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { seedIfEmpty } from './seed';
-import { deleteSession, getHistory, logSession, recentNodeIds, updateSession } from './sessions';
-import { addNode, updateNode } from './structure';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { addDays } from '../logic/dates.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { seedIfEmpty } from './seed.js';
+import { deleteSession, getHistory, logSession, recentNodeIds, updateSession } from './sessions.js';
+import { addNode, updateNode } from './structure.js';
 
 // 2026-10-03 23:30 in Karachi is 18:30 UTC, so "today" is still the 3rd.
 let now = new Date('2026-10-03T18:30:00Z');

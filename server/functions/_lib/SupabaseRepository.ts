@@ -1,14 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-import { notFound } from '../../../src/core/domain/errors';
+import { notFound } from '../../../src/core/domain/errors.js';
 import {
   DEFAULT_SETTINGS,
   SCORE_KINDS,
   SESSION_SOURCES,
   TOPIC_STATUSES,
   TRACK_COLORS,
-} from '../../../src/core/domain/types';
+} from '../../../src/core/domain/types.js';
 import type {
   Deadline,
   Score,
@@ -19,7 +19,7 @@ import type {
   Task,
   TaskCompletion,
   TreeNode,
-} from '../../../src/core/domain/types';
+} from '../../../src/core/domain/types.js';
 import type {
   DeadlinePatch,
   NewCompletion,
@@ -37,8 +37,8 @@ import type {
   SessionPatch,
   SettingsPatch,
   TaskPatch,
-} from '../../../src/core/repo/Repository';
-import { throwDbError } from './dbErrors';
+} from '../../../src/core/repo/Repository.js';
+import { throwDbError } from './dbErrors.js';
 
 // Repository backed by Supabase Postgres (server only, secret key). Rows are validated with Zod on
 // the way in, so a schema mismatch fails loudly instead of leaking bad data to the UI.

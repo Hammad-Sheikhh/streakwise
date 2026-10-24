@@ -1,8 +1,8 @@
 import { tz } from '@date-fns/tz';
 import { format } from 'date-fns';
 
-import type { ScoreKind } from '../domain/types';
-import { APP_TIME_ZONE } from './dates';
+import type { ScoreKind } from '../domain/types.js';
+import { APP_TIME_ZONE } from './dates.js';
 
 // Display labels for local dates (`YYYY-MM-DD`), shared by the UI and report text. They never use
 // the device's time zone.

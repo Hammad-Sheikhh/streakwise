@@ -1,4 +1,4 @@
-import type { TreeNode } from '../domain/types';
+import type { TreeNode } from '../domain/types.js';
 
 // Pure helpers over the flat node list.
 

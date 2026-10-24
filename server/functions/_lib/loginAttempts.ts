@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { throwDbError } from './dbErrors';
+import { throwDbError } from './dbErrors.js';
 
 // AUTH-5: failed logins per hashed IP. Only failures are stored; a success clears that IP's record.
 

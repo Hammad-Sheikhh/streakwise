@@ -1,10 +1,10 @@
-import type { ClaudeConnection } from '../../src/core/domain/types';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ApiRequest } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json } from './_lib/http';
-import { log } from './_lib/log';
-import { generateMcpToken, hashMcpToken } from './_lib/mcpToken';
+import type { ClaudeConnection } from '../../src/core/domain/types.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ApiRequest } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json } from './_lib/http.js';
+import { log } from './_lib/log.js';
+import { generateMcpToken, hashMcpToken } from './_lib/mcpToken.js';
 
 // SET-4, ACCT-8: the user's own Claude link. Only a hash is stored, so the link itself is shown
 // once, in the answer to POST (which also replaces any older link). GET says whether one exists.

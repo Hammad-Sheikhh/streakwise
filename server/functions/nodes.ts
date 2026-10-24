@@ -1,8 +1,8 @@
-import { createNodeInputSchema } from '../../src/core/schemas/inputs';
-import { addNode, listTree } from '../../src/core/services/structure';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { createNodeInputSchema } from '../../src/core/schemas/inputs.js';
+import { addNode, listTree } from '../../src/core/services/structure.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // GET: the structure tree in display order. POST: add a track, subtask, or topic (TREE-1).
 export function createNodesHandler(getDeps: () => ServerDeps) {

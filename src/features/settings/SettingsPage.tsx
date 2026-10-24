@@ -14,9 +14,9 @@ import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 
-import { AccountSection } from './AccountSection';
-import { ClaudeConnectionSection } from './ClaudeConnection';
-import { ExportSection } from './ExportSection';
+import { AccountSection } from './AccountSection.js';
+import { ClaudeConnectionSection } from './ClaudeConnection.js';
+import { ExportSection } from './ExportSection.js';
 
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },

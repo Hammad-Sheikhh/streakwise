@@ -1,12 +1,12 @@
 import { createMcpHandler } from '@modelcontextprotocol/server';
 
-import type { RequestHandler } from './_lib/api';
-import { forUser } from './_lib/deps';
-import type { ServerDeps, UserDeps } from './_lib/deps';
-import { ConfigError } from './_lib/env';
-import { describeError, log } from './_lib/log';
-import { buildMcpServer } from './_lib/mcp/server';
-import { hashMcpToken, isMcpTokenShaped } from './_lib/mcpToken';
+import type { RequestHandler } from './_lib/api.js';
+import { forUser } from './_lib/deps.js';
+import type { ServerDeps, UserDeps } from './_lib/deps.js';
+import { ConfigError } from './_lib/env.js';
+import { describeError, log } from './_lib/log.js';
+import { buildMcpServer } from './_lib/mcp/server.js';
+import { hashMcpToken, isMcpTokenShaped } from './_lib/mcpToken.js';
 
 // MCP-1/MCP-2, ACCT-8: the Claude connection at /mcp/<token>, stateless Streamable HTTP. Each user
 // has their own token; it is the only credential, so anything that doesn't match gets the same

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import { newShareSlug, SLUG_PATTERN } from '../logic/slug';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
-import { createShare, listShares, publicSnapshot, revokeShare, shareStatus } from './shares';
+import { DomainError } from '../domain/errors.js';
+import { newShareSlug, SLUG_PATTERN } from '../logic/slug.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
+import { createShare, listShares, publicSnapshot, revokeShare, shareStatus } from './shares.js';
 
 let now = new Date('2026-10-03T10:00:00Z');
 const clock = () => now;

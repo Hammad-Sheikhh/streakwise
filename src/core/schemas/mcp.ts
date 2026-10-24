@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { REPORT_PERIODS, SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES } from '../domain/types';
-import { listLimitSchema, MAX_NOTE_LENGTH, MAX_SESSION_MINUTES } from './inputs';
+import { REPORT_PERIODS, SCORE_KINDS, SESSION_SOURCES, TOPIC_STATUSES } from '../domain/types.js';
+import { listLimitSchema, MAX_NOTE_LENGTH, MAX_SESSION_MINUTES } from './inputs.js';
 
 // MCP-8: input schemas for the Claude (MCP) tools. Descriptions are written for an AI reader; the
 // SDK turns them into the JSON Schema Claude sees. Node and date references are resolved by the

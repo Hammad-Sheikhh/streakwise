@@ -2,21 +2,21 @@ import { randomUUID } from 'node:crypto';
 
 import { createClient } from '@supabase/supabase-js';
 
-import type { Clock, IdGenerator } from '../../../src/core/domain/types';
-import { newShareSlug } from '../../../src/core/logic/slug';
-import type { SlugGenerator } from '../../../src/core/logic/slug';
-import type { Repository } from '../../../src/core/repo/Repository';
-import { SupabaseAccountStore } from './accounts';
-import type { AccountStore } from './accounts';
-import { SupabaseAuthProvider } from './authProvider';
-import type { AuthProvider } from './authProvider';
-import { readServerEnv } from './env';
-import type { ServerEnv } from './env';
-import { SupabaseLoginAttemptStore } from './loginAttempts';
-import type { LoginAttemptStore } from './loginAttempts';
-import { SupabasePublicShareStore } from './publicShares';
-import type { PublicShareStore } from './publicShares';
-import { SupabaseRepository } from './SupabaseRepository';
+import type { Clock, IdGenerator } from '../../../src/core/domain/types.js';
+import { newShareSlug } from '../../../src/core/logic/slug.js';
+import type { SlugGenerator } from '../../../src/core/logic/slug.js';
+import type { Repository } from '../../../src/core/repo/Repository.js';
+import { SupabaseAccountStore } from './accounts.js';
+import type { AccountStore } from './accounts.js';
+import { SupabaseAuthProvider } from './authProvider.js';
+import type { AuthProvider } from './authProvider.js';
+import { readServerEnv } from './env.js';
+import type { ServerEnv } from './env.js';
+import { SupabaseLoginAttemptStore } from './loginAttempts.js';
+import type { LoginAttemptStore } from './loginAttempts.js';
+import { SupabasePublicShareStore } from './publicShares.js';
+import type { PublicShareStore } from './publicShares.js';
+import { SupabaseRepository } from './SupabaseRepository.js';
 
 // Everything a handler needs from the outside world. Tests pass in-memory versions instead.
 export interface ServerDeps {

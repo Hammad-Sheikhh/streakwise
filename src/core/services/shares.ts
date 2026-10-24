@@ -5,14 +5,14 @@ import type {
   SharedReport,
   SharedReportLink,
   ShareStatus,
-} from '../domain/types';
-import { formatRange } from '../logic/labels';
-import type { SlugGenerator } from '../logic/slug';
-import type { Repository } from '../repo/Repository';
-import { createShareInputSchema } from '../schemas/inputs';
-import type { CreateShareInput } from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
-import { buildReport } from './reports';
+} from '../domain/types.js';
+import { formatRange } from '../logic/labels.js';
+import type { SlugGenerator } from '../logic/slug.js';
+import type { Repository } from '../repo/Repository.js';
+import { createShareInputSchema } from '../schemas/inputs.js';
+import type { CreateShareInput } from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
+import { buildReport } from './reports.js';
 
 // SHARE-1–6: frozen report snapshots behind unguessable links.
 

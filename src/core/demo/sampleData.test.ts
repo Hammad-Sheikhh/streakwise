@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { addDays, localDate } from '../logic/dates';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { getDashboard } from '../services/dashboard';
-import { listTaskItems } from '../services/tasks';
-import { DEMO_STUDENT_NAME, loadSampleData } from './sampleData';
-import { seededRandom } from './random';
+import { addDays, localDate } from '../logic/dates.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { getDashboard } from '../services/dashboard.js';
+import { listTaskItems } from '../services/tasks.js';
+import { DEMO_STUDENT_NAME, loadSampleData } from './sampleData.js';
+import { seededRandom } from './random.js';
 
 const NOW = new Date('2026-10-08T07:00:00Z'); // a Thursday in Karachi
 const clock = () => NOW;

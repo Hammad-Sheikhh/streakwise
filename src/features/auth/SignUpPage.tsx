@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { signUpInputSchema } from '@/core/schemas/auth';
 import type { SignUpInput } from '@/core/schemas/auth';
 
-import { AuthField } from './AuthField';
-import { AuthLayout } from './AuthLayout';
-import { useAccount } from './useAccount';
+import { AuthField } from './AuthField.js';
+import { AuthLayout } from './AuthLayout.js';
+import { useAccount } from './useAccount.js';
 
 type FieldErrors = Partial<Record<keyof SignUpInput, string>>;
 

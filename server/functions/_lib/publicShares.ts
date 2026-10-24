@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-import type { SharedReport } from '../../../src/core/domain/types';
-import { reportSchema } from '../../../src/core/schemas/domain';
-import { throwDbError } from './dbErrors';
-import { SHARED_REPORT_LINK_COLUMNS, sharedReportRow } from './SupabaseRepository';
+import type { SharedReport } from '../../../src/core/domain/types.js';
+import { reportSchema } from '../../../src/core/schemas/domain.js';
+import { throwDbError } from './dbErrors.js';
+import { SHARED_REPORT_LINK_COLUMNS, sharedReportRow } from './SupabaseRepository.js';
 
 // SHARE-2: the one read that isn't limited to a logged-in user. It finds a link by its slug,
 // which is unguessable (SHARE-1), and returns nothing else of the owner's data.

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-import { throwDbError } from './dbErrors';
+import { throwDbError } from './dbErrors.js';
 
 // Account-level data that isn't part of one user's study data: Claude link tokens (ACCT-8),
 // session revocation, and request limits (ACCT-10).

@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { getDashboard } from './dashboard';
-import { addDeadline, deleteDeadline, listDeadlines, updateDeadline } from './deadlines';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
-import { addNode, updateNode } from './structure';
-import { completeTask, createTask } from './tasks';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { getDashboard } from './dashboard.js';
+import { addDeadline, deleteDeadline, listDeadlines, updateDeadline } from './deadlines.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
+import { addNode, updateNode } from './structure.js';
+import { completeTask, createTask } from './tasks.js';
 
 // The seed is created on 2026-09-20; "now" moves per test.
 let now = new Date('2026-09-20T06:00:00Z');

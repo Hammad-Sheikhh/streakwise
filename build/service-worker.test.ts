@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { precacheUrls, renderServiceWorker } from './service-worker';
+import { precacheUrls, renderServiceWorker } from './service-worker.js';
 
 describe('service worker (PWA-2)', () => {
   it('caches the built files and public files, but not maps or the worker itself', () => {

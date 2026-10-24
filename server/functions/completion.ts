@@ -1,7 +1,7 @@
-import { uncompleteTask } from '../../src/core/services/tasks';
-import { apiHandler, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json } from './_lib/http';
+import { uncompleteTask } from '../../src/core/services/tasks.js';
+import { apiHandler, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json } from './_lib/http.js';
 
 // TASK-6: uncomplete a task by deleting its completion and any linked score (atomic).
 export function createCompletionHandler(getDeps: () => ServerDeps) {

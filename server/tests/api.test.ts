@@ -1,16 +1,16 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { HistoryPage, Session, Settings, TreeNode } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createNodeHandler } from '../functions/node';
-import { createNodeMoveHandler } from '../functions/node-move';
-import { createNodesHandler } from '../functions/nodes';
-import { createRecentNodesHandler } from '../functions/recent-nodes';
-import { createSessionHandler } from '../functions/session';
-import { createSessionsHandler } from '../functions/sessions';
-import { createSettingsHandler } from '../functions/settings';
-import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
+import type { HistoryPage, Session, Settings, TreeNode } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createNodeHandler } from '../functions/node.js';
+import { createNodeMoveHandler } from '../functions/node-move.js';
+import { createNodesHandler } from '../functions/nodes.js';
+import { createRecentNodesHandler } from '../functions/recent-nodes.js';
+import { createSessionHandler } from '../functions/session.js';
+import { createSessionsHandler } from '../functions/sessions.js';
+import { createSettingsHandler } from '../functions/settings.js';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes.js';
 
 // The M2 endpoints, end to end on the in-memory repository: auth → validation → service → JSON.
 

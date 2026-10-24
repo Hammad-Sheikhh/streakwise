@@ -1,21 +1,21 @@
-import { conflict, invalid, notFound } from '../domain/errors';
-import { MAX_DEPTH, TRACK_COLORS } from '../domain/types';
-import type { Clock, IdGenerator, TrackColor, TreeNode } from '../domain/types';
-import { hiddenIds, sortSiblings } from '../logic/tree';
-import type { NodePatch, Repository } from '../repo/Repository';
+import { conflict, invalid, notFound } from '../domain/errors.js';
+import { MAX_DEPTH, TRACK_COLORS } from '../domain/types.js';
+import type { Clock, IdGenerator, TrackColor, TreeNode } from '../domain/types.js';
+import { hiddenIds, sortSiblings } from '../logic/tree.js';
+import type { NodePatch, Repository } from '../repo/Repository.js';
 import {
   createNodeInputSchema,
   moveNodeInputSchema,
   setTopicStatusInputSchema,
   updateNodeInputSchema,
-} from '../schemas/inputs';
+} from '../schemas/inputs.js';
 import type {
   CreateNodeInput,
   MoveNodeInput,
   SetTopicStatusInput,
   UpdateNodeInput,
-} from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
+} from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
 
 // TREE-1–6: the structure tree (tracks, subtasks, topics).
 

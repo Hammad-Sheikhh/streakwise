@@ -1,6 +1,6 @@
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { hiddenIds, nodePath } from './tree';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { hiddenIds, nodePath } from './tree.js';
 
 // MCP-5: Claude refers to nodes by id or by a path such as "School Subjects > Maths > Chapter 3"
 // (case-insensitive, ">"-separated). The end of a path, or a unique partial name ("maths"), also

@@ -1,7 +1,7 @@
 import { ipAddress } from '@vercel/functions';
 
-import { createDispatcher } from '../server/functions/_lib/router';
-import { serverDeps } from '../server/functions/_lib/deps';
+import { createDispatcher } from '../server/functions/_lib/router.js';
+import { serverDeps } from '../server/functions/_lib/deps.js';
 
 // The only function Vercel deploys (see the rewrites in vercel.json): every /api, /auth, /mcp and
 // /.well-known request is rewritten here and dispatched to the per-route handlers (OPS-4). Vercel

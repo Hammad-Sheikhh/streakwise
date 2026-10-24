@@ -1,7 +1,7 @@
-import { exportData } from '../../src/core/services/exports';
-import { apiHandler } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json } from './_lib/http';
+import { exportData } from '../../src/core/services/exports.js';
+import { apiHandler } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json } from './_lib/http.js';
 
 // SET-2: all of the user's data as JSON; the browser makes the files (JSON, and sessions as CSV).
 // POST, because every export records its time (SET-3).

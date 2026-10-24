@@ -13,7 +13,7 @@ import type {
   TopicStatus,
   TrackColor,
   TreeNode,
-} from '../domain/types';
+} from '../domain/types.js';
 
 // Storage used by the core services. SupabaseRepository (server) and InMemoryRepository (demo mode
 // and tests) implement it. Later milestones add methods for tasks, scores, and so on.

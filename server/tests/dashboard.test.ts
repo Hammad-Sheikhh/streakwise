@@ -1,14 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { Dashboard, Deadline, TreeNode } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createDashboardHandler } from '../functions/dashboard';
-import { createDeadlineHandler } from '../functions/deadline';
-import { createDeadlinesHandler } from '../functions/deadlines';
-import { createNodeHandler } from '../functions/node';
-import { createNodesHandler } from '../functions/nodes';
-import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
+import type { Dashboard, Deadline, TreeNode } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createDashboardHandler } from '../functions/dashboard.js';
+import { createDeadlineHandler } from '../functions/deadline.js';
+import { createDeadlinesHandler } from '../functions/deadlines.js';
+import { createNodeHandler } from '../functions/node.js';
+import { createNodesHandler } from '../functions/nodes.js';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes.js';
 
 async function setup() {
   const t = testDeps();

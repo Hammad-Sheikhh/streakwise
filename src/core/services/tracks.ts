@@ -1,9 +1,9 @@
-import { notFound } from '../domain/errors';
-import type { Clock, TrackOverview } from '../domain/types';
-import { localDate, weekStart } from '../logic/dates';
-import { minutesByNode } from '../logic/rollup';
-import { subtreeIds } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
+import { notFound } from '../domain/errors.js';
+import type { Clock, TrackOverview } from '../domain/types.js';
+import { localDate, weekStart } from '../logic/dates.js';
+import { minutesByNode } from '../logic/rollup.js';
+import { subtreeIds } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
 
 /** TRACK-1 shows the latest few sessions. */
 export const TRACK_RECENT_SESSIONS = 10;

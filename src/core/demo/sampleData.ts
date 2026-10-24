@@ -1,7 +1,7 @@
-import { addDays, localDate, weekStart } from '../logic/dates';
-import type { Clock, IdGenerator, ScoreKind, TopicStatus, TrackColor } from '../domain/types';
-import type { Repository } from '../repo/Repository';
-import { seededRandom } from './random';
+import { addDays, localDate, weekStart } from '../logic/dates.js';
+import type { Clock, IdGenerator, ScoreKind, TopicStatus, TrackColor } from '../domain/types.js';
+import type { Repository } from '../repo/Repository.js';
+import { seededRandom } from './random.js';
 
 // DEMO-3: the demo's sample data, built relative to today with a seeded generator so every visit
 // (and every test) sees the same shape: about 12 weeks of sessions, topics in every status, nested

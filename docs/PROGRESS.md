@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-17 by Claude Code (built the Vercel move on `chore/vercel`: one dispatch function, `vercel.json`, header sync tests, docs; next: owner creates the Vercel account, first preview deploy, then M8 and R4)_
+_Last updated: 2026-10-24 by Copilot (validating the Vercel function ESM import fix; next: finish its PR, then owner Vercel setup and preview verification)_
 
 ## Milestones
 
@@ -115,6 +115,15 @@ One database for everything (D15), so each migration runs once.
   - [ ] Delete the Netlify project (only after Vercel is confirmed working)
 
 ## Current work / next step
+
+**2026-10-24: Vercel API ESM module-resolution fix on `fix/vercel-function-bundle` (PR pending).** The
+local change replaces the in-place esbuild bundle with explicit `.js` extensions on relative imports,
+which lets Vercel's Node ESM function resolve the TypeScript source imports after compilation. Local
+lint, typecheck, unit/component tests (395), and production build pass. `vercel build --yes` produced
+`.vercel/output/functions/api/server.func/api/server.js`; its type-diagnostic phase printed errors
+although the CLI reported a successful build, so that discrepancy remains to check during preview
+verification. The CLI could not pull three preview secret values and wrote placeholders to a local
+file; that generated file was removed. No Vercel deployment has been made.
 
 **2026-10-24: PR #29 (the Vercel move) merged into `develop` (owner's OK; squash-merged as f51cb89,
 branch deleted).** Waiting on the owner to create the Vercel account and tell us the project name;

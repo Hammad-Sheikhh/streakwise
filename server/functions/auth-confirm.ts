@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-import { startSession } from './_lib/accountFlow';
-import type { RequestHandler } from './_lib/api';
-import { createRecoveryToken, RECOVERY_COOKIE, setCookie } from './_lib/auth';
-import type { ServerDeps } from './_lib/deps';
-import { HttpError, redirect } from './_lib/http';
-import { describeError, log } from './_lib/log';
+import { startSession } from './_lib/accountFlow.js';
+import type { RequestHandler } from './_lib/api.js';
+import { createRecoveryToken, RECOVERY_COOKIE, setCookie } from './_lib/auth.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { HttpError, redirect } from './_lib/http.js';
+import { describeError, log } from './_lib/log.js';
 
 // ACCT-2, ACCT-4: where the links in our emails land (token-hash flow, so no Supabase page is ever
 // opened). A confirmation link logs the user in; a reset link logs them in and opens the page to

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { updateSettings } from './settings';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { updateSettings } from './settings.js';
 
 const clock = () => new Date('2026-10-03T10:00:00Z');
 

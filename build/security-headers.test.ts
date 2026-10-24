@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { headerRules, vercelHeaders, vercelSource } from './security-headers';
+import { headerRules, vercelHeaders, vercelSource } from './security-headers.js';
 
 describe('security header sources', () => {
   it('converts Netlify-style paths to vercel.json path patterns', () => {

@@ -7,8 +7,8 @@ import type { TaskItem, TreeNode } from '@/core/domain/types';
 import { formatDay } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-import type { TaskTreeItem } from './grouping';
-import { TaskCheckbox } from './TaskCheckbox';
+import type { TaskTreeItem } from './grouping.js';
+import { TaskCheckbox } from './TaskCheckbox.js';
 
 // TASK-3: rows indent up to 4 levels; deeper ones stay at level 4 with a small depth marker.
 const MAX_INDENT = 4;

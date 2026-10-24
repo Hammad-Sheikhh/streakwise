@@ -1,8 +1,8 @@
-import { moveNodeInputSchema } from '../../src/core/schemas/inputs';
-import { moveNode } from '../../src/core/services/structure';
-import { apiHandler, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { moveNodeInputSchema } from '../../src/core/schemas/inputs.js';
+import { moveNode } from '../../src/core/services/structure.js';
+import { apiHandler, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // TREE-6: move a node up or down among its siblings.
 export function createNodeMoveHandler(getDeps: () => ServerDeps) {

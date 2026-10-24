@@ -1,11 +1,11 @@
-import { LOCKOUT_LOOKBACK_MS, lockedUntil } from '../../../src/core/logic/lockout';
-import { seedIfEmpty } from '../../../src/core/services/seed';
-import type { AuthRequestKind } from './accounts';
-import type { ApiRequest } from './api';
-import { createSessionToken, hashIp, setCookie, SESSION_COOKIE } from './auth';
-import type { ServerDeps } from './deps';
-import { HttpError } from './http';
-import { log } from './log';
+import { LOCKOUT_LOOKBACK_MS, lockedUntil } from '../../../src/core/logic/lockout.js';
+import { seedIfEmpty } from '../../../src/core/services/seed.js';
+import type { AuthRequestKind } from './accounts.js';
+import type { ApiRequest } from './api.js';
+import { createSessionToken, hashIp, setCookie, SESSION_COOKIE } from './auth.js';
+import type { ServerDeps } from './deps.js';
+import { HttpError } from './http.js';
+import { log } from './log.js';
 
 // Steps shared by the auth endpoints: starting a login session, the lockout (AUTH-5), and the
 // sign-up/reset request limit (ACCT-10).

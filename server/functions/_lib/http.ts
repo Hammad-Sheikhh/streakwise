@@ -1,8 +1,8 @@
 import type { z } from 'zod';
 
-import { DomainError } from '../../../src/core/domain/errors';
-import { ConfigError } from './env';
-import { describeError, log } from './log';
+import { DomainError } from '../../../src/core/domain/errors.js';
+import { ConfigError } from './env.js';
+import { describeError, log } from './log.js';
 
 // SPEC §B8: JSON everywhere, errors shaped `{ error: { code, message } }`.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDuration } from './duration';
+import { formatDuration } from './duration.js';
 
 describe('formatDuration', () => {
   it.each([

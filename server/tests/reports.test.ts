@@ -1,14 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { DataExport, Report, SharedReportLink } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createExportHandler } from '../functions/data-export';
-import { createPublicShareHandler } from '../functions/public-share';
-import { createReportsHandler } from '../functions/reports';
-import { createShareHandler } from '../functions/share';
-import { createSharesHandler } from '../functions/shares';
-import { context, cookieFrom, LOGIN, post, testDeps } from './fakes';
+import type { DataExport, Report, SharedReportLink } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createExportHandler } from '../functions/data-export.js';
+import { createPublicShareHandler } from '../functions/public-share.js';
+import { createReportsHandler } from '../functions/reports.js';
+import { createShareHandler } from '../functions/share.js';
+import { createSharesHandler } from '../functions/shares.js';
+import { context, cookieFrom, LOGIN, post, testDeps } from './fakes.js';
 
 const DAY = 86_400_000;
 

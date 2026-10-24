@@ -1,14 +1,14 @@
-import { InMemoryRepository } from '../../src/core/repo/InMemoryRepository';
-import type { AccountStore, AuthRequestKind } from '../functions/_lib/accounts';
+import { InMemoryRepository } from '../../src/core/repo/InMemoryRepository.js';
+import type { AccountStore, AuthRequestKind } from '../functions/_lib/accounts.js';
 import type {
   AuthProvider,
   AuthUser,
   EmailLinkType,
   SignUpResult,
-} from '../functions/_lib/authProvider';
-import type { ServerDeps } from '../functions/_lib/deps';
-import { HttpError } from '../functions/_lib/http';
-import type { LoginAttemptStore } from '../functions/_lib/loginAttempts';
+} from '../functions/_lib/authProvider.js';
+import type { ServerDeps } from '../functions/_lib/deps.js';
+import { HttpError } from '../functions/_lib/http.js';
+import type { LoginAttemptStore } from '../functions/_lib/loginAttempts.js';
 
 // In-memory stand-ins for the server's dependencies. Values here are test-only, never real secrets.
 

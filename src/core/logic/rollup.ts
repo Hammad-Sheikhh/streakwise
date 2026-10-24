@@ -1,4 +1,4 @@
-import type { SessionFact, TreeNode } from '../domain/types';
+import type { SessionFact, TreeNode } from '../domain/types.js';
 
 // SPEC §B9.3: a session counts for its own node and for every ancestor.
 

@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { hashMcpToken } from '../functions/_lib/mcpToken';
-import { createLoginHandler } from '../functions/auth-login';
-import { createClaudeConnectionHandler } from '../functions/claude-connection';
-import { context, cookieFrom, LOGIN, post, testDeps } from './fakes';
+import { hashMcpToken } from '../functions/_lib/mcpToken.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createClaudeConnectionHandler } from '../functions/claude-connection.js';
+import { context, cookieFrom, LOGIN, post, testDeps } from './fakes.js';
 
 async function setup() {
   const t = testDeps();

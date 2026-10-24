@@ -1,8 +1,8 @@
-import { SLUG_PATTERN } from '../../src/core/logic/slug';
-import { publicSnapshot } from '../../src/core/services/shares';
-import { apiHandler } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { errorJson, json } from './_lib/http';
+import { SLUG_PATTERN } from '../../src/core/logic/slug.js';
+import { publicSnapshot } from '../../src/core/services/shares.js';
+import { apiHandler } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { errorJson, json } from './_lib/http.js';
 
 // SHARE-2, SHARE-4: the public read of a shared report (no login, AUTH-3). Unknown, expired, and
 // revoked links all get the same answer, so the response never reveals which it was.

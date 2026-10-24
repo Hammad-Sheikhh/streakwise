@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Score, ScoreKind, TreeNode } from '../domain/types';
-import { defaultKind, lineNodeId, scoreLines, scorePercent, trendOf } from './scores';
+import type { Score, ScoreKind, TreeNode } from '../domain/types.js';
+import { defaultKind, lineNodeId, scoreLines, scorePercent, trendOf } from './scores.js';
 
 const T = '2026-10-01T00:00:00.000Z';
 

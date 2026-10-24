@@ -1,8 +1,8 @@
-import { updateNodeInputSchema } from '../../src/core/schemas/inputs';
-import { deleteNode, updateNode } from '../../src/core/services/structure';
-import { apiHandler, byMethod, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { updateNodeInputSchema } from '../../src/core/schemas/inputs.js';
+import { deleteNode, updateNode } from '../../src/core/services/structure.js';
+import { apiHandler, byMethod, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // PATCH: rename, recolor, archive, or restore (TREE-1, 2, 5). DELETE: delete a subtree (TREE-3).
 export function createNodeHandler(getDeps: () => ServerDeps) {

@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 
 import { AddTrackForm } from '@/components/AddTrackForm';
 
-import { LEVEL_NAMES } from './levels';
-import { NodeDialog } from './NodeDialog';
+import { LEVEL_NAMES } from './levels.js';
+import { NodeDialog } from './NodeDialog.js';
 
 // TREE-1–6: Settings → Structure.
 export function StructurePage() {

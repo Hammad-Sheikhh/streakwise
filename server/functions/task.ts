@@ -1,8 +1,8 @@
-import { updateTaskInputSchema } from '../../src/core/schemas/inputs';
-import { deleteTask, updateTask } from '../../src/core/services/tasks';
-import { apiHandler, byMethod, idParam } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson } from './_lib/http';
+import { updateTaskInputSchema } from '../../src/core/schemas/inputs.js';
+import { deleteTask, updateTask } from '../../src/core/services/tasks.js';
+import { apiHandler, byMethod, idParam } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson } from './_lib/http.js';
 
 // TASK-8: edit, archive, restore, or delete one task (deleting removes its sub-tasks too).
 export function createTaskHandler(getDeps: () => ServerDeps) {

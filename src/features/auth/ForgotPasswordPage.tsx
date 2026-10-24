@@ -5,9 +5,9 @@ import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 
-import { AuthField } from './AuthField';
-import { AuthLayout } from './AuthLayout';
-import { useAccount } from './useAccount';
+import { AuthField } from './AuthField.js';
+import { AuthLayout } from './AuthLayout.js';
+import { useAccount } from './useAccount.js';
 
 // ACCT-4: asks for a reset link. The answer never says whether the email has an account.
 export function ForgotPasswordPage() {

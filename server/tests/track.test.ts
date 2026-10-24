@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import type { TrackOverview, TreeNode } from '../../src/core/domain/types';
-import { createLoginHandler } from '../functions/auth-login';
-import { createNodesHandler } from '../functions/nodes';
-import { createTrackHandler } from '../functions/track';
-import { context, cookieFrom, post, LOGIN, testDeps } from './fakes';
+import type { TrackOverview, TreeNode } from '../../src/core/domain/types.js';
+import { createLoginHandler } from '../functions/auth-login.js';
+import { createNodesHandler } from '../functions/nodes.js';
+import { createTrackHandler } from '../functions/track.js';
+import { context, cookieFrom, post, LOGIN, testDeps } from './fakes.js';
 
 describe('/api/tracks/:id (TRACK-1)', () => {
   it('needs a session, returns a track overview, and 404s for anything else', async () => {

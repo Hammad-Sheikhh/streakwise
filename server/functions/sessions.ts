@@ -1,8 +1,8 @@
-import { historyQuerySchema, logSessionInputSchema } from '../../src/core/schemas/inputs';
-import { getHistory, logSession } from '../../src/core/services/sessions';
-import { apiHandler, byMethod } from './_lib/api';
-import type { ServerDeps } from './_lib/deps';
-import { json, readJson, readQuery } from './_lib/http';
+import { historyQuerySchema, logSessionInputSchema } from '../../src/core/schemas/inputs.js';
+import { getHistory, logSession } from '../../src/core/services/sessions.js';
+import { apiHandler, byMethod } from './_lib/api.js';
+import type { ServerDeps } from './_lib/deps.js';
+import { json, readJson, readQuery } from './_lib/http.js';
 
 // GET: a page of History (HIST-1, HIST-3). POST: log a session from the app (LOG).
 export function createSessionsHandler(getDeps: () => ServerDeps) {
