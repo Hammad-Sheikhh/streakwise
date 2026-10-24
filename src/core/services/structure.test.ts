@@ -5,7 +5,14 @@ import type { TreeNode } from '../domain/types.js';
 import { InMemoryRepository } from '../repo/InMemoryRepository.js';
 import { seedIfEmpty } from './seed.js';
 import { logSession } from './sessions.js';
-import { addNode, deleteNode, listTree, moveNode, setTopicStatus, updateNode } from './structure.js';
+import {
+  addNode,
+  deleteNode,
+  listTree,
+  moveNode,
+  setTopicStatus,
+  updateNode,
+} from './structure.js';
 
 const clock = () => new Date('2026-10-03T10:00:00Z');
 function sequentialIds() {
