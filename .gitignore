@@ -36,3 +36,7 @@ playwright/.cache/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+
+.vercel
+.env.local
+!.env.example
