@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-25 by Copilot (production URL repaired and verified working; owner kept the Vercel address and will sign in for previews; next: owner adds the Vercel URLs in Supabase, then the preview checklist)_
+_Last updated: 2026-10-25 by Copilot (Vercel production repaired; owner saved the Supabase URLs and can log in/out; login now works on the first click with password-manager autofill — fix on `fix/login-autofill`, PR pending; next: R4 decision)_
 
 ## Milestones
 
@@ -113,8 +113,9 @@ One database for everything (D15), so each migration runs once.
   - [x] Decide how to repair production: promote the passing build now (owner, 2026-10-25; done with
         `vercel deploy --prod` because the promote path was skipped as docs-only)
   - [x] Decide about preview access: sign in to Vercel to view previews (owner, 2026-10-25)
-  - [ ] Supabase → Authentication → URL Configuration: new Site URL + redirect URLs for the Vercel
-        addresses
+  - [x] Supabase → Authentication → URL Configuration: redirect URLs for the Vercel addresses
+        (`https://streakwise-mu.vercel.app/**`, `https://*-team-nick4.vercel.app/**`) added by the
+        owner, 2026-10-25; Site URL stays on Netlify until R4
   - [ ] Check the Vercel site together (the checklist in the session log below)
   - [ ] Say yes to release R4-the-first-Vercel-release (or first an R4.0 preview check) when it works
   - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
@@ -126,7 +127,7 @@ One database for everything (D15), so each migration runs once.
 **2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
 (`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and
 approved repairing production instead of pausing it. Previews stay behind Vercel Authentication; the
-owner will sign in to Vercel to view them.
+owner signs in to Vercel to view them.
 
 - `vercel promote` of the passing PR #30 deployment did **not** work: Vercel re-runs the ignored-build
   step for the promoted commit, saw a docs-only diff, and cancelled the new production deployment
@@ -145,26 +146,38 @@ owner will sign in to Vercel to view them.
 - Earlier findings still true: Production Branch is `main` (so pushes deploy previews only); env vars
   exist for Preview and Production (`SESSION_SECRET`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`); the
   docs-only push `f6da755` was cancelled by `ignoreCommand` as designed (no build, no deploy).
+- The owner saved the Vercel redirect URLs in Supabase (`https://streakwise-mu.vercel.app/**` and
+  `https://*-team-nick4.vercel.app/**`) and logged in/out on the Vercel site successfully.
+
+**2026-10-25: login needed a second attempt when a password manager filled the form.** The owner
+reported that the first click on **Log in** did nothing and the fields seemed to clear. Runtime logs
+showed no request on that click; a headless-browser probe reproduced it: autofill writes values
+straight into the DOM without an `input` event, so React state stayed empty, the button (disabled
+while either field was empty) never fired, and the next render/typing made it work. Fix on
+`fix/login-autofill`: the auth forms (login, sign-up, forgot password, change password) now read their
+values from `FormData` at submit time via `src/features/auth/formValues.ts`, keep the fields
+uncontrolled so the browser's values are never overwritten, and disable the button only while the
+request is in flight; empty submits show "Enter your email and password." instead of doing nothing.
+Covered by three new tests (silent autofill on login, silent autofill on sign-up, empty submit);
+398 tests, lint, typecheck, and a real-browser check on the Vite dev server pass.
 
 **Next steps (in order):**
 
-1. Owner: add the Vercel addresses in Supabase → Authentication → URL Configuration (Site URL
-   `https://streakwise-mu.vercel.app` plus redirect URLs for it and for previews), keeping the
-   Netlify entries until Vercel is confirmed.
-2. Owner: work through the preview checklist below on `https://streakwise-mu.vercel.app`; sign in to
-   Vercel first if a preview link is needed. Use demo mode first, and ask before any test writes
-   (preview/production and the shared database are the same Supabase project, D15).
-3. After the checklist passes, the owner decides on R4 (merge `develop` → `main`, then deploy
+1. Owner: work through the preview checklist below on `https://streakwise-mu.vercel.app` (the Vercel
+   URLs are already in Supabase). Use demo mode first, and ask before any test writes
+   (production and the shared database are the same Supabase project, D15).
+2. After the checklist passes, the owner decides on R4 (merge `develop` → `main`, then deploy
    production from `main`). Only after production is confirmed should they make a new Claude link,
    replace the connector, and `PROD_URL`/README links be updated.
-4. Delete the Netlify project only after Vercel production is confirmed; the old public share links
+3. Delete the Netlify project only after Vercel production is confirmed; the old public share links
    and Claude connector stop working when Netlify is removed.
 
-**Preview checklist:** Check `/api/health`; sign in/out; test sign-up and email confirmation with a
-throwaway `+test` address and delete that account afterward; confirm the authenticated app can read
-`/api/nodes`; test the MCP link with MCP Inspector; verify `/r/<slug>` is `noindex`, `/.well-known/*`
-is 404, wrong methods return 405, and the service worker never caches `/api`, `/mcp`, or `/auth`.
-Account creation and test writes touch the shared Supabase project, so get the owner's OK first.
+**Preview checklist:** Check `/api/health` (done); sign in/out (done); test sign-up and email
+confirmation with a throwaway `+test` address and delete that account afterward; confirm the
+authenticated app can read `/api/nodes`; test the MCP link with MCP Inspector; verify `/r/<slug>` is
+`noindex`, `/.well-known/*` is 404, wrong methods return 405, and the service worker never caches
+`/api`, `/mcp`, or `/auth`. Account creation and test writes touch the shared Supabase project, so
+get the owner's OK first.
 
 **2026-10-24: PR #30 (Vercel API ESM module-resolution fix) merged into `develop`** (squash commit
 `9fc9713`). The change replaces the in-place esbuild bundle with explicit `.js` extensions on relative
@@ -402,13 +415,16 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- When should the Vercel URLs go into Supabase → Authentication → URL Configuration (step 1 above),
-  and are the Netlify entries to be kept until R4 or removed?
 - Say yes/no to R4 once the checklist passes (merge `develop` → `main`, then deploy production from
   `main`).
+- Should the Netlify entries stay in Supabase's URL configuration until R4, or be removed with the
+  Netlify project?
 
 ## Decisions made during the build
 
+- Vercel (2026-10-25): the auth forms read their values from `FormData` at submit time (uncontrolled
+  inputs), so browser/password-manager autofill works on the first click; submit buttons are disabled
+  only while a request is in flight, and an empty submit shows a message instead of doing nothing.
 - Vercel (2026-10-25): `vercel promote` re-runs the ignored-build step for the promoted commit, so a
   git deployment whose diff is docs-only gets cancelled and the alias stays put. To repair or release
   production, deploy explicitly with `vercel deploy --prod` from the intended commit.

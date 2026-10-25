@@ -37,7 +37,7 @@ describe('login (ACCT-3, AUTH-4)', () => {
     const user = userEvent.setup();
     const api = fakeApi();
     const { router } = renderRoutes('/login', api);
-    expect(await screen.findByRole('button', { name: 'Log in' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Log in' })).toBeEnabled();
     await user.type(screen.getByLabelText('Email'), TEST_EMAIL);
     await user.type(screen.getByLabelText('Password'), TEST_PASSWORD);
     await user.click(screen.getByRole('button', { name: 'Log in' }));
@@ -50,6 +50,29 @@ describe('login (ACCT-3, AUTH-4)', () => {
     await user.click(screen.getByRole('button', { name: 'Log out' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     expect(api.loggedIn).toBe(false);
+  });
+
+  it('logs in with details a password manager filled without input events', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    const { router } = renderRoutes('/login', api);
+
+    // Autofill writes straight into the DOM: React never gets an onChange for these values.
+    const email = (await screen.findByLabelText('Email')) as HTMLInputElement;
+    const password = screen.getByLabelText('Password') as HTMLInputElement;
+    email.value = TEST_EMAIL;
+    password.value = TEST_PASSWORD;
+
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(api.loggedIn).toBe(true);
+  });
+
+  it('says what is missing instead of ignoring a click on an empty form', async () => {
+    const user = userEvent.setup();
+    renderRoutes('/login', fakeApi());
+    await user.click(await screen.findByRole('button', { name: 'Log in' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Enter your email and password.');
   });
 
   it('explains an expired email link', async () => {
@@ -91,6 +114,24 @@ describe('sign-up and passwords (ACCT-1, ACCT-4, ACCT-9)', () => {
       'We sent a confirmation link to new@example.com',
     );
     expect(api.pending).toEqual(['new@example.com']);
+  });
+
+  it('creates an account from fields a password manager filled silently', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    renderRoutes('/signup', api);
+    const name = (await screen.findByLabelText('Your name')) as HTMLInputElement;
+    const email = screen.getByLabelText('Email') as HTMLInputElement;
+    const password = screen.getByLabelText('Password') as HTMLInputElement;
+    name.value = 'New Student';
+    email.value = 'autofill@example.com';
+    password.value = 'a long enough password';
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'We sent a confirmation link to autofill@example.com',
+    );
+    expect(api.pending).toEqual(['autofill@example.com']);
   });
 
   it('sends a reset link without saying whether the email exists', async () => {
