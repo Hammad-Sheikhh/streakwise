@@ -1,24 +1,24 @@
 # Progress
 
-_Last updated: 2026-10-25 by Claude (M8 Polish built on `chore/polish`: WCAG AA on every screen, the
-final palette, track management, screenshots and README; next: merge the M8 PR, then the owner's R4
-decision)_
+_Last updated: 2026-10-25 by Claude (M8 Polish merged into `develop` as #32: WCAG AA on every screen, the
+final palette, track management, screenshots and README; next: the owner looks at the new colours and
+decides on R4)_
 
 ## Milestones
 
-| #             | Status    | PR  | Notes / deferred items                                                                                                                        |
-| ------------- | --------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                               |
-| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                        |
-| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                       |
-| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                          |
-| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                          |
-| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                      |
-| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                       |
-| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                 |
-| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10) |
-| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                     |
-| M8 Polish     | ✅ done   | #32 | WCAG AA checks on all 8 screens × 2 themes, final palette, "Manage track", screenshots, README, architecture.md                               |
+| #             | Status    | PR  | Notes / deferred items                                                                                                                                                                    |
+| ------------- | --------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1  |                                                                                                                                                                                           |
+| M1 Foundation | ✅ done   | #7  | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                                                                    |
+| M2 Logging    | ✅ done   | #8  | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                                                                   |
+| M3 Dashboard  | ✅ done   | #9  | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                                                                      |
+| M4 MCP        | 🔍 review | #11 | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                                                                      |
+| M5 Progress   | ✅ done   | #16 | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                                                                  |
+| M5A Accounts  | ✅ done   | #20 | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                                                                   |
+| M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                                                             |
+| M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                             |
+| Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                 |
+| M8 Polish     | ✅ done   | #32 | WCAG AA checks on all 8 screens × 2 themes, final palette, "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (squash `c324a0b`); R4 is the next step |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -169,7 +169,7 @@ attempt.
 
 **Next steps (in order):**
 
-1. Merge the M8 PR into `develop` (CI green) and check the `develop` preview.
+1. Done: M8 (#32) merged into `develop` 2026-10-25; CI and e2e green; the `develop` deploy carries it.
 2. Owner: look at the new colours and the "Manage track" button; say if the palette should be
    warmer/cooler before it goes into v1.0.0.
 3. Owner: finish the remaining preview-checklist items (sign-up + confirmation with a `+test`
