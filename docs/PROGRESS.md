@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-24 by Copilot (validating the Vercel function ESM import fix; next: finish its PR, then owner Vercel setup and preview verification)_
+_Last updated: 2026-10-24 by Copilot (PR #30 is green; its Vercel preview passed API smoke checks; next: confirm the owner's Vercel setup details and proceed with the remaining preview checklist)_
 
 ## Milestones
 
@@ -116,19 +116,24 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-10-24: Vercel API ESM module-resolution fix on `fix/vercel-function-bundle` (PR pending).** The
+**2026-10-24: Vercel API ESM module-resolution fix on `fix/vercel-function-bundle` (PR #30).** The
 local change replaces the in-place esbuild bundle with explicit `.js` extensions on relative imports,
 which lets Vercel's Node ESM function resolve the TypeScript source imports after compilation. Local
-lint, typecheck, unit/component tests (395), and production build pass. `vercel build --yes` produced
+format check, lint, typecheck, unit/component tests (395), and production build pass. CI is green,
+including the e2e job. `vercel build --yes` produced
 `.vercel/output/functions/api/server.func/api/server.js`; its type-diagnostic phase printed errors
-although the CLI reported a successful build, so that discrepancy remains to check during preview
-verification. The CLI could not pull three preview secret values and wrote placeholders to a local
-file; that generated file was removed. No Vercel deployment has been made.
+although the CLI reported a successful build, so that discrepancy remains noted (the project
+typecheck and CI pass). The CLI could not pull three preview secret values and wrote placeholders to
+a local file; that generated file was removed. PR #30's Vercel preview is ready. Using authenticated
+`vercel curl`, `GET /api/health` returned `{"ok":true,"version":"0.1.0"}`, `POST /api/health`
+returned 405, and unauthenticated `GET /api/nodes` returned the expected 401. No production
+deployment has been made.
 
 **2026-10-24: PR #29 (the Vercel move) merged into `develop` (owner's OK; squash-merged as f51cb89,
-branch deleted).** Waiting on the owner to create the Vercel account and tell us the project name;
-until then nothing deploys anywhere. The owner also deleted `APP_PASSCODE`/`MCP_SECRET` from `.env`
-(verified above).
+branch deleted). The repository is linked to the Vercel project `streakwise`, and PR #30's preview
+has deployed successfully. The owner still needs to confirm the Vercel account/project details;
+manual checklist items remain open until confirmed. The owner also deleted `APP_PASSCODE`/`MCP_SECRET`
+from `.env` (verified above).
 
 - One deployed function: `api/server.ts` (Vercel Function, web `Request`/`Response` via the
   `fetch` handler). Vercel's docs recommend a single shared function with rewrites for framework-less
