@@ -18,7 +18,7 @@ decision)_
 | M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                 |
 | M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10) |
 | Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                     |
-| M8 Polish     | ✅ done   |     | WCAG AA checks on all 8 screens × 2 themes, final palette, "Manage track", screenshots, README, architecture.md                               |
+| M8 Polish     | ✅ done   | #32 | WCAG AA checks on all 8 screens × 2 themes, final palette, "Manage track", screenshots, README, architecture.md                               |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -201,8 +201,8 @@ decision).
   changing.
 - **Docs:** `architecture.md` gained "Theme and accessibility (M8)" and "Performance", lost its
   skeleton note, and lists the a11y e2e.
-- **Checked:** lint, typecheck, `npm test` (400), `npm run build` (224.7 KB gzipped, budget 250), the
-  32 axe checks, and the full e2e suite.
+- **Checked:** lint, typecheck, `npm test` (400), `npm run build` (224.7 KB gzipped, budget 250), and
+  the full e2e suite (40 checks: demo, PWA, and the 32 axe ones).
 
 **B17 final checklist — where each line is proved.** All green locally on `chore/polish`; the owner
 still has to confirm the lines that need a real phone, a real account, or the release itself.
