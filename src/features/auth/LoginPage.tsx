@@ -9,6 +9,7 @@ import { DataSourceError } from '@/data/DataSource';
 
 import { AuthField } from './AuthField.js';
 import { AuthLayout } from './AuthLayout.js';
+import { formValue } from './formValues.js';
 import { useAccount } from './useAccount.js';
 
 const LINK_MESSAGES: Record<string, string> = {
@@ -24,11 +25,12 @@ export function LoginPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [lastEmail, setLastEmail] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const login = useMutation({
-    mutationFn: () => account.login({ email, password }),
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      account.login({ email, password }),
     onSuccess: async () => {
       await queryClient.invalidateQueries();
       void navigate('/', { replace: true });
@@ -36,14 +38,22 @@ export function LoginPage() {
   });
 
   const resend = useMutation({
-    mutationFn: () => account.resendConfirmation({ email }),
+    mutationFn: () => account.resendConfirmation({ email: lastEmail }),
     onSuccess: () => toast.success('Sent. Check your inbox and spam folder.'),
     onError: (error) => toast.error(error.message),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    login.mutate();
+    const email = formValue(event.currentTarget, 'email').trim();
+    const password = formValue(event.currentTarget, 'password');
+    setLastEmail(email);
+    if (!email || !password) {
+      setFormError('Enter your email and password.');
+      return;
+    }
+    setFormError(null);
+    login.mutate({ email, password });
   }
 
   const linkMessage = LINK_MESSAGES[searchParams.get('link') ?? ''];
@@ -60,20 +70,18 @@ export function LoginPage() {
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <AuthField
           label="Email"
+          name="email"
           type="email"
           autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
           required
           autoFocus
         />
         <AuthField
           label="Password"
+          name="password"
           type="password"
           autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          error={login.error?.message}
+          error={formError ?? login.error?.message}
           required
         />
         {notConfirmed && (
@@ -87,11 +95,7 @@ export function LoginPage() {
             Send the confirmation email again
           </Button>
         )}
-        <Button
-          type="submit"
-          className="h-11"
-          disabled={login.isPending || email.trim() === '' || password === ''}
-        >
+        <Button type="submit" className="h-11" disabled={login.isPending}>
           {login.isPending ? 'Logging in…' : 'Log in'}
         </Button>
         <div className="flex flex-wrap justify-between gap-2 text-sm">

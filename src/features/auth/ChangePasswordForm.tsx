@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { changePasswordInputSchema } from '@/core/schemas/auth';
 
 import { AuthField } from './AuthField.js';
+import { formValue } from './formValues.js';
 import { useAccount } from './useAccount.js';
 
 /**
@@ -20,32 +21,25 @@ export function ChangePasswordForm({
   onDone: () => void;
 }) {
   const account = useAccount();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [repeat, setRepeat] = useState('');
   const [formError, setFormError] = useState<string>();
 
   const change = useMutation({
-    mutationFn: () =>
-      account.changePassword({
-        currentPassword: requireCurrent ? currentPassword : undefined,
-        newPassword,
-      }),
-    onSuccess: () => {
-      setCurrentPassword('');
-      setNewPassword('');
-      setRepeat('');
-      onDone();
-    },
+    mutationFn: (input: { currentPassword?: string; newPassword: string }) =>
+      account.changePassword(input),
+    onSuccess: () => onDone(),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const currentPassword = formValue(event.currentTarget, 'currentPassword');
+    const newPassword = formValue(event.currentTarget, 'newPassword');
+    const repeat = formValue(event.currentTarget, 'repeat');
     const parsed = changePasswordInputSchema.shape.newPassword.safeParse(newPassword);
     if (!parsed.success) return setFormError(parsed.error.issues[0]?.message);
     if (newPassword !== repeat) return setFormError('The two new passwords don’t match.');
+    if (requireCurrent && !currentPassword) return setFormError('Enter your current password.');
     setFormError(undefined);
-    change.mutate();
+    change.mutate({ currentPassword: requireCurrent ? currentPassword : undefined, newPassword });
   }
 
   return (
@@ -53,28 +47,25 @@ export function ChangePasswordForm({
       {requireCurrent && (
         <AuthField
           label="Current password"
+          name="currentPassword"
           type="password"
           autoComplete="current-password"
-          value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
           required
         />
       )}
       <AuthField
         label="New password"
+        name="newPassword"
         type="password"
         autoComplete="new-password"
         hint="At least 8 characters. Other devices will be logged out."
-        value={newPassword}
-        onChange={(event) => setNewPassword(event.target.value)}
         required
       />
       <AuthField
         label="Repeat new password"
+        name="repeat"
         type="password"
         autoComplete="new-password"
-        value={repeat}
-        onChange={(event) => setRepeat(event.target.value)}
         error={formError ?? change.error?.message}
         required
       />

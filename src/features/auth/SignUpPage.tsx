@@ -9,6 +9,7 @@ import type { SignUpInput } from '@/core/schemas/auth';
 
 import { AuthField } from './AuthField.js';
 import { AuthLayout } from './AuthLayout.js';
+import { formValue } from './formValues.js';
 import { useAccount } from './useAccount.js';
 
 type FieldErrors = Partial<Record<keyof SignUpInput, string>>;
@@ -19,8 +20,8 @@ export function SignUpPage() {
   const account = useAccount();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [submittedEmail, setSubmittedEmail] = useState('');
 
   const signUp = useMutation({
     mutationFn: (input: SignUpInput) => account.signUp(input),
@@ -34,7 +35,13 @@ export function SignUpPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsed = signUpInputSchema.safeParse(form);
+    const input = {
+      name: formValue(event.currentTarget, 'name').trim(),
+      email: formValue(event.currentTarget, 'email').trim(),
+      password: formValue(event.currentTarget, 'password'),
+    };
+    setSubmittedEmail(input.email);
+    const parsed = signUpInputSchema.safeParse(input);
     if (!parsed.success) {
       const errors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
@@ -52,7 +59,7 @@ export function SignUpPage() {
     return (
       <AuthLayout description="Check your email.">
         <p role="status">
-          We sent a confirmation link to <strong>{form.email.trim()}</strong>. Open it to finish
+          We sent a confirmation link to <strong>{submittedEmail}</strong>. Open it to finish
           creating your account.
         </p>
         <p className="text-sm text-muted-foreground">
@@ -65,38 +72,32 @@ export function SignUpPage() {
     );
   }
 
-  const update = (field: keyof SignUpInput) => (event: { target: { value: string } }) =>
-    setForm((current) => ({ ...current, [field]: event.target.value }));
-
   return (
     <AuthLayout description="Create your account.">
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <AuthField
           label="Your name"
+          name="name"
           autoComplete="name"
           maxLength={80}
-          value={form.name}
-          onChange={update('name')}
           error={fieldErrors.name}
           required
           autoFocus
         />
         <AuthField
           label="Email"
+          name="email"
           type="email"
           autoComplete="email"
-          value={form.email}
-          onChange={update('email')}
           error={fieldErrors.email}
           required
         />
         <AuthField
           label="Password"
+          name="password"
           type="password"
           autoComplete="new-password"
           hint="At least 8 characters."
-          value={form.password}
-          onChange={update('password')}
           error={fieldErrors.password}
           required
         />
