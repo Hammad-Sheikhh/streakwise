@@ -1,23 +1,23 @@
 # Progress
 
-_Last updated: 2026-10-25 by Claude (M8 merged as #32; the palette is back to the warm paper/sand
-version after the owner compared it with a cooler one in #33/#34; next: the owner decides on R4)_
+_Last updated: 2026-10-26 by Claude (R4 released: `develop` merged into `main` as #36, production deployed
+from `main` on Vercel, tagged `v1.0.0`; only the owner-only handoff steps remain)_
 
 ## Milestones
 
-| #             | Status    | PR            | Notes / deferred items                                                                                                                                                                                                                                            |
-| ------------- | --------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1            |                                                                                                                                                                                                                                                                   |
-| M1 Foundation | ✅ done   | #7            | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                                                                                                                                            |
-| M2 Logging    | ✅ done   | #8            | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                                                                                                                                           |
-| M3 Dashboard  | ✅ done   | #9            | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                                                                                                                                              |
-| M4 MCP        | 🔍 review | #11           | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                                                                                                                                              |
-| M5 Progress   | ✅ done   | #16           | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                                                                                                                                          |
-| M5A Accounts  | ✅ done   | #20           | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                                                                                                                                           |
-| M6 Reports    | ✅ done   | #21           | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                                                                                                                                     |
-| M7 Demo + PWA | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                     |
-| Cleanup       | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                         |
-| M8 Polish     | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); R4 is the next step |
+| #             | Status    | PR            | Notes / deferred items                                                                                                                                                                                                                                                                  |
+| ------------- | --------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold   | ✅ done   | #1            |                                                                                                                                                                                                                                                                                         |
+| M1 Foundation | ✅ done   | #7            | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                                                                                                                                                                  |
+| M2 Logging    | ✅ done   | #8            | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                                                                                                                                                                 |
+| M3 Dashboard  | ✅ done   | #9            | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                                                                                                                                                                    |
+| M4 MCP        | 🔍 review | #11           | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                                                                                                                                                                    |
+| M5 Progress   | ✅ done   | #16           | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                                                                                                                                                                |
+| M5A Accounts  | ✅ done   | #20           | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                                                                                                                                                                 |
+| M6 Reports    | ✅ done   | #21           | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                                                                                                                                                           |
+| M7 Demo + PWA | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                                           |
+| Cleanup       | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
+| M8 Polish     | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -33,17 +33,18 @@ version after the owner compared it with a cooler one in #33/#34; next: the owne
 
 | R3a | 2026-10-10 | M7 demo sample data + installable app (#26), single-user cleanup (#27), README (release #28, merge commit). Owner approved; last Netlify release before the Vercel move. Live check: `/api/health` ok, `/api/dashboard` 401, `/api/auth/passcode` 404 (removed), `/demo` 200, `manifest.webmanifest` and `sw.js` 200, login page has no old-passcode option. |
 
-Production builds this month (Oct 2026): **6** (~90 credits, counted conservatively). At 6, check credits in Netlify before releasing again.
+| R4 | 2026-10-26 | **v1.0.0, first Vercel release.** M8 polish plus the warm palette, version bumped to 1.0.0 (#32–#35; release #36, merge commit `8e4f736`, tag `v1.0.0`). Owner approved ("R4"). Production deploy `streakwise-iwmdd4pnz` from `main`. Live check: `/api/health` → `{"ok":true,"version":"1.0.0"}`, `POST /api/health` 405, `/api/nodes` and `/api/dashboard` 401, `/`, `/login`, `/signup`, `/demo`, `/sw.js`, `manifest.webmanifest` 200, CSP and other security headers present, `/r/*` noindex, `/sw.js` `Cache-Control: no-cache`, CSS carries the warm tokens (`#fbf9f4`, `#0c5f57`, `#6fd3bd`). |
+
+Production builds this month (Oct 2026): **6 Netlify builds** (~90 credits, counted conservatively) plus
+R4 on Vercel (no credit cost). Netlify is not used for builds any more.
 
 **2026-10-10: the owner reports 230 of 300 Netlify credits are left** (usage period 2026-10-03 → resets
 2026-11-03). R3a (M7, cleanup #27, README) was released 2026-10-10 as the last Netlify release; no more Netlify
 production deploys.
 
-Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
-
-Next host: Vercel project `streakwise` (account `hammadsheikhcs-7269`, team `team-nick4`), production
-URL https://streakwise-mu.vercel.app — working since the 2026-10-25 repair, but it serves `develop`
-(pre-M8) and is not the R4 release. Netlify keeps serving R3a until R4.
+Live site: **https://streakwise-mu.vercel.app** (R4, v1.0.0, deployed from `main`) · Vercel project
+`streakwise` (account `hammadsheikhcs-7269`, team `team-nick4`). The Netlify project still serves its
+last release, R3a, at https://streakwise-ap.netlify.app until the owner deletes it.
 
 ## Database migrations applied
 
@@ -106,7 +107,7 @@ One database for everything (D15), so each migration runs once.
 - [x] Delete `APP_PASSCODE` and `MCP_SECRET` from `.env` (owner confirmed deleted by 2026-10-24). Verified
       by Claude Code: no trace of either name in `.env`. They are simply not copied to
       Vercel; Netlify's copies go away when the Netlify project is deleted
-- [ ] Vercel move (each step explained in detail when we reach it; current Vercel docs checked 2026-10-10
+- [x] Vercel move (each step explained in detail when we reached it; current Vercel docs checked 2026-10-10
       and code work is done on `chore/vercel`):
   - [x] Confirm the Vercel account is yours: `hammadsheikhcs-7269` in team `team-nick4` (owner kept this
         account's address and approved work on it, 2026-10-25)
@@ -116,14 +117,44 @@ One database for everything (D15), so each migration runs once.
   - [x] Decide about preview access: sign in to Vercel to view previews (owner, 2026-10-25)
   - [x] Supabase → Authentication → URL Configuration: redirect URLs for the Vercel addresses
         (`https://streakwise-mu.vercel.app/**`, `https://*-team-nick4.vercel.app/**`) added by the
-        owner, 2026-10-25; Site URL stays on Netlify until R4
-  - [ ] Check the Vercel site together (the checklist in the session log below)
-  - [ ] Say yes to release R4-the-first-Vercel-release (or first an R4.0 preview check) when it works
-  - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
-        connector in Claude
-  - [ ] Delete the Netlify project (only after Vercel is confirmed working)
+        owner, 2026-10-25
+  - [x] Check the Vercel site together (the checklist in the session log below)
+  - [x] Say yes to release R4-the-first-Vercel-release (owner, 2026-10-26: "R4"; released as #36,
+        tag `v1.0.0`)
+  - [ ] Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`
+        (redirect URLs are already saved; Claude cannot change this setting)
+  - [ ] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
+  - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
 
 ## Current work / next step
+
+**2026-10-26: R4 released — Streakwise v1.0.0 is live on Vercel.** The owner said "R4", so the version
+bump (#35), the release PR (#36, merge commit `8e4f736`), the tag `v1.0.0`, the GitHub release, and the
+production deploy from `main` all went through.
+
+- `develop` → `main` merged as **#36** with a merge commit (never a squash, per the release rule); main
+  CI green (`40226861772`).
+- `package.json` / `package-lock.json` now say **1.0.0** (`/api/health` reports it), via PR #35.
+- Tag **`v1.0.0`** pushed on `8e4f736`; GitHub release published with the feature/quality summary.
+- Vercel production deployment **`streakwise-iwmdd4pnz`** (READY, built from `main`) aliased
+  **https://streakwise-mu.vercel.app**.
+- Live verification: `/api/health` → `{"ok":true,"version":"1.0.0"}`; `POST /api/health` → 405;
+  `/api/nodes` and `/api/dashboard` → 401; `/`, `/login`, `/signup`, `/demo`, `/sw.js`,
+  `manifest.webmanifest` → 200; CSP, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy` present; `/sw.js`
+  `Cache-Control: no-cache`; `/r/<unknown>` sends `X-Robots-Tag: noindex, nofollow`; the live CSS
+  contains the warm tokens (`#fbf9f4`, `#0c5f57`, `#6fd3bd`).
+- Netlify still serves R3a until the owner deletes the project; Supabase auth redirect URLs already
+  cover the Vercel addresses.
+
+**Next steps (in order):**
+
+1. Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`.
+2. Owner: open the live site, log in, and try the app once (the remaining preview-checklist items are
+   sign-up + email confirmation with a `+test` address, the MCP link, and a share link).
+3. Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude.
+4. Owner: delete the Netlify project (and remove its Supabase URL entries) once Vercel is confirmed.
+5. No further development is planned; future work only if the owner asks.
 
 **2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
 (`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and
@@ -143,7 +174,7 @@ owner signs in to Vercel to view them.
   and the other security headers are present.
 - Production currently serves `develop` content (pre-M8), not `main`. That is a deliberate repair of
   the earlier accidental deploy, not the R4 release: `main` is still R3a, and R4 still goes through
-  the usual merge to `main` + release with the owner's OK.
+  the usual merge to `main` + release with the owner's OK. **(Superseded by R4 on 2026-10-26.)**
 - Earlier findings still true: Production Branch is `main` (so pushes deploy previews only); env vars
   exist for Preview and Production (`SESSION_SECRET`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`); the
   docs-only push `f6da755` was cancelled by `ignoreCommand` as designed (no build, no deploy).
@@ -468,12 +499,10 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- Is the warm palette right for v1.0.0? It came back after the cooler comparison — easy to nudge
-  before R4, but it is now the warm paper/sand/teal/mint version.
-- Say yes/no to R4 once the checklist passes (merge `develop` → `main`, then deploy production from
-  `main`).
-- Should the Netlify entries stay in Supabase's URL configuration until R4, or be removed with the
-  Netlify project?
+- Supabase → Authentication → URL Configuration → **Site URL**: set it to `https://streakwise-mu.vercel.app`
+  (redirect URLs are already there; the old Netlify site is no longer production).
+- When you have tried the live site: make a new Claude connection link and replace the connector, then
+  delete the Netlify project (and remove its Supabase URL entries).
 
 ## Decisions made during the build
 
@@ -497,6 +526,10 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
   production, deploy explicitly with `vercel deploy --prod` from the intended commit.
 - Vercel (2026-10-25): production serves `develop` only as the repair of the accidental deploy; the
   release rule is unchanged — R4 merges `develop` → `main` and deploys from `main`.
+- R4 (2026-10-26): the release itself is a merge commit (`gh pr merge --merge`, never squash), the
+  version in `package.json` is bumped to match the tag so `/api/health` reports it, and the annotated
+  tag is pushed on the merge commit with a GitHub release; production then deploys from `main`
+  automatically because `main` is the Vercel Production Branch.
 - M6: share links are created by sending the report's period and notes choice; the server rebuilds
   the report with `buildReport` and freezes it, so a link can never show numbers the app didn't make.
 - M6: the public read is the only cross-user query (`PublicShareStore.findBySlug`); unknown, expired,

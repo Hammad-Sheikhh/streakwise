@@ -732,4 +732,4 @@ Skip any line that only covers a SHOULD/COULD feature that was cut (§B14.5).
 - [ ] CI is green on `main`; the end-to-end suite passes (B13)
 - [ ] The keep-alive workflow has run successfully at least once (OPS-2)
 - [ ] Production deploys this month ≤ 8 (B14.1)
-- [ ] The README is complete, with the live link, the demo link, and screenshots; v1.0.0 is tagged (M8)
+- [x] The README is complete, with the live link, the demo link, and screenshots; v1.0.0 is tagged (M8, R4 2026-10-26)
