@@ -162,7 +162,8 @@ Covered by three new tests (silent autofill on login, silent autofill on sign-up
 398 tests, lint, typecheck, and a real-browser check on the Vite dev server pass. PR #31 was
 squash-merged into `develop` (`52db165`, CI green) and the Vercel production URL was redeployed from
 it (`streakwise-cig5k82ce`, READY); the same real-browser probe on production now sees the login
-request on the first click.
+request on the first click. The owner confirmed on 2026-10-25 that logging in now works on the first
+attempt.
 
 **Next steps (in order):**
 
