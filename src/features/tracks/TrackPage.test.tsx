@@ -83,4 +83,38 @@ describe('Track page (TRACK-1, TOP-1, TOP-2)', () => {
     const sessions = screen.getByRole('region', { name: 'Recent sessions' });
     expect(within(sessions).getAllByRole('listitem')).toHaveLength(1);
   });
+
+  it('deletes a track with no history from the track page (TREE-3)', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi({ loggedIn: true });
+    const nodes = await api.listTree();
+    const course = nodes.find((n) => n.name === 'Online Course');
+    if (!course) throw new Error('seed is missing nodes');
+    const { router } = renderRoutes(`/tracks/${course.id}`, api);
+
+    await user.click(await screen.findByRole('button', { name: 'Manage track' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByLabelText('Name')).toHaveValue('Online Course');
+
+    await user.click(within(dialog).getByRole('button', { name: /Delete/ }));
+    await user.click(within(dialog).getByRole('button', { name: 'Yes, delete' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/tracks'));
+    expect((await api.listTree()).some((n) => n.name === 'Online Course')).toBe(false);
+  });
+
+  it('offers Archive instead of delete when the track has history (TREE-3)', async () => {
+    const user = userEvent.setup();
+    const { api, exams } = await setup();
+    renderRoutes(`/tracks/${exams.id}`, api);
+
+    await user.click(await screen.findByRole('button', { name: 'Manage track' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: /Delete/ }));
+    await user.click(within(dialog).getByRole('button', { name: 'Yes, delete' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'or something inside it has history, so it can’t be deleted.',
+    );
+  });
 });
