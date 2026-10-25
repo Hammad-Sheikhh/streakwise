@@ -182,12 +182,16 @@ decision).
 
 - **Accessibility:** `e2e/a11y.spec.ts` runs axe-core with the WCAG 2.1 A/AA rules over all eight
   screens, in light and dark, on the phone and desktop projects (32 checks). Tinted "overdue" rows
-  failed at first: light `--muted-foreground` is now `#55635c` and `--destructive` `#b02a22`, which
-  clears 4.5:1 on cards, muted backgrounds, and the 5–10% destructive tints.
-- **Palette (owner asked for a final colour scheme):** warm paper and sand neutrals, deep teal
-  (`#0c5f57`) for actions, pale mint for highlights, brick red for destructive actions; dark mode is
-  the same roles on a near-black green background with mint (`#6fd3bd`) as primary. Track and chart
-  palettes are unchanged. Every text/background pair measures 5.4:1–15.7:1.
+  failed at first: light `--muted-foreground` is now `#526570` and `--destructive` `#a82232`, which
+  clear 4.5:1 on cards, muted backgrounds, and the 5–10% destructive tints. The cooler teal also
+  pushed primary **hover** tints under 4.5:1 (the pointer rests on the Log link after navigation, so
+  axe saw it): primary buttons and badges now hover at `/90`, and the dark destructive hover is
+  `/25`.
+- **Palette (owner asked for a final colour scheme, then asked for it cooler):** cool paper and
+  slate neutrals, deep teal-cyan (`#0e5f6e`) for actions, pale ice blue for highlights, a cool brick
+  red for destructive actions; dark mode is the same roles on a near-black blue-green background
+  with aqua (`#6fd2d9`) as primary. Track and chart palettes are unchanged. Every text/background
+  pair measures 5.4:1–15.7:1.
 - **Delete/manage a track (owner asked for it):** a "Manage track" button on a track's page opens the
   existing node dialog, so rename, recolour, add a child, archive, restore, and delete (TREE-1–3,
   TREE-5) work without going through Settings → Structure. A successful delete returns to Tracks;
@@ -464,8 +468,8 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- Is the new palette right for v1.0.0? Warm paper, sand, deep teal, and mint — easy to warm up or
-  cool down before R4.
+- Is the cooler palette right for v1.0.0? Cool paper, slate, teal-cyan, and ice blue — easy to
+  nudge warmer or cooler again before R4.
 - Say yes/no to R4 once the checklist passes (merge `develop` → `main`, then deploy production from
   `main`).
 - Should the Netlify entries stay in Supabase's URL configuration until R4, or be removed with the
@@ -473,10 +477,11 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Decisions made during the build
 
-- M8: the final palette is warm paper and sand neutrals with deep teal for actions, pale mint for
-  highlights, and brick red for destructive actions; dark mode swaps the same roles on a near-black
-  green background. Track and score-chart colours stay separate (`--series-*`), so a theme change
-  never re-colours someone's data.
+- M8: the final palette is cool paper and slate neutrals with deep teal-cyan for actions, pale ice
+  blue for highlights, and a cool brick red for destructive actions; dark mode swaps the same roles
+  on a near-black blue-green background (the owner asked for it cooler than the first version).
+  Track and score-chart colours stay separate (`--series-*`), so a theme change never re-colours
+  someone's data.
 - M8: contrast is enforced by axe-core in the e2e suite (all 8 screens × light/dark × phone/desktop)
   rather than by eye or by unit tests, because it measures the real computed colours.
 - M8: a track is managed from its own page ("Manage track" → the existing `NodeDialog`), so the
