@@ -61,9 +61,9 @@ seed (`services/seed.ts`); component tests use that seed too (`fakeApi`).
 ## Theme and accessibility (M8)
 
 - **One set of design tokens.** Colours are CSS custom properties in `src/index.css`
-  (Tailwind v4 `@theme inline`), so every shadcn/ui component picks them up. The palette is cool
-  paper and slate neutrals, deep teal-cyan for actions, pale ice blue for highlights, and a cool
-  brick red for destructive actions. Dark mode swaps the same token names inside
+  (Tailwind v4 `@theme inline`), so every shadcn/ui component picks them up. The palette is warm
+  paper and sand neutrals, deep teal for actions, pale mint for highlights, and a warm brick red for
+  destructive actions. Dark mode swaps the same token names inside
   `@media (prefers-color-scheme: dark)`, following the system setting (no manual switch, SPEC §B11);
   printing overrides them again for black text on white.
 - **Charts keep their own colours.** The eight `--series-*` values are a separate categorical
