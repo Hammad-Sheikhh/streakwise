@@ -12,8 +12,8 @@ import { useDataSource } from '@/data/useDataSource';
 import { useToday } from '@/data/useToday';
 import { formatRelativeDay } from '@/lib/format';
 
-import { HistoryFilters } from './HistoryFilters';
-import { SessionRow } from './SessionRow';
+import { HistoryFilters } from './HistoryFilters.js';
+import { SessionRow } from './SessionRow.js';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 

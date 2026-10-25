@@ -2,7 +2,7 @@ import type { Score, ScoreKind, TreeNode } from '@/core/domain/types';
 import { scoreLines } from '@/core/logic/scores';
 import { nodePath, subtreeIds } from '@/core/logic/tree';
 
-import type { ChartLine } from './ScoreChart';
+import type { ChartLine } from './ScoreChart.js';
 
 /** Scores in a track's subtree (all scores when trackId is empty) and of one kind (or all). */
 export function filterScores(

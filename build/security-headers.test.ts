@@ -1,44 +1,56 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
-import { headerRules, renderHeadersFile, securityHeaders } from './security-headers';
+import { describe, expect, it } from 'vitest';
 
-describe('securityHeaders plugin', () => {
-  afterEach(() => vi.unstubAllEnvs());
+import { headerRules, vercelHeaders, vercelSource } from './security-headers.js';
 
-  // A local `dist/_headers` would be picked up by `netlify dev` and blank the local page.
-  it('runs only in builds on Netlify', () => {
-    const { apply } = securityHeaders();
-    if (typeof apply !== 'function') throw new Error('apply should be a function');
-    const args = [{}, { command: 'build', mode: 'production' }] as Parameters<typeof apply>;
-
-    vi.stubEnv('NETLIFY', '');
-    expect(apply(...args)).toBe(false);
-    vi.stubEnv('NETLIFY', 'true');
-    expect(apply(...args)).toBe(true);
+describe('security header sources', () => {
+  it('converts Netlify-style paths to vercel.json path patterns', () => {
+    expect(vercelSource('/*')).toBe('/(.*)');
+    expect(vercelSource('/r/*')).toBe('/r/:path*');
+    expect(vercelSource('/assets/*')).toBe('/assets/:path*');
+    expect(vercelSource('/sw.js')).toBe('/sw.js');
   });
 });
 
-describe('security headers', () => {
-  const file = renderHeadersFile(headerRules);
+describe('vercel.json headers', () => {
+  const config = JSON.parse(readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8')) as {
+    headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+  };
 
-  it('renders Netlify _headers syntax: a path line, then indented "Name: value" lines', () => {
-    expect(renderHeadersFile([{ path: '/x/*', headers: { A: '1', B: '2' } }])).toBe(
-      '/x/*\n  A: 1\n  B: 2\n',
-    );
+  it('matches the rules in build/security-headers.ts exactly', () => {
+    expect(config.headers).toEqual(vercelHeaders());
   });
 
   it('keeps scripts limited to our own files on every page', () => {
-    expect(file).toMatch(/^\/\*\n {2}Content-Security-Policy: [^\n]*script-src 'self';/);
-    expect(file).not.toContain("'unsafe-eval'");
+    const csp = config.headers[0]?.headers.find(
+      (header) => header.key === 'Content-Security-Policy',
+    )?.value;
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).not.toContain("'unsafe-eval'");
+    expect(csp).not.toContain("script-src 'unsafe-inline'");
   });
 
   it('keeps shared reports out of search engines (SHARE-2)', () => {
-    expect(file).toContain('/r/*\n  X-Robots-Tag: noindex, nofollow\n');
+    const robots = config.headers.find((rule) => rule.source === '/r/:path*');
+    expect(
+      robots?.headers.some((h) => h.key === 'X-Robots-Tag' && h.value === 'noindex, nofollow'),
+    ).toBe(true);
   });
 
   it('serves the PWA files fresh and with the right type (PWA-1/2)', () => {
-    expect(file).toContain('/sw.js\n  Cache-Control: no-cache\n');
-    expect(file).toContain('/manifest.webmanifest\n  Content-Type: application/manifest+json\n');
+    const manifest = config.headers.find((rule) => rule.source === '/manifest.webmanifest');
+    expect(manifest?.headers.some((h) => h.key === 'Content-Type')).toBe(true);
+    const sw = config.headers.find((rule) => rule.source === '/sw.js');
+    expect(sw?.headers.some((h) => h.key === 'Cache-Control' && h.value === 'no-cache')).toBe(true);
+  });
+});
+
+describe('header rules', () => {
+  it('cover every path exactly once, plus a catch-all first', () => {
+    expect(headerRules[0]?.path).toBe('/*');
+    expect(new Set(headerRules.map((r) => r.path)).size).toBe(headerRules.length);
   });
 });

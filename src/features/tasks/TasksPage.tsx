@@ -13,10 +13,10 @@ import { compareDue } from '@/core/logic/tasks';
 import { useTasks, useTree } from '@/data/queries';
 import { cn } from '@/lib/utils';
 
-import { buildTaskTree, groupTasks, OTHER_ID } from './grouping';
-import type { TaskTreeItem } from './grouping';
-import { NewTaskDialog, TaskDetailsDialog } from './TaskDialogs';
-import { TaskRow, TaskTreeRows } from './TaskList';
+import { buildTaskTree, groupTasks, OTHER_ID } from './grouping.js';
+import type { TaskTreeItem } from './grouping.js';
+import { NewTaskDialog, TaskDetailsDialog } from './TaskDialogs.js';
+import { TaskRow, TaskTreeRows } from './TaskList.js';
 
 // TASK-1–9: all tasks grouped by track and node, or just the ones due this week (TASK-7).
 

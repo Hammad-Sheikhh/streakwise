@@ -1,4 +1,4 @@
-import { daysBetween, weekStart } from './dates';
+import { daysBetween, weekStart } from './dates.js';
 
 // SPEC §B9.4.
 

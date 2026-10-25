@@ -1,4 +1,4 @@
-import { addDays, daysBetween, weekStart } from './dates';
+import { addDays, daysBetween, weekStart } from './dates.js';
 
 // SPEC HEAT-1 and §B9.8.
 

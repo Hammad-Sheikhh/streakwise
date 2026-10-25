@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 
-import { invalid } from '../domain/errors';
+import { invalid } from '../domain/errors.js';
 
 /**
  * Validates service input. Services check their own input so every caller (API, MCP, demo mode)

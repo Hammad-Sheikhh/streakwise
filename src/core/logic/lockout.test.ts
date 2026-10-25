@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { lockedUntil } from './lockout';
+import { lockedUntil } from './lockout.js';
 
 const base = new Date('2026-10-03T10:00:00Z').getTime();
 const at = (minutes: number) => new Date(base + minutes * 60_000);

@@ -1,5 +1,5 @@
-import { conflict, invalid, notFound } from '../domain/errors';
-import { DEFAULT_SETTINGS } from '../domain/types';
+import { conflict, invalid, notFound } from '../domain/errors.js';
+import { DEFAULT_SETTINGS } from '../domain/types.js';
 import type {
   Clock,
   Deadline,
@@ -12,7 +12,7 @@ import type {
   Task,
   TaskCompletion,
   TreeNode,
-} from '../domain/types';
+} from '../domain/types.js';
 import type {
   DeadlinePatch,
   NewCompletion,
@@ -30,7 +30,7 @@ import type {
   SessionPatch,
   SettingsPatch,
   TaskPatch,
-} from './Repository';
+} from './Repository.js';
 
 // Repository for demo mode (in the browser) and service tests. It mirrors the database rules that
 // services rely on; returned objects are copies so callers can't mutate stored state.

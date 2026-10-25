@@ -10,8 +10,8 @@ import { SESSION_KEYS, useDataMutation, useRecentNodeIds, useTree } from '@/data
 import { useDataSource } from '@/data/useDataSource';
 import { useToday } from '@/data/useToday';
 
-import { LogForm } from './LogForm';
-import type { LogFormValues } from './LogForm';
+import { LogForm } from './LogForm.js';
+import type { LogFormValues } from './LogForm.js';
 
 // LOG-1: "+ Log", optionally with ?node=<id> preselected; LOG-9: Undo for 10 seconds after saving.
 export function LogPage() {

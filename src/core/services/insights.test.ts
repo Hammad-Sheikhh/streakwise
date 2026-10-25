@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { addDeadline } from './deadlines';
-import { findGaps, getProgress } from './insights';
-import { seedIfEmpty } from './seed';
-import { listSessions, logSession } from './sessions';
-import { addNode, updateNode } from './structure';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { addDeadline } from './deadlines.js';
+import { findGaps, getProgress } from './insights.js';
+import { seedIfEmpty } from './seed.js';
+import { listSessions, logSession } from './sessions.js';
+import { addNode, updateNode } from './structure.js';
 
 // The seed is created on 2026-09-20; then "now" is Wednesday 2026-09-30, 15:00 in Karachi.
 let now = new Date('2026-09-20T06:00:00Z');

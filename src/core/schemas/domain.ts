@@ -6,7 +6,7 @@ import {
   SESSION_SOURCES,
   TOPIC_STATUSES,
   TRACK_COLORS,
-} from '../domain/types';
+} from '../domain/types.js';
 import type {
   ClaudeConnection,
   Dashboard,
@@ -23,7 +23,7 @@ import type {
   TaskItem,
   TrackOverview,
   TreeNode,
-} from '../domain/types';
+} from '../domain/types.js';
 
 // Shapes of domain objects as they cross the API, so the browser can check what it receives.
 

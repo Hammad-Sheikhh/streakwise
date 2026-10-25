@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import type { DataSource } from './DataSource';
+import type { DataSource } from './DataSource.js';
 
 export const DataSourceContext = createContext<DataSource | null>(null);
 

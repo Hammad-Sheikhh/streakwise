@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import type { TreeNode } from '@/core/domain/types';
 import { hiddenIds } from '@/core/logic/tree';
 
-import { FOR_NEW_TRACK, FOR_OTHER } from './taskValues';
-import type { TaskValues } from './taskValues';
+import { FOR_NEW_TRACK, FOR_OTHER } from './taskValues.js';
+import type { TaskValues } from './taskValues.js';
 
 // TASK-2: title, optional description, node, either an optional due date or weekly recurrence,
 // and a scored switch with a default maximum.

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { buildSeed, seedIfEmpty } from './seed';
-import { listTree } from './structure';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { buildSeed, seedIfEmpty } from './seed.js';
+import { listTree } from './structure.js';
 
 const clock = () => new Date('2026-10-03T10:00:00Z');
 function sequentialIds() {

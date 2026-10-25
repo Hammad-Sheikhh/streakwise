@@ -1,16 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { precacheUrls, renderServiceWorker } from './service-worker';
+import { precacheUrls, renderServiceWorker } from './service-worker.js';
 
 describe('service worker (PWA-2)', () => {
-  it('caches the built files and public files, but not Netlify files, maps, or itself', () => {
+  it('caches the built files and public files, but not maps or the worker itself', () => {
     expect(
       precacheUrls([
         'index.html',
         'assets/index-abc.js',
         'assets/index-abc.js.map',
-        '_headers',
         'sw.js',
         'icons/icon-192.png',
       ]),

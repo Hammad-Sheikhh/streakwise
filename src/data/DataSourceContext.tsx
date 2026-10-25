@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import type { DataSource } from './DataSource';
-import { DataSourceContext } from './useDataSource';
+import type { DataSource } from './DataSource.js';
+import { DataSourceContext } from './useDataSource.js';
 
 export function DataSourceProvider({
   dataSource,

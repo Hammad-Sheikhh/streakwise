@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
-import { addNode } from './structure';
-import { getTrackOverview, TRACK_RECENT_SESSIONS } from './tracks';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
+import { addNode } from './structure.js';
+import { getTrackOverview, TRACK_RECENT_SESSIONS } from './tracks.js';
 
 // Saturday 2026-10-03, 15:00 in Karachi; the week started on Monday 2026-09-28.
 const now = new Date('2026-10-03T10:00:00Z');

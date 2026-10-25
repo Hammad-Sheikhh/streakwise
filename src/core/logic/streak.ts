@@ -1,4 +1,4 @@
-import { addDays } from './dates';
+import { addDays } from './dates.js';
 
 // SPEC §B9.6.
 

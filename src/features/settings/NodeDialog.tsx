@@ -20,7 +20,7 @@ import { DataSourceError } from '@/data/DataSource';
 import { useDataMutation } from '@/data/queries';
 import { cn } from '@/lib/utils';
 
-import { LEVEL_NAMES } from './levels';
+import { LEVEL_NAMES } from './levels.js';
 
 // Manage one node: rename, recolor (tracks, TREE-4), add a child (TREE-1), archive or restore
 // (TREE-2, TREE-5), and delete when nothing has history (TREE-3).
@@ -29,11 +29,14 @@ export function NodeDialog({
   nodes,
   open,
   onClose,
+  onDeleted,
 }: {
   node: TreeNode;
   nodes: readonly TreeNode[];
   open: boolean;
   onClose: () => void;
+  /** Called after a successful delete, before closing: lets the page leave a node that is gone. */
+  onDeleted?: () => void;
 }) {
   const id = useId();
   const levels: readonly string[] = LEVEL_NAMES;
@@ -64,6 +67,7 @@ export function NodeDialog({
     toastErrors: false,
     onSuccess: () => {
       toast.success(`Deleted “${node.name}”.`);
+      onDeleted?.();
       onClose();
     },
   });

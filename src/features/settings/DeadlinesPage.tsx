@@ -34,7 +34,7 @@ import { useDataMutation, useDeadlines, useTree } from '@/data/queries';
 import { useToday } from '@/data/useToday';
 import { formatDay, formatDaysLeft } from '@/lib/format';
 
-import { BackToSettings } from './BackToSettings';
+import { BackToSettings } from './BackToSettings.js';
 
 // DEAD-1: add, edit, and delete deadlines (title, date, node).
 

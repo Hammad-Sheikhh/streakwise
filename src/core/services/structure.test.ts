@@ -1,11 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { seedIfEmpty } from './seed';
-import { logSession } from './sessions';
-import { addNode, deleteNode, listTree, moveNode, setTopicStatus, updateNode } from './structure';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { seedIfEmpty } from './seed.js';
+import { logSession } from './sessions.js';
+import {
+  addNode,
+  deleteNode,
+  listTree,
+  moveNode,
+  setTopicStatus,
+  updateNode,
+} from './structure.js';
 
 const clock = () => new Date('2026-10-03T10:00:00Z');
 function sequentialIds() {

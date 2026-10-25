@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { TaskItem, TreeNode } from '@/core/domain/types';
 
-import { buildTaskTree, groupTasks } from './grouping';
+import { buildTaskTree, groupTasks } from './grouping.js';
 
 const T = '2026-10-01T00:00:00.000Z';
 

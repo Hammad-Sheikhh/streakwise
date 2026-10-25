@@ -10,7 +10,7 @@ import { useDataMutation, useTree } from '@/data/queries';
 import { formatTargetHours, TARGET_OPTIONS } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-import { BackToSettings } from './BackToSettings';
+import { BackToSettings } from './BackToSettings.js';
 
 /** 0.5 h to 40 h in half-hour steps (TGT-1). */
 

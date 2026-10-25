@@ -1,10 +1,11 @@
-import { ArrowLeft, CalendarClock } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import { NodeLabel } from '@/components/NodeLabel';
 import { QueryError } from '@/components/QueryError';
 import { trackSwatchClass } from '@/components/trackColors';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ScoreKind, TrackOverview, TreeNode } from '@/core/domain/types';
 import { daysBetween } from '@/core/logic/dates';
@@ -18,12 +19,13 @@ import { useDataSource } from '@/data/useDataSource';
 import { SessionRow } from '@/features/history/SessionRow';
 import { ScoreChartSection } from '@/features/scores/ScoresPage';
 import { filterScores } from '@/features/scores/scoreView';
+import { NodeDialog } from '@/features/settings/NodeDialog';
 import { buildTaskTree } from '@/features/tasks/grouping';
 import { TaskTreeRows } from '@/features/tasks/TaskList';
 import { formatDay, formatDaysLeft, formatTargetHours } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-import { TopicStatusSelect } from './TopicStatusSelect';
+import { TopicStatusSelect } from './TopicStatusSelect.js';
 
 // TRACK-1: everything about one track on one page; topics get status controls (TOP-1) and every
 // subtask with topics shows its syllabus % (TOP-2).
@@ -92,6 +94,7 @@ function TrackContent({
   const scores = useScores();
   const deadlines = useDeadlines();
   const [chosenKind, setChosenKind] = useState<ScoreKind | '' | null>(null);
+  const [managing, setManaging] = useState(false);
 
   const hidden = hiddenIds(nodes);
   const inTrack = new Set(subtreeIds(nodes, track.id));
@@ -116,15 +119,30 @@ function TrackContent({
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
-        {track.color && (
-          <span
-            aria-hidden="true"
-            className={cn('size-4 shrink-0 rounded-full', trackSwatchClass[track.color])}
-          />
-        )}
-        {track.name}
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
+          {track.color && (
+            <span
+              aria-hidden="true"
+              className={cn('size-4 shrink-0 rounded-full', trackSwatchClass[track.color])}
+            />
+          )}
+          {track.name}
+        </h1>
+        {/* TREE-1 to TREE-3 and TREE-5: rename, recolour, add, archive, restore, and delete from
+            the track itself, without going through Settings → Structure. */}
+        <Button variant="outline" className="h-11" onClick={() => setManaging(true)}>
+          <Settings2 aria-hidden="true" /> Manage track
+        </Button>
+      </div>
+
+      <NodeDialog
+        node={track}
+        nodes={nodes}
+        open={managing}
+        onClose={() => setManaging(false)}
+        onDeleted={() => void navigate(`${basePath}/tracks`)}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="flex flex-col gap-1 rounded-lg border p-4">

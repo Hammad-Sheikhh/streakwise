@@ -5,26 +5,35 @@ import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 
-import { AuthField } from './AuthField';
-import { AuthLayout } from './AuthLayout';
-import { useAccount } from './useAccount';
+import { AuthField } from './AuthField.js';
+import { AuthLayout } from './AuthLayout.js';
+import { formValue } from './formValues.js';
+import { useAccount } from './useAccount.js';
 
 // ACCT-4: asks for a reset link. The answer never says whether the email has an account.
 export function ForgotPasswordPage() {
   const account = useAccount();
-  const [email, setEmail] = useState('');
-  const send = useMutation({ mutationFn: () => account.forgotPassword({ email }) });
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const send = useMutation({ mutationFn: (email: string) => account.forgotPassword({ email }) });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    send.mutate();
+    const email = formValue(event.currentTarget, 'email').trim();
+    setSubmittedEmail(email);
+    if (!email) {
+      setFormError('Enter your email.');
+      return;
+    }
+    setFormError(null);
+    send.mutate(email);
   }
 
   if (send.isSuccess) {
     return (
       <AuthLayout description="Check your email.">
         <p role="status">
-          If <strong>{email.trim()}</strong> has an account, we’ve sent it a link to choose a new
+          If <strong>{submittedEmail}</strong> has an account, we’ve sent it a link to choose a new
           password. Check your spam folder too.
         </p>
         <Button asChild variant="outline" className="h-11">
@@ -39,15 +48,14 @@ export function ForgotPasswordPage() {
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <AuthField
           label="Email"
+          name="email"
           type="email"
           autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          error={send.error?.message}
+          error={formError ?? send.error?.message}
           required
           autoFocus
         />
-        <Button type="submit" className="h-11" disabled={send.isPending || email.trim() === ''}>
+        <Button type="submit" className="h-11" disabled={send.isPending}>
           {send.isPending ? 'Sending…' : 'Send reset link'}
         </Button>
         <Link to="/login" className="text-center text-sm underline underline-offset-4">

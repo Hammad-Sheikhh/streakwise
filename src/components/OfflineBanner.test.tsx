@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { OfflineBanner } from './OfflineBanner';
+import { OfflineBanner } from './OfflineBanner.js';
 
 describe('OfflineBanner (PWA-3)', () => {
   afterEach(() => vi.restoreAllMocks());

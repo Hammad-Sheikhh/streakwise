@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { InMemoryRepository } from '../repo/InMemoryRepository';
-import { addScore, deleteScore, listScores, updateScore } from './scores';
-import { seedIfEmpty } from './seed';
-import { updateNode } from './structure';
-import { completeTask, listTaskItems } from './tasks';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { addScore, deleteScore, listScores, updateScore } from './scores.js';
+import { seedIfEmpty } from './seed.js';
+import { updateNode } from './structure.js';
+import { completeTask, listTaskItems } from './tasks.js';
 
 // Saturday 2026-10-03, 15:00 in Karachi.
 const now = new Date('2026-10-03T10:00:00Z');

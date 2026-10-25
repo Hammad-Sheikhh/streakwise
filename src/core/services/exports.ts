@@ -1,7 +1,7 @@
-import type { Clock, DataExport, Session, TreeNode } from '../domain/types';
-import { nodePath } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
-import { listTree } from './structure';
+import type { Clock, DataExport, Session, TreeNode } from '../domain/types.js';
+import { nodePath } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
+import { listTree } from './structure.js';
 
 // SET-2: all data as JSON, and sessions as CSV. Every export stamps its time for SET-3.
 

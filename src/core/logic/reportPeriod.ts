@@ -1,7 +1,7 @@
-import { invalid } from '../domain/errors';
-import { MAX_REPORT_DAYS } from '../domain/types';
-import type { Report, ReportPeriodKind } from '../domain/types';
-import { addDays, daysBetween, weekStart } from './dates';
+import { invalid } from '../domain/errors.js';
+import { MAX_REPORT_DAYS } from '../domain/types.js';
+import type { Report, ReportPeriodKind } from '../domain/types.js';
+import { addDays, daysBetween, weekStart } from './dates.js';
 
 // REP-1–3: the dates a report covers. Weeks run Monday to Sunday (SPEC §B9.2).
 

@@ -29,7 +29,7 @@ import type { ScoreKind, TaskItem } from '@/core/domain/types';
 import { useDataMutation } from '@/data/queries';
 import { SCORE_KIND_LABELS } from '@/lib/format';
 
-import { TASK_KEYS } from './taskValues';
+import { TASK_KEYS } from './taskValues.js';
 
 // TASK-4–6: the tick box that completes a task. Scored tasks ask for the score first; uncompleting
 // a scored task is confirmed, because it also deletes the score recorded with it.

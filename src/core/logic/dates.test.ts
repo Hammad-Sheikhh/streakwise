@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { addDays, daysBetween, localDate, weekStart } from './dates';
+import { addDays, daysBetween, localDate, weekStart } from './dates.js';
 
 describe('localDate', () => {
   it('uses Karachi time (UTC+5), not UTC', () => {

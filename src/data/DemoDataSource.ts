@@ -16,8 +16,8 @@ import * as structure from '@/core/services/structure';
 import * as tasks from '@/core/services/tasks';
 import * as tracks from '@/core/services/tracks';
 
-import { DataSourceError } from './DataSource';
-import type { DataSource } from './DataSource';
+import { DataSourceError } from './DataSource.js';
+import type { DataSource } from './DataSource.js';
 
 // Demo mode (DEMO-2): the same core services as the server, on an in-memory store filled with
 // sample data (DEMO-3) that resets on reload. It never calls /api.

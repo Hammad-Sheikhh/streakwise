@@ -21,9 +21,9 @@ import {
 } from '@/core/schemas/domain';
 import type { HistoryQuery } from '@/core/schemas/inputs';
 
-import type { AccountApi } from './AccountApi';
-import { DataSourceError } from './DataSource';
-import type { DataSource } from './DataSource';
+import type { AccountApi } from './AccountApi.js';
+import { DataSourceError } from './DataSource.js';
+import type { DataSource } from './DataSource.js';
 
 const treeResponse = z.object({ nodes: z.array(treeNodeSchema) });
 const nodeResponse = z.object({ node: treeNodeSchema });

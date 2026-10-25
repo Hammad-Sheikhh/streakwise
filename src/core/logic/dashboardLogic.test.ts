@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SessionFact, TreeNode } from '../domain/types';
-import { heatLevel, heatmapRange, heatmapWeeks } from './heatmap';
-import { neglectWarnings } from './neglect';
-import { dailyTotals, latestDateByNode, minutesByNode } from './rollup';
-import { currentStreak, longestStreak } from './streak';
-import { syllabus, syllabusPercent } from './syllabus';
-import { isBehindPace, targetProgress } from './targets';
+import type { SessionFact, TreeNode } from '../domain/types.js';
+import { heatLevel, heatmapRange, heatmapWeeks } from './heatmap.js';
+import { neglectWarnings } from './neglect.js';
+import { dailyTotals, latestDateByNode, minutesByNode } from './rollup.js';
+import { currentStreak, longestStreak } from './streak.js';
+import { syllabus, syllabusPercent } from './syllabus.js';
+import { isBehindPace, targetProgress } from './targets.js';
 
 function node(id: string, parentId: string | null, extra: Partial<TreeNode> = {}): TreeNode {
   const depth = (parentId === null ? 1 : parentId.length + 1) as TreeNode['depth'];

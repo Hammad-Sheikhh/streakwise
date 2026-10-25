@@ -1,17 +1,17 @@
-import type { Clock, Report, Score, Session, TreeNode } from '../domain/types';
-import { daysBetween, localDate } from '../logic/dates';
-import { neglectWarnings } from '../logic/neglect';
-import { periodAsOf, resolvePeriod } from '../logic/reportPeriod';
-import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup';
-import { scorePercent } from '../logic/scores';
-import { currentStreak } from '../logic/streak';
-import { hiddenIds, nodePath } from '../logic/tree';
-import type { Repository } from '../repo/Repository';
-import { reportQuerySchema } from '../schemas/inputs';
-import type { ReportQuery } from '../schemas/inputs';
-import { parseInput } from '../schemas/parse';
-import { selectUpcoming } from './deadlines';
-import { listTree } from './structure';
+import type { Clock, Report, Score, Session, TreeNode } from '../domain/types.js';
+import { daysBetween, localDate } from '../logic/dates.js';
+import { neglectWarnings } from '../logic/neglect.js';
+import { periodAsOf, resolvePeriod } from '../logic/reportPeriod.js';
+import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
+import { scorePercent } from '../logic/scores.js';
+import { currentStreak } from '../logic/streak.js';
+import { hiddenIds, nodePath } from '../logic/tree.js';
+import type { Repository } from '../repo/Repository.js';
+import { reportQuerySchema } from '../schemas/inputs.js';
+import type { ReportQuery } from '../schemas/inputs.js';
+import { parseInput } from '../schemas/parse.js';
+import { selectUpcoming } from './deadlines.js';
+import { listTree } from './structure.js';
 
 // REP-9: the one function that builds every report: in the app, share links, demo mode, and MCP.
 

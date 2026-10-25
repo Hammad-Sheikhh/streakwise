@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { DomainError } from '../domain/errors';
-import type { TreeNode } from '../domain/types';
-import { resolveDateRef } from './dateRef';
-import { resolveNodeRef } from './nodeRef';
+import { DomainError } from '../domain/errors.js';
+import type { TreeNode } from '../domain/types.js';
+import { resolveDateRef } from './dateRef.js';
+import { resolveNodeRef } from './nodeRef.js';
 
 // A node's depth is the length of its id here: "A" is a track, "m" a subtask, "mc" a topic.
 function node(id: string, parentId: string | null, name: string, archived = false): TreeNode {

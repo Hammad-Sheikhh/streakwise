@@ -2,7 +2,7 @@ import type { TreeNode } from '@/core/domain/types';
 import { nodePath, trackOf } from '@/core/logic/tree';
 import { cn } from '@/lib/utils';
 
-import { trackSwatchClass } from './trackColors';
+import { trackSwatchClass } from './trackColors.js';
 
 /** A node's path ("School Subjects › Maths") with its track's color swatch. */
 export function NodeLabel({

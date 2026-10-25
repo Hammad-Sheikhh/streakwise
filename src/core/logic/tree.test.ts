@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TreeNode } from '../domain/types';
-import { hiddenIds, nodePath, sortSiblings, subtreeIds, trackOf, visibleNodes } from './tree';
+import type { TreeNode } from '../domain/types.js';
+import { hiddenIds, nodePath, sortSiblings, subtreeIds, trackOf, visibleNodes } from './tree.js';
 
 function node(id: string, parentId: string | null, extra: Partial<TreeNode> = {}): TreeNode {
   const depth = (parentId === null ? 1 : parentId.length + 1) as TreeNode['depth'];
