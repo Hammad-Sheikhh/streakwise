@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-25 by Copilot (Vercel state verified: Production Branch is `main`, but an earlier manual CLI production deploy serves a stale, broken API; previews need a Vercel sign-in; next: owner confirms the account and OKs a repair deploy)_
+_Last updated: 2026-10-25 by Copilot (production URL repaired and verified working; owner kept the Vercel address and will sign in for previews; next: owner adds the Vercel URLs in Supabase, then the preview checklist)_
 
 ## Milestones
 
@@ -39,6 +39,10 @@ Production builds this month (Oct 2026): **6** (~90 credits, counted conservativ
 production deploys.
 
 Live site: https://streakwise-ap.netlify.app · Netlify project: `streakwise-ap`
+
+Next host: Vercel project `streakwise` (account `hammadsheikhcs-7269`, team `team-nick4`), production
+URL https://streakwise-mu.vercel.app — working since the 2026-10-25 repair, but it serves `develop`
+(pre-M8) and is not the R4 release. Netlify keeps serving R3a until R4.
 
 ## Database migrations applied
 
@@ -103,17 +107,15 @@ One database for everything (D15), so each migration runs once.
       Vercel; Netlify's copies go away when the Netlify project is deleted
 - [ ] Vercel move (each step explained in detail when we reach it; current Vercel docs checked 2026-10-10
       and code work is done on `chore/vercel`):
-  - [ ] Confirm the Vercel account is yours: the CLI is logged in as `hammadsheikhcs-7269` in team
-        `team-nick4`. If that is not your account, create a free one with "Continue with GitHub"
-        (Hobby plan, no card) and say so
-  - [ ] Confirm the production address: keep `streakwise-mu.vercel.app`, or pick another name
-  - [ ] Decide how to repair production: promote the passing build now, or pause production traffic
-        until R4 (see "Current work / next step")
-  - [ ] Decide about preview access: sign in to Vercel to view previews, or relax Deployment
-        Protection for previews only
+  - [x] Confirm the Vercel account is yours: `hammadsheikhcs-7269` in team `team-nick4` (owner kept this
+        account's address and approved work on it, 2026-10-25)
+  - [x] Confirm the production address: keep `streakwise-mu.vercel.app` (owner, 2026-10-25)
+  - [x] Decide how to repair production: promote the passing build now (owner, 2026-10-25; done with
+        `vercel deploy --prod` because the promote path was skipped as docs-only)
+  - [x] Decide about preview access: sign in to Vercel to view previews (owner, 2026-10-25)
   - [ ] Supabase → Authentication → URL Configuration: new Site URL + redirect URLs for the Vercel
         addresses
-  - [ ] Check the Vercel preview together (the checklist in the session log below)
+  - [ ] Check the Vercel site together (the checklist in the session log below)
   - [ ] Say yes to release R4-the-first-Vercel-release (or first an R4.0 preview check) when it works
   - [ ] After the Vercel production site works: Settings → Claude connection → "Make a new link", replace the
         connector in Claude
@@ -121,44 +123,48 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-10-25: Vercel state verified (read-only CLI/API checks; no secret values printed).** The
-production alias serves a stale build whose API is broken, and previews are locked behind a Vercel
-sign-in:
+**2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
+(`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and
+approved repairing production instead of pausing it. Previews stay behind Vercel Authentication; the
+owner will sign in to Vercel to view them.
 
-- The CLI is logged in as `hammadsheikhcs-7269`; the linked GitHub repo is `Hammad-Sheikhh/streakwise`
-  and the project sits in team `team-nick4` ("TeamNick"). That looks like the owner's own free
-  account, but only the owner can confirm it.
-- Production Branch is `main` (correct). The production deployment was **not** triggered by a push: it
-  is `source: cli` from `develop` commit `054b7ba` (2026-10-24 11:01 PKT), i.e. a manual
-  `vercel --prod` deploy from the PR #30 session.
-- That build predates the #30 ESM fix, so `https://streakwise-mu.vercel.app/api/health` answers 500
-  (static pages answer 200). Nothing public links there yet; Supabase's URL configuration still
-  names only Netlify addresses.
-- Preview deployments sit behind Vercel Authentication (an anonymous request gets a 302 to the Vercel
-  login). The owner can view a preview after signing in to Vercel, or Deployment Protection can be
-  relaxed for previews only.
-- Env vars exist for both Preview and Production: `SESSION_SECRET`, `SUPABASE_URL`,
-  `SUPABASE_SECRET_KEY` (names only checked).
+- `vercel promote` of the passing PR #30 deployment did **not** work: Vercel re-runs the ignored-build
+  step for the promoted commit, saw a docs-only diff, and cancelled the new production deployment
+  after 1 s (alias unchanged). Production was then deployed explicitly with `vercel deploy --prod`
+  from `develop` at `f6da755` (deployment `streakwise-m6it5qt9b`, READY), which aliased
+  `https://streakwise-mu.vercel.app`.
+- Verified on production: `/api/health` → `{"ok":true,"version":"0.1.0"}`; `POST /api/health` → 405;
+  `/api/nodes` and `/api/dashboard` unauthenticated → 401; `/api/reports` GET → 405 (POST-only route);
+  `/mcp/wrong` and `/.well-known/*` → 404; `/login`, `/signup`, `/demo`, `/sw.js`,
+  `manifest.webmanifest` → 200; `/r/<slug>` sends `X-Robots-Tag: noindex, nofollow` and
+  `Referrer-Policy: no-referrer`; `/sw.js` and the manifest send `Cache-Control: no-cache`; the CSP
+  and the other security headers are present.
+- Production currently serves `develop` content (pre-M8), not `main`. That is a deliberate repair of
+  the earlier accidental deploy, not the R4 release: `main` is still R3a, and R4 still goes through
+  the usual merge to `main` + release with the owner's OK.
+- Earlier findings still true: Production Branch is `main` (so pushes deploy previews only); env vars
+  exist for Preview and Production (`SESSION_SECRET`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`); the
+  docs-only push `f6da755` was cancelled by `ignoreCommand` as designed (no build, no deploy).
 
 **Next steps (in order):**
 
-1. Owner: confirm `hammadsheikhcs-7269` is their Vercel account and whether to keep the default
-   production address `streakwise-mu.vercel.app` or pick a different one.
-2. Owner's OK for a repair deploy: promote the passing `develop` build (`9fc9713`, from PR #30, health
-   already verified on its preview) to Production so the production alias stops returning 500 — or
-   pause production traffic until R4. Neither option involves a push.
-3. Owner's choice for previews: sign in to Vercel to view them, or relax Deployment Protection for
-   preview deployments only.
-4. Supabase → Authentication → URL Configuration: add the chosen Vercel Site URL and redirect URLs
-   alongside the existing Netlify addresses.
-5. Complete the preview checklist below, including sign-in/email flow and app behavior. Preview and
-   `develop` share the real Supabase database (D15); use demo mode first and avoid test writes unless
-   the owner agrees and test data will be removed.
-6. After the preview works, ask the owner before any R4 production release. Only after production is
-   confirmed working should the owner create a new Claude link and replace the connector, and should
-   `PROD_URL` and README live links be updated.
-7. Delete the Netlify project only after Vercel production is confirmed; the old public share links
+1. Owner: add the Vercel addresses in Supabase → Authentication → URL Configuration (Site URL
+   `https://streakwise-mu.vercel.app` plus redirect URLs for it and for previews), keeping the
+   Netlify entries until Vercel is confirmed.
+2. Owner: work through the preview checklist below on `https://streakwise-mu.vercel.app`; sign in to
+   Vercel first if a preview link is needed. Use demo mode first, and ask before any test writes
+   (preview/production and the shared database are the same Supabase project, D15).
+3. After the checklist passes, the owner decides on R4 (merge `develop` → `main`, then deploy
+   production from `main`). Only after production is confirmed should they make a new Claude link,
+   replace the connector, and `PROD_URL`/README links be updated.
+4. Delete the Netlify project only after Vercel production is confirmed; the old public share links
    and Claude connector stop working when Netlify is removed.
+
+**Preview checklist:** Check `/api/health`; sign in/out; test sign-up and email confirmation with a
+throwaway `+test` address and delete that account afterward; confirm the authenticated app can read
+`/api/nodes`; test the MCP link with MCP Inspector; verify `/r/<slug>` is `noindex`, `/.well-known/*`
+is 404, wrong methods return 405, and the service worker never caches `/api`, `/mcp`, or `/auth`.
+Account creation and test writes touch the shared Supabase project, so get the owner's OK first.
 
 **2026-10-24: PR #30 (Vercel API ESM module-resolution fix) merged into `develop`** (squash commit
 `9fc9713`). The change replaces the in-place esbuild bundle with explicit `.js` extensions on relative
@@ -172,21 +178,13 @@ file; that generated file was removed. This session made no intentional producti
 
 **2026-10-24: PR #29 (the Vercel move) merged into `develop`** (owner's OK; squash commit `f51cb89`,
 with follow-up notes in `054b7ba`). The repository is linked to a Vercel project named `streakwise`,
-and the PR #30 preview deployed successfully. The owner has not yet confirmed the account or chosen
-production domain, so all owner manual checklist items remain open. One manual CLI production
-deployment was made from `develop` during that session (see the 2026-10-25 note above); it was not an
-approved R4 release and its API is broken. The owner also deleted `APP_PASSCODE`/`MCP_SECRET` from
-`.env` (verified above).
+and the PR #30 preview deployed successfully. One manual CLI production deployment was made from
+`develop` during that session (see the 2026-10-25 note above); it was not an approved R4 release and
+its API was broken until the repair. The owner also deleted `APP_PASSCODE`/`MCP_SECRET` from `.env`
+(verified above).
 
-**Preview checklist:** Check `/api/health`; sign in/out; test sign-up and email confirmation with a
-throwaway `+test` address and delete that account afterward; confirm the authenticated app can read
-`/api/nodes`; test the MCP link with MCP Inspector; verify `/r/<slug>` is `noindex`, `/.well-known/*`
-is 404, wrong methods return 405, and the service worker never caches `/api`, `/mcp`, or `/auth`.
-Account creation and test writes touch the shared Supabase project, so get the owner's OK first.
-
-**Open question:** Is `hammadsheikhcs-7269` the owner's Vercel account, which production address do
-they want, and do they prefer promoting the working build to Production now or pausing production
-traffic until R4? Supabase's URL configuration also still needs the Vercel addresses added.
+**Open question:** None blocking. Supabase's URL configuration still needs the Vercel addresses added
+(owner step 1 above), and the owner has not yet decided on R4.
 
 **PR #29 implementation details (historical):**
 
@@ -404,13 +402,18 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- Is `hammadsheikhcs-7269` (team `team-nick4`) your Vercel account, and do you want to keep
-  `streakwise-mu.vercel.app` as the production address?
-- Repair the production alias now (promote the passing build) or pause production traffic until R4?
-- Previews need a Vercel sign-in: keep that, or relax Deployment Protection for previews only?
+- When should the Vercel URLs go into Supabase → Authentication → URL Configuration (step 1 above),
+  and are the Netlify entries to be kept until R4 or removed?
+- Say yes/no to R4 once the checklist passes (merge `develop` → `main`, then deploy production from
+  `main`).
 
 ## Decisions made during the build
 
+- Vercel (2026-10-25): `vercel promote` re-runs the ignored-build step for the promoted commit, so a
+  git deployment whose diff is docs-only gets cancelled and the alias stays put. To repair or release
+  production, deploy explicitly with `vercel deploy --prod` from the intended commit.
+- Vercel (2026-10-25): production serves `develop` only as the repair of the accidental deploy; the
+  release rule is unchanged — R4 merges `develop` → `main` and deploys from `main`.
 - M6: share links are created by sending the report's period and notes choice; the server rebuilds
   the report with `buildReport` and freezes it, so a link can never show numbers the app didn't make.
 - M6: the public read is the only cross-user query (`PublicShareStore.findBySlug`); unknown, expired,
