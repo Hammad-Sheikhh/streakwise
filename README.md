@@ -7,11 +7,35 @@ and let Claude log sessions and analyse your progress for you.
 [![CI](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Hammad-Sheikhh/streakwise/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Live app:** hosted on Vercel (Hobby plan) — production URL is set after the first release ·
-**Try it without an account:** the `/demo` page of the live site opens the full app on sample data
+**Live app:** [streakwise-mu.vercel.app](https://streakwise-mu.vercel.app) ·
+**Try it without an account:** [the demo](https://streakwise-mu.vercel.app/demo) opens the full app
+on sample data
 
-> 🚧 **Active development.** Core features are live. A final polish pass is next
-> (see [Roadmap](#roadmap)).
+## Screenshots
+
+**Home** — today's time, the streak, weekly targets, and what needs attention.
+
+![Home dashboard](docs/screenshots/home-desktop-light.png)
+
+**A track's page** — subtasks, syllabus %, topic status, scores, deadlines, and recent sessions.
+
+![A track's page](docs/screenshots/track-desktop-light.png)
+
+**Reports** — any range, ready to print, send, or hand to Claude.
+
+![Weekly report](docs/screenshots/reports-desktop-light.png)
+
+**On a phone**, where most logging happens:
+
+| Home                                                      | Log a session                                               |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| ![Home on a phone](docs/screenshots/home-phone-light.png) | ![Logging on a phone](docs/screenshots/log-phone-light.png) |
+
+**Dark theme** — the theme follows the system setting.
+
+| Home                                                          | Tasks                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| ![Home in dark theme](docs/screenshots/home-desktop-dark.png) | ![Tasks in dark theme](docs/screenshots/tasks-phone-dark.png) |
 
 ## Features
 
@@ -19,6 +43,7 @@ and let Claude log sessions and analyse your progress for you.
 
 - Organise goals as **tracks → subtasks → topics** (e.g. _Exam Prep → Practice_, or
   _School Subjects → Maths → Chapter 3_), each track with its own colour.
+- Rename, recolour, add to, archive, or delete a track from its own page.
 - Log a session in a few taps: pick what you studied, tap a duration, add an optional note.
 - Mark topics _not started_, _in progress_, or _done_ and watch your syllabus percentage grow.
 
@@ -93,13 +118,14 @@ Vitest · React Testing Library · Playwright · GitHub Actions
 
 ## Quality
 
-- **390+ automated tests:** pure logic, services on an in-memory store, API handlers, the MCP server
-  through the real SDK, database migrations on PGlite, React screens, and end-to-end tests (phone
-  and desktop) of the demo journey, which assert zero network calls, and of the installable app.
+- **400 automated tests:** pure logic, services on an in-memory store, API handlers, the MCP server
+  through the real SDK, database migrations on PGlite, and React screens.
+- **End-to-end checks** in a real browser, on phone and desktop sizes: the demo journey (which must
+  make zero network calls), the installable app, and WCAG A/AA on all eight screens in both themes.
 - CI on every pull request: lint, Prettier, type-check, tests, a production build, and the
   end-to-end tests.
-- Accessible by design: labelled inputs, keyboard navigation, visible focus, 44 px tap targets, and
-  light/dark themes that follow the system.
+- Accessible by design: labelled inputs, keyboard navigation, visible focus, 44 px tap targets,
+  and light/dark themes that follow the system, with colours checked for contrast.
 
 ## Running it locally
 
@@ -111,14 +137,15 @@ cp .env.example .env   # then fill in your own values (never commit .env)
 npm run dev            # app + functions via vercel dev (run vercel link first)
 ```
 
-| Command             | What it does                             |
-| ------------------- | ---------------------------------------- |
-| `npm run dev`       | App and functions locally                |
-| `npm test`          | Unit, service, component, API, MCP tests |
-| `npm run test:e2e`  | Playwright end-to-end tests on `/demo`   |
-| `npm run lint`      | ESLint                                   |
-| `npm run typecheck` | TypeScript                               |
-| `npm run build`     | Production build                         |
+| Command               | What it does                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `npm run dev`         | App and functions locally                                                          |
+| `npm test`            | Unit, service, component, API, MCP tests                                           |
+| `npm run test:e2e`    | Playwright end-to-end tests on `/demo`                                             |
+| `npm run screenshots` | Regenerate the screenshots in `docs/screenshots` (needs `npm run preview` running) |
+| `npm run lint`        | ESLint                                                                             |
+| `npm run typecheck`   | TypeScript                                                                         |
+| `npm run build`       | Production build                                                                   |
 
 Database changes live in numbered SQL files in [`supabase/migrations`](supabase/migrations).
 Full setup steps: [Setup guide](docs/SETUP.md).
@@ -137,7 +164,8 @@ docs/            specification, architecture, setup, progress
 
 ## Roadmap
 
-- **Polish:** accessibility and performance pass, empty states, screenshots.
+- **Shipped:** every milestone in the [specification](docs/SPEC.md) — accounts, Claude connector,
+  tasks and scores, reports and share links, demo mode and the installable app, and the polish pass.
 - **Later ideas:** sign-in (OAuth) for the Claude connector, drag-and-drop in the structure editor,
   heatmap per track.
 

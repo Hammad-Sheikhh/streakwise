@@ -29,11 +29,14 @@ export function NodeDialog({
   nodes,
   open,
   onClose,
+  onDeleted,
 }: {
   node: TreeNode;
   nodes: readonly TreeNode[];
   open: boolean;
   onClose: () => void;
+  /** Called after a successful delete, before closing: lets the page leave a node that is gone. */
+  onDeleted?: () => void;
 }) {
   const id = useId();
   const levels: readonly string[] = LEVEL_NAMES;
@@ -64,6 +67,7 @@ export function NodeDialog({
     toastErrors: false,
     onSuccess: () => {
       toast.success(`Deleted “${node.name}”.`);
+      onDeleted?.();
       onClose();
     },
   });

@@ -1,6 +1,8 @@
 # Progress
 
-_Last updated: 2026-10-25 by Copilot (Vercel production repaired and now running the login-autofill fix from PR #31; owner saved the Supabase URLs and can log in/out; next: owner finishes the checklist and decides on R4)_
+_Last updated: 2026-10-25 by Claude (M8 Polish built on `chore/polish`: WCAG AA on every screen, the
+final palette, track management, screenshots and README; next: merge the M8 PR, then the owner's R4
+decision)_
 
 ## Milestones
 
@@ -16,7 +18,7 @@ _Last updated: 2026-10-25 by Copilot (Vercel production repaired and now running
 | M6 Reports    | ✅ done   | #21 | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                 |
 | M7 Demo + PWA | ✅ done   | #26 | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10) |
 | Cleanup       | ✅ done   | #27 | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                     |
-| M8 Polish     | ⏳        |     |                                                                                                                                               |
+| M8 Polish     | ✅ done   | #32 | WCAG AA checks on all 8 screens × 2 themes, final palette, "Manage track", screenshots, README, architecture.md                               |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -167,14 +169,57 @@ attempt.
 
 **Next steps (in order):**
 
-1. Owner: work through the preview checklist below on `https://streakwise-mu.vercel.app` (the Vercel
-   URLs are already in Supabase). Use demo mode first, and ask before any test writes
-   (production and the shared database are the same Supabase project, D15).
-2. After the checklist passes, the owner decides on R4 (merge `develop` → `main`, then deploy
-   production from `main`). Only after production is confirmed should they make a new Claude link,
-   replace the connector, and `PROD_URL`/README links be updated.
-3. Delete the Netlify project only after Vercel production is confirmed; the old public share links
-   and Claude connector stop working when Netlify is removed.
+1. Merge the M8 PR into `develop` (CI green) and check the `develop` preview.
+2. Owner: look at the new colours and the "Manage track" button; say if the palette should be
+   warmer/cooler before it goes into v1.0.0.
+3. Owner: finish the remaining preview-checklist items (sign-up + confirmation with a `+test`
+   address, MCP link, share link).
+4. Owner: yes/no to R4. Then merge `develop` → `main`, deploy from `main`, tag `v1.0.0`, make a new
+   Claude link, and delete Netlify.
+
+**2026-10-25: M8 Polish built on `chore/polish`.** No migration, no release (R4 is still the owner's
+decision).
+
+- **Accessibility:** `e2e/a11y.spec.ts` runs axe-core with the WCAG 2.1 A/AA rules over all eight
+  screens, in light and dark, on the phone and desktop projects (32 checks). Tinted "overdue" rows
+  failed at first: light `--muted-foreground` is now `#55635c` and `--destructive` `#b02a22`, which
+  clears 4.5:1 on cards, muted backgrounds, and the 5–10% destructive tints.
+- **Palette (owner asked for a final colour scheme):** warm paper and sand neutrals, deep teal
+  (`#0c5f57`) for actions, pale mint for highlights, brick red for destructive actions; dark mode is
+  the same roles on a near-black green background with mint (`#6fd3bd`) as primary. Track and chart
+  palettes are unchanged. Every text/background pair measures 5.4:1–15.7:1.
+- **Delete/manage a track (owner asked for it):** a "Manage track" button on a track's page opens the
+  existing node dialog, so rename, recolour, add a child, archive, restore, and delete (TREE-1–3,
+  TREE-5) work without going through Settings → Structure. A successful delete returns to Tracks;
+  `NodeDialog` gained an optional `onDeleted` for that. Two component tests cover the deleted and the
+  refused-with-history cases.
+- **Screenshots and README:** `scripts/screenshots.mjs` (`npm run screenshots`) drives the demo in a
+  real browser and writes seven PNGs to `docs/screenshots/` (desktop and phone, light and dark). The
+  README now has the live and demo links, a screenshots section, the palette, 400 tests, the
+  accessibility/e2e coverage, the `screenshots` command, and no "active development" note.
+- **Empty states:** all eight screens already had one (checked screen by screen), so nothing needed
+  changing.
+- **Docs:** `architecture.md` gained "Theme and accessibility (M8)" and "Performance", lost its
+  skeleton note, and lists the a11y e2e.
+- **Checked:** lint, typecheck, `npm test` (400), `npm run build` (224.7 KB gzipped, budget 250), and
+  the full e2e suite (40 checks: demo, PWA, and the 32 axe ones).
+
+**B17 final checklist — where each line is proved.** All green locally on `chore/polish`; the owner
+still has to confirm the lines that need a real phone, a real account, or the release itself.
+
+| B17 area               | Evidence                                                                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Access and structure   | `core/services/structure.test.ts`, `auth.test.tsx`, `settings/StructurePage.test.tsx` (3 levels, 4th blocked, delete vs archive, rename, reorder, archive/restore), e2e login/logout |
+| Logging and history    | `LogPage.test.tsx`, `HistoryPage.test.tsx`, `core/services/sessions.test.ts`, `demo.spec.ts` (log, edit, delete, undo, roll-ups)                                                     |
+| Home                   | `HomePage.test.tsx`, `core/services/dashboard.test.ts`, `logic/dashboardLogic.test.ts` (targets, Monday reset, neglect, streaks, heatmap, deadlines)                                 |
+| Progress               | `TasksPage.test.tsx`, `ScoresPage.test.tsx`, `TrackPage.test.tsx`, `core/services/tasks.test.ts`, `scores.test.ts` (nesting, weekly reset, scored completion, syllabus %, chart)     |
+| Reports and sharing    | `ReportsPage.test.tsx`, `SharedLinksExport.test.tsx`, `core/services/reports.test.ts`, `shares.test.ts` (periods, print layout, both copy formats, notes off, revoked/expired)       |
+| Demo, app              | `demo.spec.ts` (zero `/api` calls, reload resets), `pwa.spec.ts` (manifest, service worker, offline)                                                                                 |
+| Claude                 | `server/tests/mcp*.test.ts` through the real SDK; the connector itself was re-made after R3 and works (owner, 2026-10-09)                                                            |
+| Quality and operations | CI green on each PR, keep-alive workflow ran (R1 note), 6 production builds in October (≤ 8), README + `v1.0.0` tag with R4                                                          |
+
+Still owner-only: installing the app on the owner's phone after R4, a fresh Claude connector on the
+production URL, and the sign-up + confirmation email on the live site.
 
 **Preview checklist:** Check `/api/health` (done); sign in/out (done); test sign-up and email
 confirmation with a throwaway `+test` address and delete that account afterward; confirm the
@@ -419,6 +464,8 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
+- Is the new palette right for v1.0.0? Warm paper, sand, deep teal, and mint — easy to warm up or
+  cool down before R4.
 - Say yes/no to R4 once the checklist passes (merge `develop` → `main`, then deploy production from
   `main`).
 - Should the Netlify entries stay in Supabase's URL configuration until R4, or be removed with the
@@ -426,6 +473,17 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Decisions made during the build
 
+- M8: the final palette is warm paper and sand neutrals with deep teal for actions, pale mint for
+  highlights, and brick red for destructive actions; dark mode swaps the same roles on a near-black
+  green background. Track and score-chart colours stay separate (`--series-*`), so a theme change
+  never re-colours someone's data.
+- M8: contrast is enforced by axe-core in the e2e suite (all 8 screens × light/dark × phone/desktop)
+  rather than by eye or by unit tests, because it measures the real computed colours.
+- M8: a track is managed from its own page ("Manage track" → the existing `NodeDialog`), so the
+  destructive actions live where the track is; `onDeleted` lets the page leave the node that no
+  longer exists. Settings → Structure keeps the whole-tree view.
+- M8: README screenshots come from the demo through `scripts/screenshots.mjs`, so they can be
+  regenerated after any UI change instead of going stale.
 - Vercel (2026-10-25): the auth forms read their values from `FormData` at submit time (uncontrolled
   inputs), so browser/password-manager autofill works on the first click; submit buttons are disabled
   only while a request is in flight, and an empty submit shows a message instead of doing nothing.
