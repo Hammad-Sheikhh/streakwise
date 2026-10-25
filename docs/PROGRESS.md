@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-25 by Copilot (Vercel production repaired; owner saved the Supabase URLs and can log in/out; login now works on the first click with password-manager autofill — fix on `fix/login-autofill`, PR pending; next: R4 decision)_
+_Last updated: 2026-10-25 by Copilot (Vercel production repaired and now running the login-autofill fix from PR #31; owner saved the Supabase URLs and can log in/out; next: owner finishes the checklist and decides on R4)_
 
 ## Milestones
 
@@ -159,7 +159,10 @@ values from `FormData` at submit time via `src/features/auth/formValues.ts`, kee
 uncontrolled so the browser's values are never overwritten, and disable the button only while the
 request is in flight; empty submits show "Enter your email and password." instead of doing nothing.
 Covered by three new tests (silent autofill on login, silent autofill on sign-up, empty submit);
-398 tests, lint, typecheck, and a real-browser check on the Vite dev server pass.
+398 tests, lint, typecheck, and a real-browser check on the Vite dev server pass. PR #31 was
+squash-merged into `develop` (`52db165`, CI green) and the Vercel production URL was redeployed from
+it (`streakwise-cig5k82ce`, READY); the same real-browser probe on production now sees the login
+request on the first click.
 
 **Next steps (in order):**
 
