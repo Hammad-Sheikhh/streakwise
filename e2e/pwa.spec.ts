@@ -12,7 +12,12 @@ test('the app can be installed: manifest, icons, and theme color (PWA-1)', async
     'href',
     '/manifest.webmanifest',
   );
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', /^#/);
+  // One colour per scheme: paper in light, pure black in dark (the owner's request).
+  const themeColors = page.locator('meta[name="theme-color"]');
+  await expect(themeColors).toHaveCount(2);
+  await expect(themeColors.first()).toHaveAttribute('content', '#fbf9f4');
+  await expect(themeColors.nth(1)).toHaveAttribute('content', '#000000');
+  await expect(themeColors.nth(1)).toHaveAttribute('media', '(prefers-color-scheme: dark)');
 
   const manifest = (await (await request.get('/manifest.webmanifest')).json()) as {
     icons: { src: string }[];
