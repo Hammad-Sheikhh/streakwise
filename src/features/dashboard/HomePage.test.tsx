@@ -69,6 +69,23 @@ describe('Home dashboard (DASH-1)', () => {
     expect(within(upcoming).getByText('100% of syllabus left')).toBeInTheDocument();
     expect(within(upcoming).queryByText('Old quiz')).not.toBeInTheDocument();
   });
+
+  it('offers the first session only when nothing has ever been logged', async () => {
+    await home(fakeApi({ loggedIn: true }));
+    expect(screen.getByRole('link', { name: 'Log your first session' })).toBeInTheDocument();
+  });
+
+  it('does not call an older-than-a-year session a first session', async () => {
+    const api = fakeApi({ loggedIn: true });
+    // The 12-month heatmap is empty for this date, but the account still has history.
+    await api.logSession({
+      nodeId: await nodeId(api, 'Maths'),
+      studiedOn: '2025-01-01',
+      minutes: 30,
+    });
+    await home(api);
+    expect(screen.queryByRole('link', { name: 'Log your first session' })).not.toBeInTheDocument();
+  });
 });
 
 describe('heatmap (HEAT-1–3)', () => {
