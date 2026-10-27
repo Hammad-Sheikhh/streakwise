@@ -4,6 +4,7 @@ import { DomainError } from '../domain/errors.js';
 import type { TreeNode } from '../domain/types.js';
 import { InMemoryRepository } from '../repo/InMemoryRepository.js';
 import { seedIfEmpty } from './seed.js';
+import { updateNode } from './structure.js';
 import {
   completeTask,
   createTask,
@@ -209,6 +210,35 @@ describe('updateTask and deleteTask (TASK-8)', () => {
 
     const restored = await updateTask(repo, clock, task.id, { archived: false });
     expect(restored.archivedAt).toBeNull();
+  });
+
+  it('hides the tasks of an archived node and its descendants (TREE-2)', async () => {
+    const [weekly] = await repo.listTasks(); // "Weekly self-test" on Exam Prep
+    if (!weekly) throw new Error('seed has no task');
+    const nodes = await repo.listNodes();
+    const exams = nodes.find((n) => n.name === 'School Subjects');
+    const examPrep = nodes.find((n) => n.name === 'Exam Prep');
+    if (!exams || !examPrep) throw new Error('seed is missing tracks');
+    const read = await createTask(repo, newId, { nodeId: maths.id, title: 'Read' });
+
+    // Archiving the subtask hides the task on it; tasks elsewhere stay listed.
+    await updateNode(repo, clock, maths.id, { archived: true });
+    let visible = (await listTaskItems(repo, clock)).map((i) => i.task.id);
+    expect(visible).not.toContain(read.id);
+    expect(visible).toContain(weekly.id);
+
+    await updateNode(repo, clock, maths.id, { archived: false });
+    visible = (await listTaskItems(repo, clock)).map((i) => i.task.id);
+    expect(visible).toContain(read.id);
+
+    // Archiving the track hides everything inside it, including the seeded task.
+    await updateNode(repo, clock, exams.id, { archived: true });
+    visible = (await listTaskItems(repo, clock)).map((i) => i.task.id);
+    expect(visible).not.toContain(read.id);
+
+    await updateNode(repo, clock, examPrep.id, { archived: true });
+    visible = (await listTaskItems(repo, clock)).map((i) => i.task.id);
+    expect(visible).not.toContain(weekly.id);
   });
 
   it('rejects turning on scoring without a max', async () => {
