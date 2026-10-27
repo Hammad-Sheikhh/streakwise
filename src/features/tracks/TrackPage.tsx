@@ -114,7 +114,7 @@ function TrackContent({
     (tasks.data ?? []).filter((item) => item.task.nodeId !== null && inTrack.has(item.task.nodeId)),
   );
   const upcoming = (deadlines.data ?? []).filter(
-    (d) => inTrack.has(d.nodeId) && d.dueOn >= overview.today,
+    (d) => inTrack.has(d.nodeId) && !hidden.has(d.nodeId) && d.dueOn >= overview.today,
   );
 
   return (

@@ -42,14 +42,24 @@ export async function listTaskItems(
   clock: Clock,
   options: { includeArchived?: boolean } = {},
 ): Promise<TaskItem[]> {
-  const [tasks, completions] = await Promise.all([repo.listTasks(), repo.listTaskCompletions()]);
+  const [tasks, completions, nodes] = await Promise.all([
+    repo.listTasks(),
+    repo.listTaskCompletions(),
+    repo.listNodes(),
+  ]);
   const today = localDate(clock());
   const hidden = hiddenTaskIds(tasks);
+  // TREE-2: archiving a node hides its tasks too, even while "Show archived" lists archived tasks.
+  const hiddenNodes = hiddenIds(nodes);
   const due = new Map(tasksDueThisWeek(tasks, completions, today).map((d) => [d.task.id, d]));
   const hasChildren = new Set(tasks.map((t) => t.parentTaskId));
 
   return tasks
-    .filter((t) => options.includeArchived || !hidden.has(t.id))
+    .filter(
+      (t) =>
+        (options.includeArchived || !hidden.has(t.id)) &&
+        (t.nodeId === null || !hiddenNodes.has(t.nodeId)),
+    )
     .sort(
       (a, b) =>
         a.sortOrder - b.sortOrder ||

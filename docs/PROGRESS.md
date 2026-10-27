@@ -128,6 +128,23 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
+**2026-10-27: post-release bug round (fixes in `develop`, not released).** The owner asked to "fix all the
+bugs" after v1.0.0. There were no open issues and the suite was green, so this was an audit against SPEC
+MUST/SHOULD items. Three real bugs were found and fixed on `fix/tree2-hidden-tasks` (PR #37, squash-merged
+into `develop` as `3438412`):
+
+- **TREE-2 leak in task lists.** `listTaskItems` only hid archived _tasks_, not tasks attached to an
+  archived node, so tasks on an archived track/subtask still appeared on the Tasks screen, Home's
+  "Due this week", track pages, and MCP `find_gaps`. It now filters hidden nodes as well.
+- **TREE-2 leak in track deadlines.** `/tracks/:id` built its own deadline list without the hidden-node
+  filter used by Home and reports, so deadlines on archived parts of a track still showed.
+- **Wrong "Log your first session" prompt.** Home asked for a first session whenever the 12-month heatmap
+  was empty, even for an account with older history. It now keys off the all-time longest streak.
+
+Regression tests cover each case (5 new tests; suite at 55 files / 405 tests). Lint, typecheck, prettier,
+CI (unit/build and E2E), Vercel, and Netlify previews all passed before the merge. No release was made:
+production stays on v1.0.0 until the owner approves a `1.0.1` patch release.
+
 **2026-10-26: R4 released — Streakwise v1.0.0 is live on Vercel.** The owner said "R4", so the version
 bump (#35), the release PR (#36, merge commit `8e4f736`), the tag `v1.0.0`, the GitHub release, and the
 production deploy from `main` all went through.
@@ -154,7 +171,8 @@ production deploy from `main` all went through.
    sign-up + email confirmation with a `+test` address, the MCP link, and a share link).
 3. Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude.
 4. Owner: delete the Netlify project (and remove its Supabase URL entries) once Vercel is confirmed.
-5. No further development is planned; future work only if the owner asks.
+5. Decide whether to ship the 2026-10-27 bug fixes as a **1.0.1** patch release (owner approval needed;
+   production is still v1.0.0).
 
 **2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
 (`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and

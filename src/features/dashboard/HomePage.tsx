@@ -305,7 +305,7 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
         </p>
       )}
 
-      {data.targets.length > 0 && data.heatmap.days.length === 0 && (
+      {data.targets.length > 0 && data.streak.longest === 0 && (
         <Button asChild className="h-11 self-start">
           <Link to={`${basePath}/log`}>
             <Plus aria-hidden="true" /> Log your first session

@@ -105,6 +105,17 @@ describe('Tasks screen (TASK-1–9)', () => {
     await waitFor(async () => expect(await api.listTasks()).toHaveLength(1));
   });
 
+  it('hides tasks on an archived track (TREE-2)', async () => {
+    const api = fakeApi({ loggedIn: true });
+    const examPrep = (await api.listTree()).find((n) => n.name === 'Exam Prep');
+    if (!examPrep) throw new Error('seed has no Exam Prep');
+    await api.updateNode(examPrep.id, { archived: true });
+    renderRoutes('/tasks', api);
+
+    expect(await screen.findByText(/No tasks yet/)).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: WEEKLY })).not.toBeInTheDocument();
+  });
+
   it('adds a task under Other and one for a new track', async () => {
     const user = userEvent.setup();
     const api = fakeApi({ loggedIn: true });
