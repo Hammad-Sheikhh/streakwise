@@ -1,7 +1,8 @@
 # Progress
 
-_Last updated: 2026-10-26 by Claude (R4 released: `develop` merged into `main` as #36, production deployed
-from `main` on Vercel, tagged `v1.0.0`; only the owner-only handoff steps remain)_
+_Last updated: 2026-10-27 by Claude (R5 released: `develop` merged into `main` as #40, production deployed
+from `main` on Vercel, tagged `v1.0.1` with the TREE-2 fixes and the pure black dark theme; only the
+owner-only handoff steps remain)_
 
 ## Milestones
 
@@ -35,14 +36,16 @@ from `main` on Vercel, tagged `v1.0.0`; only the owner-only handoff steps remain
 
 | R4 | 2026-10-26 | **v1.0.0, first Vercel release.** M8 polish plus the warm palette, version bumped to 1.0.0 (#32–#35; release #36, merge commit `8e4f736`, tag `v1.0.0`). Owner approved ("R4"). Production deploy `streakwise-iwmdd4pnz` from `main`. Live check: `/api/health` → `{"ok":true,"version":"1.0.0"}`, `POST /api/health` 405, `/api/nodes` and `/api/dashboard` 401, `/`, `/login`, `/signup`, `/demo`, `/sw.js`, `manifest.webmanifest` 200, CSP and other security headers present, `/r/*` noindex, `/sw.js` `Cache-Control: no-cache`, CSS carries the warm tokens (`#fbf9f4`, `#0c5f57`, `#6fd3bd`). |
 
+| R5 | 2026-10-27 | **v1.0.1 patch.** TREE-2 fixes (tasks on archived nodes, track-page deadlines on archived parts), the Home first-session prompt, and the pure black dark theme (#37–#39; release #40, merge commit `531fb0a`, tag `v1.0.1`). Owner asked for the fixes and said "make it full black then release". Production deploy `streakwise-ks1eg65ng` from `main`. Live check: `/api/health` → `{"ok":true,"version":"1.0.1"}`, `POST /api/health` 405, `/api/dashboard` 401, `/`, `/login`, `/signup`, `/demo`, `/sw.js`, `manifest.webmanifest` 200, CSP and security headers present, `/r/*` noindex, `/sw.js` `Cache-Control: no-cache`, HTML has paper/black theme colours, CSS has `--background:#000` with neutral surfaces and no `#111815` left. |
+
 Production builds this month (Oct 2026): **6 Netlify builds** (~90 credits, counted conservatively) plus
-R4 on Vercel (no credit cost). Netlify is not used for builds any more.
+R4 and R5 on Vercel (no credit cost). Netlify is not used for builds any more.
 
 **2026-10-10: the owner reports 230 of 300 Netlify credits are left** (usage period 2026-10-03 → resets
 2026-11-03). R3a (M7, cleanup #27, README) was released 2026-10-10 as the last Netlify release; no more Netlify
 production deploys.
 
-Live site: **https://streakwise-mu.vercel.app** (R4, v1.0.0, deployed from `main`) · Vercel project
+Live site: **https://streakwise-mu.vercel.app** (R5, v1.0.1, deployed from `main`) · Vercel project
 `streakwise` (account `hammadsheikhcs-7269`, team `team-nick4`). The Netlify project still serves its
 last release, R3a, at https://streakwise-ap.netlify.app until the owner deletes it.
 
@@ -128,7 +131,28 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-10-27: post-release bug round (fixes in `develop`, not released).** The owner asked to "fix all the
+**2026-10-27: R5 released — v1.0.1 is live on Vercel.** After the bug round below, the owner asked for the
+dark theme's green cast to go ("make it full black then release"). The theme change and the version bump
+went through, then `develop` → `main` as a merge commit:
+
+- **#38** `fix: pure black dark theme (no green cast)` (squash `0315d0a`): dark background and sidebar are
+  `#000000`; cards, popovers, secondary, muted, and accent are neutral greys; text `#ededed` / `#a3a3a3`;
+  mint stays for actions and highlights. `index.html` theme colour is paper in light, black in dark.
+- **#39** `chore: set version 1.0.1` (squash `7cdf7dc`), so `/api/health` reports 1.0.1.
+- **#40** Release v1.0.1 merged with a merge commit **`531fb0a`** (never a squash); tag **`v1.0.1`** and
+  the GitHub release published from it.
+- Vercel production deployment **`streakwise-ks1eg65ng`** (READY, built from `main`) aliased
+  **https://streakwise-mu.vercel.app**.
+- Live verification: `/api/health` → `{"ok":true,"version":"1.0.1"}`; `POST /api/health` 405;
+  `/api/dashboard` 401; `/`, `/login`, `/signup`, `/demo`, `/sw.js`, `manifest.webmanifest` 200; CSP,
+  `nosniff`, `Referrer-Policy`, `Permissions-Policy` present; `/sw.js` `Cache-Control: no-cache`;
+  `/r/<unknown>` sends `X-Robots-Tag: noindex, nofollow`; the served HTML has the paper/black theme-colour
+  pair and the CSS carries `--background:#000` with neutral surfaces (no `#111815` left).
+- The PWA end-to-end test was updated to assert both theme colours (it expected exactly one meta tag).
+- Accessibility: the axe sweep over all 8 screens in both themes passes (16/16), so the new palette is
+  still WCAG AA. Unit suite 405/405, lint, typecheck, and prettier pass.
+
+**2026-10-27: post-release bug round (released in R5).** The owner asked to "fix all the
 bugs" after v1.0.0. There were no open issues and the suite was green, so this was an audit against SPEC
 MUST/SHOULD items. Three real bugs were found and fixed on `fix/tree2-hidden-tasks` (PR #37, squash-merged
 into `develop` as `3438412`):
@@ -142,8 +166,8 @@ into `develop` as `3438412`):
   was empty, even for an account with older history. It now keys off the all-time longest streak.
 
 Regression tests cover each case (5 new tests; suite at 55 files / 405 tests). Lint, typecheck, prettier,
-CI (unit/build and E2E), Vercel, and Netlify previews all passed before the merge. No release was made:
-production stays on v1.0.0 until the owner approves a `1.0.1` patch release.
+CI (unit/build and E2E), Vercel, and Netlify previews all passed before the merge; the fixes shipped to
+production in v1.0.1 (R5).
 
 **2026-10-26: R4 released — Streakwise v1.0.0 is live on Vercel.** The owner said "R4", so the version
 bump (#35), the release PR (#36, merge commit `8e4f736`), the tag `v1.0.0`, the GitHub release, and the
@@ -167,12 +191,10 @@ production deploy from `main` all went through.
 **Next steps (in order):**
 
 1. Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`.
-2. Owner: open the live site, log in, and try the app once (the remaining preview-checklist items are
-   sign-up + email confirmation with a `+test` address, the MCP link, and a share link).
+2. Owner: open the live site in dark mode and check the new pure black background on your phone; if the
+   system is in light mode, the app stays on the warm paper theme.
 3. Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude.
 4. Owner: delete the Netlify project (and remove its Supabase URL entries) once Vercel is confirmed.
-5. Decide whether to ship the 2026-10-27 bug fixes as a **1.0.1** patch release (owner approval needed;
-   production is still v1.0.0).
 
 **2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
 (`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and
