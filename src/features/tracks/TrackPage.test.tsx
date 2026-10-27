@@ -84,6 +84,23 @@ describe('Track page (TRACK-1, TOP-1, TOP-2)', () => {
     expect(within(sessions).getAllByRole('listitem')).toHaveLength(1);
   });
 
+  it('hides deadlines on archived parts of the track (TREE-2)', async () => {
+    const api = fakeApi({ loggedIn: true });
+    const nodes = await api.listTree();
+    const exams = nodes.find((n) => n.name === 'School Subjects');
+    const maths = nodes.find((n) => n.name === 'Maths');
+    if (!exams || !maths) throw new Error('seed is missing nodes');
+    const chapter = await api.addNode({ parentId: maths.id, name: 'Chapter 1' });
+    await api.addDeadline({ nodeId: maths.id, title: 'Maths exam', dueOn: '2026-11-13' });
+    await api.addDeadline({ nodeId: chapter.id, title: 'Hidden quiz', dueOn: '2026-11-01' });
+    await api.updateNode(chapter.id, { archived: true });
+    renderRoutes(`/tracks/${exams.id}`, api);
+
+    const deadlines = await screen.findByRole('region', { name: 'Deadlines' });
+    expect(await within(deadlines).findByText('Maths exam')).toBeVisible();
+    expect(within(deadlines).queryByText('Hidden quiz')).not.toBeInTheDocument();
+  });
+
   it('deletes a track with no history from the track page (TREE-3)', async () => {
     const user = userEvent.setup();
     const api = fakeApi({ loggedIn: true });
