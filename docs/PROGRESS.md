@@ -1,8 +1,7 @@
 # Progress
 
-_Last updated: 2026-10-27 by Claude (R5 released: `develop` merged into `main` as #40, production deployed
-from `main` on Vercel, tagged `v1.0.1` with the TREE-2 fixes and the pure black dark theme; only the
-owner-only handoff steps remain)_
+_Last updated: 2026-10-29 by Claude (mobile login race and PWA install/icon fixes in `develop`; production
+still v1.0.1 until the owner approves a release)_
 
 ## Milestones
 
@@ -130,6 +129,31 @@ One database for everything (D15), so each migration runs once.
   - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
 
 ## Current work / next step
+
+**2026-10-29: mobile login on the first attempt, and the home-screen icon (in `develop`, not released).**
+The owner reported two mobile problems: "on the mobile it doesn't log me in first time, it logs me in second
+attempt", and "on adding the shortcut to my mobile the icon shows a small Chrome logo in the corner".
+
+- **First login bounced back to `/login`.** The first visit to `/` caches the session query as `false`.
+  After a successful login, `invalidateQueries()` only marks an inactive query stale, so the guard read
+  the cached `false` and redirected straight back to the login page; the refetch it started then filled
+  the cache with `true`, which is why the second attempt worked. Fixed by writing the new session answer
+  into the cache before navigating (`src/features/auth/session.ts`, used by `LoginPage`, `SignUpPage`, and
+  `RequireAuth`). Regression test: start at `/` (so the logged-out answer is cached), log in, and stay in
+  the app.
+- **The icon badge is a shortcut, not the installed app.** Android puts a small Chrome badge on icons made
+  with "Add to home screen", while an installed PWA (WebAPK) uses the manifest icon. The app was already
+  installable (Chrome's installability check reported no errors), so Settings now has an **Install app**
+  button (PWA-1) backed by `beforeinstallprompt`; it only appears when the browser offers a real install
+  and disappears once installed. The install copy says to use it rather than "Add to home screen".
+- **Stale icon art.** The favicon, PWA icons, and manifest colours were still the old navy `#0f172a` with
+  green squares. They now use the current palette: the brand ink `#1b2622` tile with the teal/mint
+  mosaic, and black manifest background/theme colours to match the black dark theme.
+- Checks: 408 unit tests, lint, typecheck, prettier, and the E2E suite (demo, PWA, WCAG AA on all 8
+  screens × 2 themes) pass; Chrome reports no installability errors and the four icons decode at their
+  declared sizes.
+
+Next: ask the owner whether to ship these as **1.0.2** (production is still 1.0.1).
 
 **2026-10-27: R5 released — v1.0.1 is live on Vercel.** After the bug round below, the owner asked for the
 dark theme's green cast to go ("make it full black then release"). The theme change and the version bump
