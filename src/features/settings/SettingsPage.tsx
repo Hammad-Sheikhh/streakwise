@@ -17,6 +17,7 @@ import { useDataSource } from '@/data/useDataSource';
 import { AccountSection } from './AccountSection.js';
 import { ClaudeConnectionSection } from './ClaudeConnection.js';
 import { ExportSection } from './ExportSection.js';
+import { InstallAppSection } from './InstallAppSection.js';
 
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
@@ -70,6 +71,8 @@ export function SettingsPage() {
       <ExportSection />
 
       <ClaudeConnectionSection />
+
+      <InstallAppSection />
 
       <AccountSection />
     </>
