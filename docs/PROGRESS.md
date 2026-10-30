@@ -1,7 +1,7 @@
 # Progress
 
-_Last updated: 2026-10-29 by Claude (mobile login race and PWA install/icon fixes in `develop`; production
-still v1.0.1 until the owner approves a release)_
+_Last updated: 2026-10-30 by Claude (owner confirmed the Supabase Site URL; mobile login race and PWA
+install/icon fixes are in `develop`, production still v1.0.1 until the owner approves a release)_
 
 ## Milestones
 
@@ -123,8 +123,8 @@ One database for everything (D15), so each migration runs once.
   - [x] Check the Vercel site together (the checklist in the session log below)
   - [x] Say yes to release R4-the-first-Vercel-release (owner, 2026-10-26: "R4"; released as #36,
         tag `v1.0.0`)
-  - [ ] Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`
-        (redirect URLs are already saved; Claude cannot change this setting)
+  - [x] Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`
+        (redirect URLs are already saved; owner confirmed in chat, 2026-10-30)
   - [ ] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
   - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
 
@@ -214,11 +214,14 @@ production deploy from `main` all went through.
 
 **Next steps (in order):**
 
-1. Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`.
+1. ~~Owner: Supabase → Authentication → URL Configuration → Site URL =
+   `https://streakwise-mu.vercel.app`.~~ Done (owner, 2026-10-30).
 2. Owner: open the live site in dark mode and check the new pure black background on your phone; if the
    system is in light mode, the app stays on the warm paper theme.
 3. Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude.
 4. Owner: delete the Netlify project (and remove its Supabase URL entries) once Vercel is confirmed.
+5. Decide whether to ship the 2026-10-29 mobile login and PWA install fixes as **1.0.2** (owner approval
+   needed; production is still v1.0.1).
 
 **2026-10-25: Vercel production URL repaired and verified.** The owner confirmed the Vercel account
 (`hammadsheikhcs-7269`, team `team-nick4`), chose to keep `https://streakwise-mu.vercel.app`, and
