@@ -3,7 +3,9 @@ import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
 import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
+import { recordChanges } from '@/core/repo/RecordingRepository';
 import type { Repository } from '@/core/repo/Repository';
+import * as changes from '@/core/services/changes';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
 import * as exportsService from '@/core/services/exports';
@@ -33,7 +35,7 @@ export type DemoFill = (repo: Repository, clock: Clock, newId: IdGenerator) => P
 export class DemoDataSource implements DataSource {
   readonly mode: DataSource['mode'] = 'demo';
   readonly basePath = '/demo';
-  private readonly repo: InMemoryRepository;
+  private readonly repo: Repository;
   private readonly ready: Promise<unknown>;
 
   constructor(
@@ -42,12 +44,14 @@ export class DemoDataSource implements DataSource {
     /** What the store starts with; component tests use the plain seed of a new account instead. */
     fill: DemoFill = loadSampleData,
   ) {
-    this.repo = new InMemoryRepository(clock);
-    this.ready = fill(this.repo, clock, newId);
+    const store = new InMemoryRepository(clock);
+    // UNDO-3, UNDO-6: the demo records changes like the app does; its sample data isn't recorded.
+    this.repo = recordChanges(store, { source: 'app', newId });
+    this.ready = fill(store, clock, newId);
   }
 
   /** Runs a service once the seed is in, with errors shaped like the API's. */
-  private async run<T>(action: (repo: InMemoryRepository) => Promise<T>): Promise<T> {
+  private async run<T>(action: (repo: Repository) => Promise<T>): Promise<T> {
     await this.ready;
     try {
       return await action(this.repo);
@@ -227,5 +231,13 @@ export class DemoDataSource implements DataSource {
 
   exportData() {
     return this.run((repo) => exportsService.exportData(repo, this.clock));
+  }
+
+  listChanges() {
+    return this.run((repo) => changes.listRecentChanges(repo, this.clock));
+  }
+
+  undoChange(id: string) {
+    return this.run((repo) => changes.undoChange(repo, this.clock, id));
   }
 }

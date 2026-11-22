@@ -36,7 +36,8 @@ export function createMcpFunction(getDeps: () => ServerDeps): RequestHandler {
           headers: { Allow: 'POST', 'Cache-Control': 'no-store' },
         });
       }
-      const userDeps: UserDeps = forUser(deps, userId);
+      // MCP-24: Claude's changes are recorded as coming from Claude.
+      const userDeps: UserDeps = forUser(deps, userId, 'claude');
       // The handler keeps no data between requests: the factory builds a fresh server for each
       // one. Responses are plain JSON because no tool sends progress messages.
       const mcp = createMcpHandler(() => buildMcpServer(userDeps), {

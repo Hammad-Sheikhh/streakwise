@@ -1,4 +1,5 @@
 import type {
+  ChangeEntry,
   ClaudeConnection,
   Dashboard,
   DataExport,
@@ -103,6 +104,11 @@ export interface DataSource {
   revokeShare(id: string): Promise<SharedReportLink>;
   /** SET-2: everything, and records the export time. */
   exportData(): Promise<DataExport>;
+
+  /** UNDO-4, UNDO-6: changes from the last 7 days, newest first. */
+  listChanges(): Promise<ChangeEntry[]>;
+  /** UNDO-5: puts things back as they were before the change. */
+  undoChange(id: string): Promise<ChangeEntry>;
 }
 
 /** A failed request, with the API's error code and a message that is safe to show. */
