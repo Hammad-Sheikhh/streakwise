@@ -5,10 +5,11 @@ import { toast } from 'sonner';
 import { QueryError } from '@/components/QueryError';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDuration } from '@/core/logic/duration';
+import { formatDay } from '@/core/logic/labels';
 import { nodePath } from '@/core/logic/tree';
 import { SESSION_KEYS, useDataMutation, useRecentNodeIds, useTree } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
-import { useToday } from '@/data/useToday';
+import { useStudyDay } from '@/data/useToday';
 
 import { LogForm } from './LogForm.js';
 import type { LogFormValues } from './LogForm.js';
@@ -18,7 +19,8 @@ export function LogPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  const today = useToday();
+  const study = useStudyDay();
+  const { today } = study;
   const tree = useTree();
   const recent = useRecentNodeIds();
 
@@ -56,12 +58,14 @@ export function LogPage() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Log a session</h1>
-      {tree.isPending && <Skeleton className="h-96 w-full" />}
+      {(tree.isPending || !study.ready) && <Skeleton className="h-96 w-full" />}
       {tree.isError && <QueryError error={tree.error} onRetry={() => void tree.refetch()} />}
-      {tree.data && (
+      {/* The date defaults to today, so the form waits for the "My day ends at" setting. */}
+      {tree.data && study.ready && (
         <LogForm
           nodes={tree.data}
           today={today}
+          dayHint={dayHint(study)}
           initial={{ nodeId: params.get('node') ?? undefined }}
           recentNodeIds={recent.data}
           submitLabel="Save session"
@@ -71,4 +75,12 @@ export function LogPage() {
       )}
     </>
   );
+}
+
+/** DAY-5: between midnight and the cutoff, say which day "today" is. */
+function dayHint(study: ReturnType<typeof useStudyDay>): string | undefined {
+  if (study.calendarDate === study.today) return undefined;
+  const hours = String(Math.floor(study.dayEndsAtMinutes / 60)).padStart(2, '0');
+  const time = `${hours}:${String(study.dayEndsAtMinutes % 60).padStart(2, '0')}`;
+  return `Counts for ${formatDay(study.today)} (your day ends at ${time}).`;
 }

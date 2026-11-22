@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { DayField } from '@/components/DayField';
 import { NodeLabel } from '@/components/NodeLabel';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,8 +12,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Task, TaskItem, TreeNode } from '@/core/domain/types';
-import { localDate } from '@/core/logic/dates';
+import { pastDayError } from '@/lib/pastDay';
 import { useDataMutation } from '@/data/queries';
+import { useToday } from '@/data/useToday';
+import { addDays } from '@/core/logic/dates';
 import { formatDay, formatWeek } from '@/lib/format';
 
 import { TaskForm } from './TaskForm.js';
@@ -93,6 +96,24 @@ export function TaskDetailsDialog({
   const { task } = item;
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const today = useToday();
+  const [backfill, setBackfill] = useState<string | null>(null);
+  const backfillError = backfill === null ? null : pastDayError(backfill, today);
+  // TASK-10/11: unscored tasks can be ticked for an earlier day here (scored ones in their dialog).
+  const canBackfill =
+    !task.isScored &&
+    task.archivedAt === null &&
+    (task.recurrence === 'weekly' || !item.completion);
+  const completeOn = useDataMutation(
+    (ds, completedOn: string) => ds.completeTask(task.id, { completedOn }),
+    TASK_KEYS,
+    {
+      onSuccess: (done) => {
+        setBackfill(null);
+        toast.success(`Completed “${task.title}” for ${formatDay(done.completedOn)}.`);
+      },
+    },
+  );
 
   const close = (isOpen: boolean) => {
     if (!isOpen) {
@@ -187,7 +208,7 @@ export function TaskDetailsDialog({
               {task.recurrence === 'none' && item.completion && (
                 <>
                   <dt className="text-muted-foreground">Completed</dt>
-                  <dd>{formatDay(localDate(new Date(item.completion.completedAt)))}</dd>
+                  <dd>{formatDay(item.completion.completedOn)}</dd>
                 </>
               )}
             </dl>
@@ -209,10 +230,53 @@ export function TaskDetailsDialog({
               </section>
             )}
 
+            {backfill !== null && (
+              <form
+                className="flex flex-col gap-3 border-t pt-4"
+                aria-label="Done on another day"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (!backfillError) completeOn.mutate(backfill);
+                }}
+              >
+                <DayField
+                  legend={
+                    task.recurrence === 'weekly' ? 'Done on (counts for that week)' : 'Done on'
+                  }
+                  value={backfill}
+                  today={today}
+                  onChange={setBackfill}
+                  error={backfillError}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" className="h-11" disabled={completeOn.isPending}>
+                    {completeOn.isPending ? 'Saving…' : 'Mark done'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11"
+                    onClick={() => setBackfill(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+
             <div className="flex flex-wrap gap-2 border-t pt-4">
               <Button variant="outline" className="h-11" onClick={() => setEditing(true)}>
                 Edit
               </Button>
+              {canBackfill && backfill === null && (
+                <Button
+                  variant="outline"
+                  className="h-11"
+                  onClick={() => setBackfill(addDays(today, -1))}
+                >
+                  Done on another day…
+                </Button>
+              )}
               {!task.archivedAt && (
                 <Button variant="outline" className="h-11" onClick={() => onAddSubtask(task)}>
                   Add sub-task
