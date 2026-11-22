@@ -153,8 +153,9 @@ in one session, nothing left for later. Their JSON backup is downloaded and kept
 - Interpretations recorded in D23 (owner can change them): compact sessions keep their id; the Today
   view is a card at the top of Home; an exam's modules are its node's direct children; the app's
   complete dialog also gets a "Done on" date.
-- The owner asked to do the build on a stronger model; recommended **Claude Fable 5.2** (Anthropic's
-  docs: "for demanding reasoning and long-horizon agentic work").
+- The owner asked to do the build on a stronger model. Fable 5.2 isn't on the owner's Pro plan, so
+  the build runs on **Opus 5.5 at effort `xhigh`** (drop to `high` if usage limits get tight; the
+  work resumes from this file either way).
 - `scripts/rewrite-imports.mjs` (untracked, a finished one-off codemod from the Vercel move) is still
   in the working folder: deleting it was blocked by the permission check, so the owner decides.
 
