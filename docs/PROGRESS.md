@@ -1,23 +1,26 @@
 # Progress
 
-_Last updated: 2026-10-30 by Claude (owner confirmed the Supabase Site URL; mobile login race and PWA
-install/icon fixes are in `develop`, production still v1.0.1 until the owner approves a release)_
+_Last updated: 2026-11-23 by Claude (v1.1 "exam update" written into SPEC v3.0 as M9a–c, nothing
+built yet; mobile login and PWA icon fixes are still waiting in `develop`; production is v1.0.1)_
 
 ## Milestones
 
-| #             | Status    | PR            | Notes / deferred items                                                                                                                                                                                                                                                                  |
-| ------------- | --------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M0 Scaffold   | ✅ done   | #1            |                                                                                                                                                                                                                                                                                         |
-| M1 Foundation | ✅ done   | #7            | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                                                                                                                                                                  |
-| M2 Logging    | ✅ done   | #8            | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                                                                                                                                                                 |
-| M3 Dashboard  | ✅ done   | #9            | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                                                                                                                                                                    |
-| M4 MCP        | 🔍 review | #11           | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                                                                                                                                                                    |
-| M5 Progress   | ✅ done   | #16           | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                                                                                                                                                                |
-| M5A Accounts  | ✅ done   | #20           | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                                                                                                                                                                 |
-| M6 Reports    | ✅ done   | #21           | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                                                                                                                                                           |
-| M7 Demo + PWA | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                                           |
-| Cleanup       | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
-| M8 Polish     | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
+| #               | Status    | PR            | Notes / deferred items                                                                                                                                                                                                                                                                  |
+| --------------- | --------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Scaffold     | ✅ done   | #1            |                                                                                                                                                                                                                                                                                         |
+| M1 Foundation   | ✅ done   | #7            | Repository covers nodes, settings, seed so far; later milestones add their own methods                                                                                                                                                                                                  |
+| M2 Logging      | ✅ done   | #8            | All MUST + SHOULD done. Deferred: TREE-7 (COULD: drag-and-drop, move to another parent)                                                                                                                                                                                                 |
+| M3 Dashboard    | ✅ done   | #9            | All MUST + SHOULD done. Deferred: NEG-2 (COULD: mute warnings; needs a migration), HEAT-4 (COULD: heatmap per track)                                                                                                                                                                    |
+| M4 MCP          | 🔍 review | #11           | All MUST + SHOULD built (MCP-1–9 M4 tools, SET-4). CI green; checked live on the preview with curl and MCP Inspector                                                                                                                                                                    |
+| M5 Progress     | ✅ done   | #16           | All MUST + SHOULD built. Deferred: TASK-10 (COULD: complete a weekly task for last week)                                                                                                                                                                                                |
+| M5A Accounts    | ✅ done   | #20           | Merged into `develop` 2026-10-09. Not live yet: R3 is held by the owner                                                                                                                                                                                                                 |
+| M6 Reports      | ✅ done   | #21           | All MUST + SHOULD + COULD (REP-3, SHARE-6) built. No migration. Merged into `develop` 2026-10-09 (owner's OK)                                                                                                                                                                           |
+| M7 Demo + PWA   | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                                           |
+| Cleanup         | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
+| M8 Polish       | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
+| M9a Claude v1.1 | ⏳ next   |               | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
+| M9b App v1.1    | planned   |               | Undo toasts, Recent changes, Mistakes screen, Exam view, Today card. Branch `feat/v1.1-app`                                                                                                                                                                                             |
+| M9c Timer/data  | planned   |               | Timer, notes search, export v2 + CSVs, restore. Branch `feat/v1.1-timer-data`; then **R6 = v1.1.0** with the owner's yes                                                                                                                                                                |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -127,8 +130,45 @@ One database for everything (D15), so each migration runs once.
         (redirect URLs are already saved; owner confirmed in chat, 2026-10-30)
   - [ ] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
   - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
+- [ ] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor. Only when
+      Claude Code asks, after the M9a PR's CI is green; Claude Code explains every click then
+- [ ] v1.1: try M9a, M9b, and M9c on their previews (demo first; restore only in demo or a throwaway account)
+- [ ] v1.1: say yes/no to release R6 (v1.1.0), and whether the waiting 1.0.2 fixes ship with it
 
 ## Current work / next step
+
+**2026-11-23: v1.1 "the exam update" specified (SPEC v3.0), nothing built yet.** The owner pasted a
+feature list (MCP: compact lists and filters, get_task, get_latest_note, edit/undo tools, completion
+dates, batch logging, mistake tracker; app: "My day ends at" cutoff, undo toasts and Recent changes,
+Mistakes screen, Exam view, Today card, timer, notes search, export, restore) and asked for all of it
+in one session, nothing left for later. Their JSON backup is downloaded and kept by them.
+
+- Spec changes: §A7 (plain English), §B3.3/B3.5/B3.7–B3.9 (domain), TASK-11, MCP-10–24 with the new
+  tool table, new sections DAY, UNDO, ERR, EXAM, TODAY, TIMER, DATA (§B5.17–B5.23), routes, §B7.1
+  (migration `0005`, backward compatible because of the one database), §B8 resources, §B9.1a and
+  §B9.13–16 rules, §B13 tests, M9a–c in §B14.2, decisions D23–D28, §B16, and the §B17 v1.1 checklist.
+- Owner decisions (2026-11-23): Claude may edit/undo items of any date, past or future (D24, replaces
+  the draft's 7-day rule; things that happened still can't be in the future); the streak stays
+  session-based (D25); build everything, restore included (D27).
+- Interpretations recorded in D23 (owner can change them): compact sessions keep their id; the Today
+  view is a card at the top of Home; an exam's modules are its node's direct children; the app's
+  complete dialog also gets a "Done on" date.
+- The owner asked to do the build on a stronger model; recommended **Claude Fable 5.2** (Anthropic's
+  docs: "for demanding reasoning and long-horizon agentic work").
+- `scripts/rewrite-imports.mjs` (untracked, a finished one-off codemod from the Vercel move) is still
+  in the working folder: deleting it was blocked by the permission check, so the owner decides.
+
+**Next (M9a, on branch `feat/v1.1-claude` from `develop`):**
+
+1. Write `0005_v1_1.sql` per §B7.1 and extend `supabase/tests/migrations.test.ts`.
+2. `studyDate` + the setting (DAY-1–3), replacing every `localDate(clock())` "today" (call sites:
+   `services/dashboard, deadlines, insights, reports, scores, sessions, tasks, tracks`, `logic/neglect`,
+   `demo/sampleData`, `data/useToday`, `features/reports/ReportsPage`, `features/tasks/TaskDialogs`).
+3. `completed_on` in types, both repositories, `completeTask` (date), reports (TASK-11).
+4. Change recording + undo in core (UNDO-3, UNDO-5), then mistakes core (§B9.13).
+5. MCP tools and options (MCP-10–24), the MCP-14 size test, updated instructions, version 1.1.0.
+6. Lint, typecheck, test, build; PR into `develop` listing IDs; then ask the owner to run `0005`
+   (explain every click, per CLAUDE.md) before trying the preview with Claude.
 
 **2026-10-29: mobile login on the first attempt, and the home-screen icon (in `develop`, not released).**
 The owner reported two mobile problems: "on the mobile it doesn't log me in first time, it logs me in second
