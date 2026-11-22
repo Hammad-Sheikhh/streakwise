@@ -1,7 +1,8 @@
 # Progress
 
-_Last updated: 2026-11-23 by Claude (v1.1 "exam update" written into SPEC v3.0 as M9a–c, nothing
-built yet; mobile login and PWA icon fixes are still waiting in `develop`; production is v1.0.1)_
+_Last updated: 2026-11-23 by Claude (M9a in progress on `feat/v1.1-claude`: migration, core, API,
+and Claude tools done and pushed; app screens for the study day and "Done on" next; production is
+v1.0.1)_
 
 ## Milestones
 
@@ -18,7 +19,7 @@ built yet; mobile login and PWA icon fixes are still waiting in `develop`; produ
 | M7 Demo + PWA   | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                                           |
 | Cleanup         | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
 | M8 Polish       | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
-| M9a Claude v1.1 | ⏳ next   |               | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
+| M9a Claude v1.1 | 🚧 doing  |               | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
 | M9b App v1.1    | planned   |               | Undo toasts, Recent changes, Mistakes screen, Exam view, Today card. Branch `feat/v1.1-app`                                                                                                                                                                                             |
 | M9c Timer/data  | planned   |               | Timer, notes search, export v2 + CSVs, restore. Branch `feat/v1.1-timer-data`; then **R6 = v1.1.0** with the owner's yes                                                                                                                                                                |
 
@@ -136,6 +137,19 @@ One database for everything (D15), so each migration runs once.
 - [ ] v1.1: say yes/no to release R6 (v1.1.0), and whether the waiting 1.0.2 fixes ship with it
 
 ## Current work / next step
+
+**2026-11-23 (later): M9a mostly built on `feat/v1.1-claude` (pushed, no PR yet).** Commits so far:
+`0005` + PGlite tests (`e376a36`); study day, completion dates, storage (`deb7944`); mistakes core
+(`a2a12ac`); change history + undo in core, API, demo (`a7f60ca`); Claude tools (`35b3b87`).
+Full suite was 449 green before the MCP commit; MCP suites 44/44 after it.
+
+- D29 (to record in SPEC §B15): compact `list_tasks` shows `done` only when true (like the other
+  flags) and leaves out a sub-task's path when it equals its parent's. Measured on the 70-task
+  fixture: the literal MCP-13 shape is 28% of the full answer (misses MCP-14's 25%), with D29 24%.
+- Remaining for M9a: Settings "My day ends at" (DAY-1), app "today" from the study day (useToday,
+  Reports, log form) + DAY-5 hint, complete dialog "Done on" (TASK-11), completion date shown from
+  `completedOn`, API tests for `/api/changes`, untick by date, settings; SPEC D29 + MCP-13 note;
+  architecture.md; README test count; then PR into `develop`, then ask the owner to run `0005`.
 
 **2026-11-23: v1.1 "the exam update" specified (SPEC v3.0), nothing built yet.** The owner pasted a
 feature list (MCP: compact lists and filters, get_task, get_latest_note, edit/undo tools, completion
