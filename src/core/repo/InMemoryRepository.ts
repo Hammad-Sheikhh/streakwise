@@ -55,6 +55,13 @@ const linkOf = (share: SharedReport): SharedReportLink => ({
 
 const SCORED_NEEDS_NODE = 'Scored tasks need a track or subject.';
 
+/** Like the database client, a patch's undefined fields mean "leave as is". */
+function defined<T extends object>(patch: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  ) as Partial<T>;
+}
+
 export class InMemoryRepository implements Repository {
   private nodes: TreeNode[] = [];
   private sessions: Session[] = [];
@@ -123,7 +130,7 @@ export class InMemoryRepository implements Repository {
   async updateNode(id: string, patch: NodePatch): Promise<TreeNode> {
     const node = this.findNode(id);
     if (patch.name !== undefined) this.assertUniqueName(node.parentId, patch.name, id);
-    Object.assign(node, patch, { updatedAt: this.stamp() });
+    Object.assign(node, defined(patch), { updatedAt: this.stamp() });
     return { ...node };
   }
 
@@ -190,7 +197,7 @@ export class InMemoryRepository implements Repository {
     const session = this.sessions.find((s) => s.id === id);
     if (!session) throw notFound('session_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(session, patch, { updatedAt: this.stamp() });
+    Object.assign(session, defined(patch), { updatedAt: this.stamp() });
     return { ...session };
   }
 
@@ -259,7 +266,7 @@ export class InMemoryRepository implements Repository {
     const deadline = this.deadlines.find((d) => d.id === id);
     if (!deadline) throw notFound('deadline_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(deadline, patch);
+    Object.assign(deadline, defined(patch));
     return { ...deadline };
   }
 
@@ -274,7 +281,7 @@ export class InMemoryRepository implements Repository {
   }
 
   async updateSettings(patch: SettingsPatch): Promise<Settings> {
-    Object.assign(this.settings, patch);
+    Object.assign(this.settings, defined(patch));
     return { ...this.settings };
   }
 
@@ -361,10 +368,10 @@ export class InMemoryRepository implements Repository {
   async updateTask(id: string, patch: TaskPatch): Promise<Task> {
     const task = this.findTask(id);
     if (patch.nodeId !== undefined && patch.nodeId !== null) this.findNode(patch.nodeId);
-    const next = { ...task, ...patch };
+    const next = { ...task, ...defined(patch) };
     if (next.isScored && next.nodeId === null)
       throw invalid('scored_needs_node', SCORED_NEEDS_NODE);
-    Object.assign(task, patch, { updatedAt: this.stamp() });
+    Object.assign(task, defined(patch), { updatedAt: this.stamp() });
     return { ...task };
   }
 
@@ -485,7 +492,7 @@ export class InMemoryRepository implements Repository {
     const score = this.scores.find((s) => s.id === id);
     if (!score) throw notFound('score_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(score, patch);
+    Object.assign(score, defined(patch));
     return { ...score };
   }
 
@@ -512,7 +519,7 @@ export class InMemoryRepository implements Repository {
     const mistake = this.mistakes.find((m) => m.id === id);
     if (!mistake) throw notFound('mistake_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(mistake, patch, { updatedAt: this.stamp() });
+    Object.assign(mistake, defined(patch), { updatedAt: this.stamp() });
     return { ...mistake };
   }
 

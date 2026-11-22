@@ -38,9 +38,11 @@ export function createMcpFunction(getDeps: () => ServerDeps): RequestHandler {
       }
       // MCP-24: Claude's changes are recorded as coming from Claude.
       const userDeps: UserDeps = forUser(deps, userId, 'claude');
+      // DAY-2, MCP-22: "today" and the instructions follow the user's "My day ends at".
+      const { dayEndsAtMinutes } = await userDeps.repo.getSettings();
       // The handler keeps no data between requests: the factory builds a fresh server for each
       // one. Responses are plain JSON because no tool sends progress messages.
-      const mcp = createMcpHandler(() => buildMcpServer(userDeps), {
+      const mcp = createMcpHandler(() => buildMcpServer(userDeps, dayEndsAtMinutes), {
         onerror: (error) => log.warn('mcp_protocol_error', describeError(error)),
       });
       return await mcp.fetch(request);
