@@ -1,5 +1,5 @@
 import type { Clock, Dashboard } from '../domain/types.js';
-import { localDate, weekStart } from '../logic/dates.js';
+import { studyDate, weekStart } from '../logic/dates.js';
 import { heatmapRange } from '../logic/heatmap.js';
 import { neglectWarnings } from '../logic/neglect.js';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
@@ -10,21 +10,23 @@ import type { Repository } from '../repo/Repository.js';
 import { selectUpcoming } from './deadlines.js';
 import { isBackupDue } from './exports.js';
 import { listTree } from './structure.js';
-import { listTaskItems } from './tasks.js';
+import { buildTaskItems } from './tasks.js';
 
 /** Home shows the next few deadlines (DEAD-2). */
 export const DASHBOARD_DEADLINES = 3;
 
 /** DASH-1: everything Home needs, computed from one read of each table. */
 export async function getDashboard(repo: Repository, clock: Clock): Promise<Dashboard> {
-  const today = localDate(clock());
-  const [nodes, facts, settings, deadlines, tasks] = await Promise.all([
+  const [nodes, facts, settings, deadlines, taskRows, completions] = await Promise.all([
     listTree(repo),
     repo.listSessionFacts(),
     repo.getSettings(),
     repo.listDeadlines(),
-    listTaskItems(repo, clock),
+    repo.listTasks(),
+    repo.listTaskCompletions(),
   ]);
+  const today = studyDate(clock(), settings.dayEndsAtMinutes);
+  const tasks = buildTaskItems(taskRows, completions, nodes, today);
   const hidden = hiddenIds(nodes);
   const totals = dailyTotals(facts);
   const activeDates = new Set(totals.keys());
@@ -49,7 +51,13 @@ export async function getDashboard(repo: Repository, clock: Clock): Promise<Dash
     todayMinutes: totals.get(today) ?? 0,
     streak: { current: currentStreak(activeDates, today), longest: longestStreak(activeDates) },
     targets,
-    neglect: neglectWarnings(nodes, latestDateByNode(nodes, facts), today, settings.neglectDays),
+    neglect: neglectWarnings(
+      nodes,
+      latestDateByNode(nodes, facts),
+      today,
+      settings.neglectDays,
+      settings.dayEndsAtMinutes,
+    ),
     tasksDue: tasks.filter((item) => item.dueThisWeek).sort(compareDue),
     deadlines: selectUpcoming(nodes, deadlines, today).slice(0, DASHBOARD_DEADLINES),
     heatmap: { start, end, days: heatmapDays },

@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 import {
+  MAX_DAY_ENDS_AT_MINUTES,
   REPORT_PERIODS,
+  REVIEW_RESULTS,
   SCORE_KINDS,
   SESSION_SOURCES,
   TOPIC_STATUSES,
@@ -120,6 +122,8 @@ export const listSessionsQuerySchema = z
     from: localDateSchema.optional(),
     to: localDateSchema.optional(),
     source: z.enum(SESSION_SOURCES).optional(),
+    /** MCP-16: the note contains this text (case-insensitive). */
+    noteContains: z.string().trim().min(1).max(200).optional(),
     limit: listLimitSchema,
   })
   .refine((q) => !q.from || !q.to || q.from <= q.to, { message: '"from" must not be after "to".' });
@@ -135,14 +139,17 @@ export const createDeadlineInputSchema = z.object({
   nodeId: z.uuid('Choose what the deadline is for.'),
   title: deadlineTitle,
   dueOn: localDateSchema,
+  /** EXAM-1. */
+  isExam: z.boolean().default(false),
 });
-export type CreateDeadlineInput = z.infer<typeof createDeadlineInputSchema>;
+export type CreateDeadlineInput = z.input<typeof createDeadlineInputSchema>;
 
 export const updateDeadlineInputSchema = z
   .object({
     nodeId: z.uuid('Choose what the deadline is for.').optional(),
     title: deadlineTitle.optional(),
     dueOn: localDateSchema.optional(),
+    isExam: z.boolean().optional(),
   })
   .refine((input) => Object.values(input).some((value) => value !== undefined), {
     message: 'Nothing to change.',
@@ -157,6 +164,14 @@ export const updateSettingsInputSchema = z
       .int()
       .min(1, 'Choose 1 to 14 days.')
       .max(14, 'Choose 1 to 14 days.')
+      .optional(),
+    /** DAY-1: 00:00 to 06:00 in half-hour steps. */
+    dayEndsAtMinutes: z
+      .number()
+      .int()
+      .min(0, 'Choose a time from 00:00 to 06:00.')
+      .max(MAX_DAY_ENDS_AT_MINUTES, 'Choose a time from 00:00 to 06:00.')
+      .multipleOf(30, 'Choose a time on the hour or half hour.')
       .optional(),
   })
   .refine((input) => Object.values(input).some((value) => value !== undefined), {
@@ -230,8 +245,14 @@ export const completeTaskInputSchema = z.object({
   maxScore: maxScore.optional(),
   kind: z.enum(SCORE_KINDS).default('other'),
   note: note.optional().transform((value) => value ?? null),
+  /** TASK-11: the day it was done; default today, never in the future. */
+  completedOn: localDateSchema.optional(),
 });
 export type CompleteTaskInput = z.input<typeof completeTaskInputSchema>;
+
+/** TASK-11: which period to untick (the week of this date for weekly tasks; default today). */
+export const uncompleteTaskQuerySchema = z.object({ date: localDateSchema.optional() });
+export type UncompleteTaskQuery = z.infer<typeof uncompleteTaskQuerySchema>;
 
 const scoreTitle = z
   .string()
@@ -294,3 +315,45 @@ export const createShareInputSchema = z.object({
   expiresInDays: z.union([z.literal(7), z.literal(30), z.null()]).default(30),
 });
 export type CreateShareInput = z.input<typeof createShareInputSchema>;
+
+export const MAX_MISTAKE_LENGTH = 500;
+
+const mistakeText = z
+  .string()
+  .trim()
+  .min(1, 'Describe the mistake.')
+  .max(MAX_MISTAKE_LENGTH, `Mistakes can be at most ${MAX_MISTAKE_LENGTH} characters.`);
+
+/** ERR-1: the date defaults to today and can't be in the future (checked by the service). */
+export const createMistakeInputSchema = z.object({
+  nodeId: z.uuid('Choose what the mistake is about.'),
+  text: mistakeText,
+  createdOn: localDateSchema.optional(),
+});
+export type CreateMistakeInput = z.input<typeof createMistakeInputSchema>;
+
+export const updateMistakeInputSchema = z
+  .object({
+    nodeId: z.uuid('Choose what the mistake is about.').optional(),
+    text: mistakeText.optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Nothing to change.',
+  });
+export type UpdateMistakeInput = z.input<typeof updateMistakeInputSchema>;
+
+/** ERR-2: a review on a day (default today, never in the future). */
+export const reviewMistakeInputSchema = z.object({
+  result: z.enum(REVIEW_RESULTS, 'Choose right or wrong.'),
+  reviewedOn: localDateSchema.optional(),
+});
+export type ReviewMistakeInput = z.input<typeof reviewMistakeInputSchema>;
+
+export const listMistakesQuerySchema = z.object({
+  status: z.enum(['open', 'learned', 'all']).default('all'),
+  /** Only open mistakes due on or before this day. */
+  dueBy: localDateSchema.optional(),
+  /** Includes the node's descendants. */
+  nodeId: z.uuid().optional(),
+});
+export type ListMistakesQuery = z.input<typeof listMistakesQuerySchema>;

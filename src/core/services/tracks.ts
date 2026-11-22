@@ -1,9 +1,10 @@
 import { notFound } from '../domain/errors.js';
 import type { Clock, TrackOverview } from '../domain/types.js';
-import { localDate, weekStart } from '../logic/dates.js';
+import { weekStart } from '../logic/dates.js';
 import { minutesByNode } from '../logic/rollup.js';
 import { subtreeIds } from '../logic/tree.js';
 import type { Repository } from '../repo/Repository.js';
+import { studyToday } from './today.js';
 
 /** TRACK-1 shows the latest few sessions. */
 export const TRACK_RECENT_SESSIONS = 10;
@@ -21,11 +22,11 @@ export async function getTrackOverview(
   const track = nodes.find((n) => n.id === trackId);
   if (!track || track.depth !== 1) throw notFound('track_not_found');
 
-  const today = localDate(clock());
   const ids = subtreeIds(nodes, trackId);
-  const [facts, recentSessions] = await Promise.all([
+  const [facts, recentSessions, today] = await Promise.all([
     repo.listSessionFacts(),
     repo.listSessions({ nodeIds: ids, limit: TRACK_RECENT_SESSIONS }),
+    studyToday(repo, clock),
   ]);
   const total = minutesByNode(nodes, facts);
   const week = minutesByNode(nodes, facts, { from: weekStart(today), to: today });
