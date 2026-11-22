@@ -94,6 +94,36 @@ the request body first, which turns bad JSON into a 400 before any service runs.
 the last line of defence: the database (and `InMemoryRepository`, which mirrors it) rejects
 duplicate sibling names, a fourth level, and deleting nodes that have history.
 
+## Study day (v1.1, DAY)
+
+Every "today" is the **study day**: `studyDate(now, dayEndsAtMinutes)` in
+`src/core/logic/dates.ts` is the Karachi date of `now` minus the "My day ends at" setting
+(`user_settings.day_ends_at_minutes`, 0–360). Services get it through `studyToday(repo, clock)`
+(`src/core/services/today.ts`), which reads the setting once per call; services that already read
+settings (dashboard, progress, reports) call `studyDate` directly. The MCP endpoint reads the
+setting once per request, so tool defaults, `today` fields, and the instructions agree. In the
+browser, `useStudyDay()` (`src/data/useToday.ts`) does the same from the settings query; forms
+that default to today wait for it. Stored dates never change when the setting does; timestamps
+that become days at read time (a topic's done time, a node's creation for neglect) use the
+current setting.
+
+## Change history and undo (v1.1, UNDO)
+
+`RecordingRepository` (`src/core/repo/RecordingRepository.ts`) wraps the user's repository and
+writes one `change_log` entry after every successful change to sessions, scores, tasks,
+completions, mistakes, nodes, and deadlines: source (`app` or `claude`), entity, action, a
+one-line summary, and JSON snapshots before and after. The server wraps every logged-in request's
+repository (`forUser`, source `app`; the MCP endpoint passes `claude`), and demo mode wraps its
+in-memory store, so all three paths record the same way (D28). Reordering and no-op edits aren't
+recorded. If recording fails, the write stands and only the error's name is logged.
+
+`undoChange` (`src/core/services/changes.ts`) applies the inverse on the store underneath
+(`withoutRecording`), so undo is never recorded and can't be redone. Deleted items come back with
+their ids and creation times; a deleted task tree comes back with its completions and score links
+(`restore_user_task_tree`), and a removed completion with its score (`complete_user_task_on`), each
+in one database call. It refuses with 409 `changed_since` while a later change to the same item
+stands, and 409 `cannot_undo` when the item can't be put back.
+
 ## Dashboard
 
 `getDashboard` reads the tree, settings, deadlines, and a light list of every session
@@ -108,35 +138,38 @@ All require a session cookie except `auth/login`, `auth/signup`, `auth/forgot`,
 `auth/resend`, `auth/logout`, `health`, and `keepalive`. Every data endpoint reads and writes only the
 logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below).
 
-| Endpoint                 | Methods       | Purpose                                                    |
-| ------------------------ | ------------- | ---------------------------------------------------------- |
-| `/api/auth/signup`       | POST          | Create an account (Supabase Auth), limited per IP          |
-| `/api/auth/login`        | POST          | Email + password login (lockout), first-login seed         |
-| `/api/auth/forgot`       | POST          | Email a reset link (same answer for unknown emails)        |
-| `/api/auth/resend`       | POST          | Send the confirmation email again                          |
-| `/api/auth/password`     | POST          | Change password; logs out other devices                    |
-| `/api/auth/account`      | DELETE        | Delete the account and all its data                        |
-| `/api/auth/logout`       | POST          | Clear the session cookie                                   |
-| `/api/auth/me`           | GET           | Who is logged in (email, name), reset-link state           |
-| `/auth/confirm`          | GET           | Where email links land; logs in, then redirects            |
-| `/api/nodes`             | GET, POST     | The structure tree; add a node                             |
-| `/api/nodes/:id`         | PATCH, DELETE | Rename, recolor, archive/restore; delete                   |
-| `/api/nodes/:id/move`    | POST          | Move up/down among siblings                                |
-| `/api/sessions`          | GET, POST     | A 30-day History page (filters); log a session             |
-| `/api/sessions/:id`      | PATCH, DELETE | Edit or delete a session                                   |
-| `/api/recent-nodes`      | GET           | The 5 most recently used nodes                             |
-| `/api/dashboard`         | GET           | Everything Home shows, in one request (DASH-1)             |
-| `/api/deadlines`         | GET, POST     | List and add deadlines                                     |
-| `/api/deadlines/:id`     | PATCH, DELETE | Edit or delete a deadline                                  |
-| `/api/settings`          | GET, PATCH    | Student name, neglect threshold                            |
-| `/api/claude-connection` | GET, POST     | Whether a link exists; POST makes a new one (shown once)   |
-| `/api/reports`           | POST          | Build a report for a period (`buildReport`, REP-9)         |
-| `/api/shares`            | GET, POST     | List share links; create one (server rebuilds the report)  |
-| `/api/shares/:id`        | DELETE        | Revoke a share link (kept in the list, marked revoked)     |
-| `/api/share/:slug`       | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked |
-| `/api/export`            | POST          | All data as JSON (CSV is made in the browser); stamps time |
-| `/api/health`            | GET           | Liveness, no database                                      |
-| `/api/keepalive`         | GET           | One trivial database read                                  |
+| Endpoint                  | Methods       | Purpose                                                          |
+| ------------------------- | ------------- | ---------------------------------------------------------------- |
+| `/api/auth/signup`        | POST          | Create an account (Supabase Auth), limited per IP                |
+| `/api/auth/login`         | POST          | Email + password login (lockout), first-login seed               |
+| `/api/auth/forgot`        | POST          | Email a reset link (same answer for unknown emails)              |
+| `/api/auth/resend`        | POST          | Send the confirmation email again                                |
+| `/api/auth/password`      | POST          | Change password; logs out other devices                          |
+| `/api/auth/account`       | DELETE        | Delete the account and all its data                              |
+| `/api/auth/logout`        | POST          | Clear the session cookie                                         |
+| `/api/auth/me`            | GET           | Who is logged in (email, name), reset-link state                 |
+| `/auth/confirm`           | GET           | Where email links land; logs in, then redirects                  |
+| `/api/nodes`              | GET, POST     | The structure tree; add a node                                   |
+| `/api/nodes/:id`          | PATCH, DELETE | Rename, recolor, archive/restore; delete                         |
+| `/api/nodes/:id/move`     | POST          | Move up/down among siblings                                      |
+| `/api/sessions`           | GET, POST     | A 30-day History page (filters); log a session                   |
+| `/api/sessions/:id`       | PATCH, DELETE | Edit or delete a session                                         |
+| `/api/recent-nodes`       | GET           | The 5 most recently used nodes                                   |
+| `/api/dashboard`          | GET           | Everything Home shows, in one request (DASH-1)                   |
+| `/api/deadlines`          | GET, POST     | List and add deadlines                                           |
+| `/api/deadlines/:id`      | PATCH, DELETE | Edit or delete a deadline                                        |
+| `/api/settings`           | GET, PATCH    | Student name, neglect threshold, "My day ends at"                |
+| `/api/claude-connection`  | GET, POST     | Whether a link exists; POST makes a new one (shown once)         |
+| `/api/reports`            | POST          | Build a report for a period (`buildReport`, REP-9)               |
+| `/api/shares`             | GET, POST     | List share links; create one (server rebuilds the report)        |
+| `/api/shares/:id`         | DELETE        | Revoke a share link (kept in the list, marked revoked)           |
+| `/api/share/:slug`        | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked       |
+| `/api/export`             | POST          | All data as JSON (CSV is made in the browser); stamps time       |
+| `/api/tasks/:id/complete` | POST, DELETE  | Complete (optional `completedOn`); untick the period of `?date=` |
+| `/api/changes`            | GET           | Changes from the last 7 days, newest first (UNDO-4)              |
+| `/api/changes/:id/undo`   | POST          | Undo one change (UNDO-5)                                         |
+| `/api/health`             | GET           | Liveness, no database                                            |
+| `/api/keepalive`          | GET           | One trivial database read                                        |
 
 ## Accounts (M5A, SPEC D17)
 
@@ -168,10 +201,18 @@ with the official SDK v2 (`@modelcontextprotocol/server`, `createMcpHandler`). I
   hash is stored (`user_settings.mcp_token_hash`); the server looks the user up by hash and serves
   only that user's data. Anything else gets a plain 404. Only POST is accepted (a serverless
   function can't hold the GET event stream open).
-- **Tools** (`server/functions/_lib/mcp/server.ts`) are thin wrappers: resolve node and date
-  references (`src/core/logic/nodeRef.ts`, `dateRef.ts`), call a core service, return compact JSON
-  text. Input schemas live in `src/core/schemas/mcp.ts`. Domain errors come back as
-  `isError` results with `{ error: { code, message } }`, so Claude can correct itself.
+- **Tools** are thin wrappers: resolve node and date references (`src/core/logic/nodeRef.ts`,
+  `dateRef.ts`, against the study day), call a core service, return compact JSON text. The server
+  is split by purpose under `server/functions/_lib/mcp/`: `server.ts` builds it,
+  `instructions.ts` holds what Claude is told (with the current "My day ends at"), `views.ts` the
+  output shapes, `tool.ts` the shared run/error helpers and annotations, and `tools/*.ts` the
+  tools by area (structure, sessions, tasks, scores, mistakes). Input schemas live in
+  `src/core/schemas/mcp.ts`. Domain errors come back as `isError` results with
+  `{ error: { code, message, ...details } }` (for example `index` for a failed batch item, or
+  `subtaskCount`), so Claude can correct itself.
+- **v1.1 (MCP-10–24):** 30 tools. The 14 from v1.0 keep their names, parameters, and default
+  output; new options (`compact`, filters, completion `date`) only add. Writes return the changed
+  item; Claude's changes are recorded with source `claude` and can be undone in the app.
 - Every tool call stamps the user's `last_mcp_call_at`, shown in Settings → Claude connection.
 - Check it with MCP Inspector:
   `npx @modelcontextprotocol/inspector --cli <url> --transport http --method tools/list`.
