@@ -27,7 +27,8 @@ describe('demo mode (DEMO-1, DEMO-2, DEMO-4)', () => {
     const isAuthenticated = vi.spyOn(api, 'isAuthenticated');
     renderRoutes('/demo', api);
 
-    expect(await screen.findByText('Online Course')).toBeInTheDocument();
+    // The track appears in the weekly targets and in the Today card's pace.
+    expect((await screen.findAllByText('Online Course')).length).toBeGreaterThan(0);
     expect(screen.getByRole('note')).toHaveTextContent('Demo — sample data. Changes aren’t saved.');
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(isAuthenticated).not.toHaveBeenCalled();
