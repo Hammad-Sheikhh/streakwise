@@ -7,6 +7,7 @@ import type {
   ExamTarget,
   ExamView,
   HistoryPage,
+  BackupSummary,
   Mistake,
   MistakesOverview,
   Report,
@@ -131,6 +132,9 @@ export interface DataSource {
   addExamTarget(deadlineId: string, input: CreateExamTargetInput): Promise<ExamTarget>;
   updateExamTarget(id: string, input: UpdateExamTargetInput): Promise<ExamTarget>;
   deleteExamTarget(id: string): Promise<void>;
+
+  /** DATA-3/4: replaces all study data with a backup (checked first). */
+  restoreBackup(backup: unknown): Promise<BackupSummary>;
 }
 
 /** A failed request, with the API's error code and a message that is safe to show. */

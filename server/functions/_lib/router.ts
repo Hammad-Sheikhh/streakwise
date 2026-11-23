@@ -34,6 +34,7 @@ import { createPublicShareHandler } from '../public-share.js';
 import { createNodesHandler } from '../nodes.js';
 import { createRecentNodesHandler } from '../recent-nodes.js';
 import { createReportsHandler } from '../reports.js';
+import { createRestoreHandler } from '../restore.js';
 import { createScoreHandler } from '../score.js';
 import { createScoresHandler } from '../scores.js';
 import { createSessionHandler } from '../session.js';
@@ -123,6 +124,7 @@ function buildRoutes(getDeps: () => ServerDeps): Route[] {
     { path: '/api/auth/password', method: 'POST', handle: createPasswordHandler(getDeps) },
     { path: '/api/dashboard', method: 'GET', handle: createDashboardHandler(getDeps) },
     { path: '/api/export', method: 'POST', handle: createExportHandler(getDeps) },
+    { path: '/api/restore', method: 'POST', handle: createRestoreHandler(getDeps) },
     { path: '/api/deadlines', method: ['GET', 'POST'], handle: createDeadlinesHandler(getDeps) },
     {
       path: '/api/deadlines/:id',

@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, Settings2 } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Settings2, Timer } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -22,6 +22,7 @@ import { filterScores } from '@/features/scores/scoreView';
 import { NodeDialog } from '@/features/settings/NodeDialog';
 import { buildTaskTree } from '@/features/tasks/grouping';
 import { TaskTreeRows } from '@/features/tasks/TaskList';
+import { useStartTimer } from '@/features/timer/useStartTimer';
 import { formatDay, formatDaysLeft, formatTargetHours } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -95,6 +96,7 @@ function TrackContent({
   const deadlines = useDeadlines();
   const [chosenKind, setChosenKind] = useState<ScoreKind | '' | null>(null);
   const [managing, setManaging] = useState(false);
+  const startTimer = useStartTimer();
 
   const hidden = hiddenIds(nodes);
   const inTrack = new Set(subtreeIds(nodes, track.id));
@@ -131,9 +133,17 @@ function TrackContent({
         </h1>
         {/* TREE-1 to TREE-3 and TREE-5: rename, recolour, add, archive, restore, and delete from
             the track itself, without going through Settings → Structure. */}
-        <Button variant="outline" className="h-11" onClick={() => setManaging(true)}>
-          <Settings2 aria-hidden="true" /> Manage track
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {/* TIMER-1: time a session on this track. */}
+          {!track.archivedAt && (
+            <Button variant="outline" className="h-11" onClick={() => startTimer(track.id)}>
+              <Timer aria-hidden="true" /> Start timer
+            </Button>
+          )}
+          <Button variant="outline" className="h-11" onClick={() => setManaging(true)}>
+            <Settings2 aria-hidden="true" /> Manage track
+          </Button>
+        </div>
       </div>
 
       <NodeDialog

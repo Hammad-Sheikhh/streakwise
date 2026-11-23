@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { meSchema, signUpResultSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
+  backupSummarySchema,
   changeEntrySchema,
   claudeConnectionSchema,
   dashboardSchema,
@@ -51,6 +52,7 @@ const changesResponse = z.object({ changes: z.array(changeEntrySchema) });
 const changeResponse = z.object({ change: changeEntrySchema });
 const mistakeResponse = z.object({ mistake: mistakeSchema });
 const targetResponse = z.object({ target: examTargetSchema });
+const restoreResponse = z.object({ summary: backupSummarySchema });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -335,6 +337,10 @@ export class ApiDataSource implements DataSource {
   async updateExamTarget(id: string, input: Parameters<DataSource['updateExamTarget']>[1]) {
     const path = `exam-targets/${encodeURIComponent(id)}`;
     return (await this.request(path, targetResponse, { method: 'PATCH', body: input })).target;
+  }
+
+  async restoreBackup(data: unknown) {
+    return (await this.request('restore', restoreResponse, { method: 'POST', body: data })).summary;
   }
 
   async deleteExamTarget(id: string) {

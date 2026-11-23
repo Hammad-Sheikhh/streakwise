@@ -9,6 +9,7 @@ import { SESSION_KEYS, useDataMutation, useRecentNodeIds, useTree } from '@/data
 import { useDataSource } from '@/data/useDataSource';
 import { useStudyDay } from '@/data/useToday';
 import { useUndoToast } from '@/features/changes/useUndo';
+import { useStartTimer } from '@/features/timer/useStartTimer';
 
 import { LogForm } from './LogForm.js';
 import type { LogFormValues } from './LogForm.js';
@@ -25,6 +26,12 @@ export function LogPage() {
   const recent = useRecentNodeIds();
 
   const dataSource = useDataSource();
+  const startTimer = useStartTimer();
+  // TIMER-2: a stopped timer opens this page with the node, minutes, and day filled in.
+  const fromTimer = params.get('timer') === '1';
+  const timedMinutes = Number(params.get('minutes'));
+  const timedDate = params.get('date') ?? '';
+  const ranMinutes = Number(params.get('ran'));
   // The page closes right after saving; the toast's Undo doesn't depend on this page staying open.
   const undoToast = useUndoToast();
 
@@ -44,12 +51,35 @@ export function LogPage() {
       {(tree.isPending || !study.ready) && <Skeleton className="h-96 w-full" />}
       {tree.isError && <QueryError error={tree.error} onRetry={() => void tree.refetch()} />}
       {/* The date defaults to today, so the form waits for the "My day ends at" setting. */}
+      {fromTimer && ranMinutes > 0 && (
+        <p
+          role="status"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40"
+        >
+          The timer ran for {formatDuration(ranMinutes)}. A session can be at most 24 hours, so
+          enter the time you actually studied.
+        </p>
+      )}
       {tree.data && study.ready && (
         <LogForm
+          // A new /log address (e.g. a stopped timer while this page is open) starts a fresh form.
+          key={location.key}
           nodes={tree.data}
           today={today}
           dayHint={dayHint(study)}
-          initial={{ nodeId: params.get('node') ?? undefined }}
+          initial={{
+            nodeId: params.get('node') ?? undefined,
+            ...(fromTimer && Number.isInteger(timedMinutes) && timedMinutes > 0
+              ? { minutes: timedMinutes }
+              : {}),
+            ...(fromTimer && /^\d{4}-\d{2}-\d{2}$/.test(timedDate) ? { studiedOn: timedDate } : {}),
+          }}
+          focusNote={fromTimer}
+          onStartTimer={(nodeId) => {
+            if (!startTimer(nodeId)) return;
+            if (location.key !== 'default') void navigate(-1);
+            else void navigate(dataSource.basePath || '/', { replace: true });
+          }}
           recentNodeIds={recent.data}
           submitLabel="Save session"
           pending={log.isPending}

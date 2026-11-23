@@ -459,20 +459,55 @@ export interface SharedReport extends SharedReportLink {
 /** SHARE-4: whether a link still shows its report. */
 export type ShareStatus = 'active' | 'expired' | 'revoked';
 
-/** SET-2: everything the user has, as one JSON file. */
+/** SET-2, DATA-2: everything the user has, as one JSON file (format 2 since v1.1). */
 export interface DataExport {
   app: 'Streakwise';
-  formatVersion: 1;
+  formatVersion: 2;
   exportedAt: string;
-  settings: Pick<Settings, 'studentName' | 'neglectDays'>;
+  settings: Pick<Settings, 'studentName' | 'neglectDays' | 'dayEndsAtMinutes'>;
   nodes: TreeNode[];
   sessions: Session[];
   tasks: Task[];
   taskCompletions: TaskCompletion[];
   scores: Score[];
   deadlines: Deadline[];
+  examTargets: ExamTarget[];
+  mistakes: Mistake[];
   /** The links only; their snapshots can be rebuilt from the data above. */
   sharedReports: SharedReportLink[];
+}
+
+/** DATA-4: the study data a restore writes, with fresh ids and the links between rows kept. */
+export interface RestoreData {
+  settings: Pick<Settings, 'studentName' | 'neglectDays' | 'dayEndsAtMinutes'>;
+  /** Parents before children. */
+  nodes: TreeNode[];
+  sessions: Session[];
+  /** Parents before sub-tasks. */
+  tasks: Task[];
+  taskCompletions: TaskCompletion[];
+  scores: Score[];
+  deadlines: Deadline[];
+  examTargets: ExamTarget[];
+  mistakes: Mistake[];
+}
+
+/** DATA-3: what a backup file holds, shown before anything changes. */
+export interface BackupSummary {
+  formatVersion: 1 | 2;
+  exportedAt: string;
+  counts: {
+    nodes: number;
+    sessions: number;
+    tasks: number;
+    taskCompletions: number;
+    scores: number;
+    deadlines: number;
+    examTargets: number;
+    mistakes: number;
+  };
+  /** The first and last session dates, or null without sessions. */
+  sessionRange: { from: string; to: string } | null;
 }
 
 /** ERR-3/ERR-4: the Mistakes screen. */

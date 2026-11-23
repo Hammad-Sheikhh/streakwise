@@ -36,8 +36,11 @@ describe('exportData (SET-2)', () => {
     const data = await exportData(repo, clock);
     expect(data).toMatchObject({
       app: 'Streakwise',
-      formatVersion: 1,
+      formatVersion: 2,
       exportedAt: now.toISOString(),
+      settings: { studentName: '', neglectDays: 3, dayEndsAtMinutes: 0 },
+      examTargets: [],
+      mistakes: [],
     });
     expect(data.nodes).toHaveLength(7);
     expect(data.sessions).toHaveLength(1);

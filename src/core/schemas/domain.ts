@@ -12,6 +12,7 @@ import {
   TRACK_COLORS,
 } from '../domain/types.js';
 import type {
+  BackupSummary,
   ChangeEntry,
   ClaudeConnection,
   Dashboard,
@@ -365,14 +366,36 @@ export const sharedReportLinkSchema = z.object({
 
 export const dataExportSchema = z.object({
   app: z.literal('Streakwise'),
-  formatVersion: z.literal(1),
+  formatVersion: z.literal(2),
   exportedAt: timestamp,
-  settings: z.object({ studentName: z.string(), neglectDays: z.number().int() }),
+  settings: z.object({
+    studentName: z.string(),
+    neglectDays: z.number().int(),
+    dayEndsAtMinutes: z.number().int(),
+  }),
   nodes: z.array(treeNodeSchema),
   sessions: z.array(sessionSchema),
   tasks: z.array(taskSchema),
   taskCompletions: z.array(taskCompletionSchema),
   scores: z.array(scoreSchema),
   deadlines: z.array(deadlineSchema),
+  examTargets: z.array(examTargetSchema),
+  mistakes: z.array(mistakeSchema),
   sharedReports: z.array(sharedReportLinkSchema),
 }) satisfies z.ZodType<DataExport>;
+
+export const backupSummarySchema = z.object({
+  formatVersion: z.union([z.literal(1), z.literal(2)]),
+  exportedAt: timestamp,
+  counts: z.object({
+    nodes: minutes,
+    sessions: minutes,
+    tasks: minutes,
+    taskCompletions: minutes,
+    scores: minutes,
+    deadlines: minutes,
+    examTargets: minutes,
+    mistakes: minutes,
+  }),
+  sessionRange: z.object({ from: z.iso.date(), to: z.iso.date() }).nullable(),
+}) satisfies z.ZodType<BackupSummary>;

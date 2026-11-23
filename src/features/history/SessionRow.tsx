@@ -32,14 +32,37 @@ import type { LogFormValues } from '@/features/log/LogForm';
 import { formatDay } from '@/lib/format';
 
 // One session in History, with Edit and Delete (HIST-2) and the "via Claude" badge (HIST-4).
+/** DATA-1: the note with every case-insensitive match of `term` marked. */
+function Highlighted({ text, term }: { text: string; term: string | undefined }) {
+  if (!term) return text;
+  const lower = text.toLowerCase();
+  const wanted = term.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let from = 0;
+  for (let at = lower.indexOf(wanted); at !== -1; at = lower.indexOf(wanted, from)) {
+    parts.push(text.slice(from, at));
+    parts.push(
+      <mark key={at} className="rounded-sm bg-primary/15 px-0.5 text-foreground">
+        {text.slice(at, at + wanted.length)}
+      </mark>,
+    );
+    from = at + wanted.length;
+  }
+  parts.push(text.slice(from));
+  return parts;
+}
+
 export function SessionRow({
   session,
   nodes,
   today,
+  highlight,
 }: {
   session: Session;
   nodes: readonly TreeNode[];
   today: string;
+  /** DATA-1: the searched text, marked in the note. */
+  highlight?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -80,7 +103,9 @@ export function SessionRow({
         </span>
         <span className="text-sm text-muted-foreground">{formatDuration(session.minutes)}</span>
         {session.note && (
-          <span className="text-sm break-words whitespace-pre-line">{session.note}</span>
+          <span className="text-sm break-words whitespace-pre-line">
+            <Highlighted text={session.note} term={highlight} />
+          </span>
         )}
       </button>
       <Button

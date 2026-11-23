@@ -102,6 +102,8 @@ export const historyQuerySchema = z.object({
   /** Includes the node's descendants. */
   nodeId: z.uuid().optional(),
   source: z.enum(SESSION_SOURCES).optional(),
+  /** DATA-1: the note contains this text (case-insensitive), across all history. */
+  noteContains: z.string().trim().min(1).max(200).optional(),
 });
 export type HistoryQuery = z.infer<typeof historyQuerySchema>;
 
