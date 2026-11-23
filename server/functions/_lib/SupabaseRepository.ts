@@ -16,6 +16,7 @@ import {
 import type {
   ChangeEntry,
   Deadline,
+  ExamTarget,
   Mistake,
   Score,
   Session,
@@ -28,10 +29,12 @@ import type {
 } from '../../../src/core/domain/types.js';
 import type {
   DeadlinePatch,
+  ExamTargetPatch,
   MistakePatch,
   NewChange,
   NewCompletion,
   NewDeadline,
+  NewExamTarget,
   NewMistake,
   NewNode,
   NewScore,
@@ -226,6 +229,26 @@ const completionRow = z
     completedAt: row.completed_at,
     completedOn: row.completed_on,
     note: row.note,
+  }));
+
+const examTargetRow = z
+  .object({
+    id: z.string(),
+    deadline_id: z.string(),
+    label: z.string(),
+    target_on: z.string(),
+    min_percent: numeric,
+    created_at: timestamp,
+    updated_at: timestamp,
+  })
+  .transform((row): ExamTarget => ({
+    id: row.id,
+    deadlineId: row.deadline_id,
+    label: row.label,
+    targetOn: row.target_on,
+    minPercent: row.min_percent,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }));
 
 const mistakeRow = z
@@ -668,9 +691,52 @@ export class SupabaseRepository implements Repository {
   }
 
   async deleteDeadline(id: string): Promise<void> {
+    // Its exam targets cascade (0005).
     const { data, error } = await this.delete('deadlines').eq('id', id).select('id');
     if (error) throwDbError(error);
     if (data.length === 0) throw notFound('deadline_not_found');
+  }
+
+  async listExamTargets(): Promise<ExamTarget[]> {
+    const { data, error } = await this.select('exam_targets')
+      .order('target_on')
+      .order('created_at');
+    if (error) throwDbError(error);
+    return z.array(examTargetRow).parse(data);
+  }
+
+  async insertExamTarget(target: NewExamTarget): Promise<ExamTarget> {
+    const { data, error } = await this.insert('exam_targets', {
+      id: target.id,
+      deadline_id: target.deadlineId,
+      label: target.label,
+      target_on: target.targetOn,
+      min_percent: target.minPercent,
+      created_at: target.createdAt,
+    })
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return examTargetRow.parse(data);
+  }
+
+  async updateExamTarget(id: string, patch: ExamTargetPatch): Promise<ExamTarget> {
+    const { data, error } = await this.update('exam_targets', {
+      label: patch.label,
+      target_on: patch.targetOn,
+      min_percent: patch.minPercent,
+    })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throwDbError(error);
+    return examTargetRow.parse(data);
+  }
+
+  async deleteExamTarget(id: string): Promise<void> {
+    const { data, error } = await this.delete('exam_targets').eq('id', id).select('id');
+    if (error) throwDbError(error);
+    if (data.length === 0) throw notFound('exam_target_not_found');
   }
 
   /** Reads every row of a table in pages (PostgREST returns at most 1000 per request). */

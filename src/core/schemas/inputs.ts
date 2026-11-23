@@ -357,3 +357,30 @@ export const listMistakesQuerySchema = z.object({
   nodeId: z.uuid().optional(),
 });
 export type ListMistakesQuery = z.input<typeof listMistakesQuerySchema>;
+
+const targetLabel = z
+  .string()
+  .trim()
+  .min(1, 'Enter a label, e.g. Mock 1.')
+  .max(60, 'Labels can be at most 60 characters.');
+
+const minPercent = z.number().min(0, 'Choose 0 to 100%.').max(100, 'Choose 0 to 100%.');
+
+/** EXAM-3: e.g. Mock 1 · 1 Dec · 60%. */
+export const createExamTargetInputSchema = z.object({
+  label: targetLabel,
+  targetOn: localDateSchema,
+  minPercent,
+});
+export type CreateExamTargetInput = z.input<typeof createExamTargetInputSchema>;
+
+export const updateExamTargetInputSchema = z
+  .object({
+    label: targetLabel.optional(),
+    targetOn: localDateSchema.optional(),
+    minPercent: minPercent.optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Nothing to change.',
+  });
+export type UpdateExamTargetInput = z.input<typeof updateExamTargetInputSchema>;

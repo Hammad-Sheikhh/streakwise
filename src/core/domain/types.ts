@@ -66,6 +66,17 @@ export interface Deadline {
   createdAt: string;
 }
 
+/** EXAM-3: a minimum percentage to reach by a date, e.g. "Mock 1 · 1 Dec · 60%". */
+export interface ExamTarget {
+  id: string;
+  deadlineId: string;
+  label: string;
+  targetOn: string;
+  minPercent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UpcomingDeadline extends Deadline {
   daysLeft: number;
   /** null when the node has no topics. */
@@ -89,6 +100,73 @@ export interface Dashboard {
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
   /** SET-3: no export yet, or the last one is more than 30 days old. */
   backupDue: boolean;
+  /** TODAY-1–3: the Today card at the top of Home. */
+  todayCard: TodayCard;
+  /** ERR-6: open mistakes due on or before today. */
+  mistakesDue: number;
+}
+
+/** TODAY-1–3 (SPEC §B9.14, §B9.15). */
+export interface TodayCard {
+  /** Today's task: due today, else the oldest overdue one; null when there's none. */
+  task: TaskItem | null;
+  /** Its direct, visible sub-tasks, in display order. */
+  subtasks: TaskItem[];
+  /** Today's minutes per subtask (topics count for their subtask; a track for time on itself). */
+  minutes: { nodeId: string; minutes: number }[];
+  /** Tracks with a weekly target: this week's minutes and what's needed per day to reach it. */
+  pace: {
+    trackId: string;
+    minutes: number;
+    targetMinutes: number;
+    /** 0 once the target is met. */
+    neededPerDay: number;
+    met: boolean;
+  }[];
+}
+
+/** EXAM-2: an exam the picker offers. */
+export interface ExamSummary {
+  deadlineId: string;
+  title: string;
+  dueOn: string;
+  nodeId: string;
+  /** Negative once it has passed. */
+  daysLeft: number;
+}
+
+/** EXAM-5: one cell of the mock grid. */
+export interface MockCell {
+  scoreId: string;
+  score: number;
+  maxScore: number;
+  percent: number;
+  takenOn: string;
+}
+
+/** EXAM-2–6: everything the exam view shows for one exam. */
+export interface ExamView {
+  today: string;
+  /** Every exam, soonest upcoming first, then past ones (most recent first). */
+  exams: ExamSummary[];
+  /** The chosen exam (by default the next upcoming one), or null when there are no exams. */
+  exam: {
+    summary: ExamSummary;
+    targets: ExamTarget[];
+    /** §B9.16: the exam node's visible children (or the node itself), plus "Overall" if used. */
+    modules: { id: string; name: string }[];
+    /** EXAM-4: % over time per module, oldest first. */
+    series: { moduleId: string; points: { date: string; percent: number; title: string }[] }[];
+    /** EXAM-5/6: mock tests by their earliest date. */
+    mocks: {
+      title: string;
+      firstDate: string;
+      cells: Record<string, MockCell | null>;
+      /** Average % across the modules that have a score (EXAM-6). */
+      average: number | null;
+      target: { label: string; minPercent: number } | null;
+    }[];
+  } | null;
 }
 
 /** TRACK-1: time per node in the track (the track itself included) and its latest sessions. */
@@ -395,4 +473,15 @@ export interface DataExport {
   deadlines: Deadline[];
   /** The links only; their snapshots can be rebuilt from the data above. */
   sharedReports: SharedReportLink[];
+}
+
+/** ERR-3/ERR-4: the Mistakes screen. */
+export interface MistakesOverview {
+  today: string;
+  /** Open mistakes due on or before today, oldest due first. */
+  due: Mistake[];
+  /** Every visible mistake: due ones first, then the rest. */
+  all: Mistake[];
+  /** Open and learned counts per module (subtask, or track for mistakes on the track itself). */
+  modules: { moduleId: string; open: number; learned: number }[];
 }

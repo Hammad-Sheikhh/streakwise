@@ -17,6 +17,9 @@ import type {
   Dashboard,
   Deadline,
   DataExport,
+  ExamTarget,
+  ExamView,
+  MistakesOverview,
   HistoryPage,
   Mistake,
   Report,
@@ -82,6 +85,16 @@ export const deadlineSchema = z.object({
 }) satisfies z.ZodType<Deadline>;
 
 const minutes = z.number().int().min(0);
+
+export const examTargetSchema = z.object({
+  id: z.uuid(),
+  deadlineId: z.uuid(),
+  label: z.string().min(1).max(60),
+  targetOn: z.iso.date(),
+  minPercent: z.number().min(0).max(100),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}) satisfies z.ZodType<ExamTarget>;
 
 export const trackOverviewSchema = z.object({
   trackId: z.uuid(),
@@ -164,6 +177,15 @@ export const changeEntrySchema = z.object({
   undoneAt: timestamp.nullable(),
 }) satisfies z.ZodType<ChangeEntry>;
 
+export const mistakesOverviewSchema = z.object({
+  today: z.iso.date(),
+  due: z.array(mistakeSchema),
+  all: z.array(mistakeSchema),
+  modules: z.array(
+    z.object({ moduleId: z.uuid(), open: z.number().int(), learned: z.number().int() }),
+  ),
+}) satisfies z.ZodType<MistakesOverview>;
+
 export const taskItemSchema = z.object({
   task: taskSchema,
   completion: taskCompletionSchema.nullable(),
@@ -205,7 +227,67 @@ export const dashboardSchema = z.object({
     days: z.array(z.object({ date: z.iso.date(), minutes })),
   }),
   backupDue: z.boolean(),
+  todayCard: z.object({
+    task: taskItemSchema.nullable(),
+    subtasks: z.array(taskItemSchema),
+    minutes: z.array(z.object({ nodeId: z.uuid(), minutes })),
+    pace: z.array(
+      z.object({
+        trackId: z.uuid(),
+        minutes,
+        targetMinutes: minutes,
+        neededPerDay: minutes,
+        met: z.boolean(),
+      }),
+    ),
+  }),
+  mistakesDue: minutes,
 }) satisfies z.ZodType<Dashboard>;
+
+const examSummarySchema = z.object({
+  deadlineId: z.uuid(),
+  title: z.string(),
+  dueOn: z.iso.date(),
+  nodeId: z.uuid(),
+  daysLeft: z.number().int(),
+});
+
+const mockCellSchema = z.object({
+  scoreId: z.uuid(),
+  score: z.number().min(0),
+  maxScore: z.number().positive(),
+  percent: z.number().min(0),
+  takenOn: z.iso.date(),
+});
+
+export const examViewSchema = z.object({
+  today: z.iso.date(),
+  exams: z.array(examSummarySchema),
+  exam: z
+    .object({
+      summary: examSummarySchema,
+      targets: z.array(examTargetSchema),
+      modules: z.array(z.object({ id: z.string(), name: z.string() })),
+      series: z.array(
+        z.object({
+          moduleId: z.string(),
+          points: z.array(
+            z.object({ date: z.iso.date(), percent: z.number().min(0), title: z.string() }),
+          ),
+        }),
+      ),
+      mocks: z.array(
+        z.object({
+          title: z.string(),
+          firstDate: z.iso.date(),
+          cells: z.record(z.string(), mockCellSchema.nullable()),
+          average: z.number().nullable(),
+          target: z.object({ label: z.string(), minPercent: z.number() }).nullable(),
+        }),
+      ),
+    })
+    .nullable(),
+}) satisfies z.ZodType<ExamView>;
 
 const percent = z.number().min(0);
 

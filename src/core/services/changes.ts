@@ -6,6 +6,7 @@ import { changedFields, withoutRecording } from '../repo/RecordingRepository.js'
 import type { Repository } from '../repo/Repository.js';
 import {
   deadlineSchema,
+  examTargetSchema,
   mistakeSchema,
   scoreSchema,
   sessionSchema,
@@ -44,6 +45,11 @@ const taskTreeSnapshotSchema = z.object({
 });
 
 const nodeTreeSnapshotSchema = z.object({ nodes: z.array(treeNodeSchema).min(1) });
+
+/** Entries from before exam targets existed carry no targets. */
+const deadlineSnapshotSchema = deadlineSchema.extend({
+  examTargets: z.array(examTargetSchema).default([]),
+});
 
 function cannotUndo(message?: string): DomainError {
   return message ? new DomainError('conflict', 'cannot_undo', message) : conflict('cannot_undo');
@@ -252,15 +258,32 @@ async function invert(repo: Repository, entry: ChangeEntry): Promise<void> {
 
   if (entity === 'deadline') {
     if (action === 'create') return repo.deleteDeadline(id);
-    const before = snapshot(deadlineSchema, entry.before);
     if (action === 'delete') {
-      await repo.insertDeadline(before);
+      const { examTargets, ...deadline } = snapshot(deadlineSnapshotSchema, entry.before);
+      await repo.insertDeadline(deadline);
+      for (const target of examTargets) await repo.insertExamTarget(target);
       return;
     }
+    const before = snapshot(deadlineSchema, entry.before);
     const after = snapshot(deadlineSchema, entry.after);
     await repo.updateDeadline(
       id,
       restorePatch(before, after, ['nodeId', 'title', 'dueOn', 'isExam']),
+    );
+    return;
+  }
+
+  if (entity === 'exam_target') {
+    if (action === 'create') return repo.deleteExamTarget(id);
+    const before = snapshot(examTargetSchema, entry.before);
+    if (action === 'delete') {
+      await repo.insertExamTarget(before);
+      return;
+    }
+    const after = snapshot(examTargetSchema, entry.after);
+    await repo.updateExamTarget(
+      id,
+      restorePatch(before, after, ['label', 'targetOn', 'minPercent']),
     );
     return;
   }

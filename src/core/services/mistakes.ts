@@ -1,6 +1,12 @@
 import { invalid, notFound } from '../domain/errors.js';
-import type { Clock, IdGenerator, Mistake, SessionSource } from '../domain/types.js';
-import { applyReview, isDue, newSchedule } from '../logic/mistakes.js';
+import type {
+  Clock,
+  IdGenerator,
+  Mistake,
+  MistakesOverview,
+  SessionSource,
+} from '../domain/types.js';
+import { applyReview, countsByModule, isDue, newSchedule } from '../logic/mistakes.js';
 import { hiddenIds, subtreeIds } from '../logic/tree.js';
 import type { MistakePatch, Repository } from '../repo/Repository.js';
 import {
@@ -139,4 +145,22 @@ export async function reviewMistake(
     throw invalid('before_created', 'A review can’t be dated before the mistake was noted.');
   }
   return repo.updateMistake(id, applyReview(mistake, input.result, on));
+}
+
+/** ERR-3, ERR-4: what the Mistakes screen shows, from one read. */
+export async function getMistakesOverview(
+  repo: Repository,
+  clock: Clock,
+): Promise<MistakesOverview> {
+  const [all, nodes, today] = await Promise.all([
+    listMistakes(repo, { status: 'all' }),
+    repo.listNodes(),
+    studyToday(repo, clock),
+  ]);
+  return {
+    today,
+    due: all.filter((m) => isDue(m, today)),
+    all,
+    modules: countsByModule(nodes, all),
+  };
 }

@@ -4,6 +4,7 @@ import type {
   ChangeEntry,
   Clock,
   Deadline,
+  ExamTarget,
   Mistake,
   Score,
   Session,
@@ -17,10 +18,12 @@ import type {
 } from '../domain/types.js';
 import type {
   DeadlinePatch,
+  ExamTargetPatch,
   MistakePatch,
   NewChange,
   NewCompletion,
   NewDeadline,
+  NewExamTarget,
   NewMistake,
   NewNode,
   NewScore,
@@ -73,6 +76,7 @@ export class InMemoryRepository implements Repository {
   private shares: SharedReport[] = [];
   private mistakes: Mistake[] = [];
   private changes: ChangeEntry[] = [];
+  private examTargets: ExamTarget[] = [];
   // Creation times must be strictly increasing so "newest first" is stable, even when the clock
   // is frozen in tests.
   private lastStamp = 0;
@@ -274,6 +278,39 @@ export class InMemoryRepository implements Repository {
     const index = this.deadlines.findIndex((d) => d.id === id);
     if (index === -1) throw notFound('deadline_not_found');
     this.deadlines.splice(index, 1);
+    // Like exam_targets_deadline_same_user (0005): targets go with their deadline.
+    this.examTargets = this.examTargets.filter((t) => t.deadlineId !== id);
+  }
+
+  async listExamTargets(): Promise<ExamTarget[]> {
+    return [...this.examTargets]
+      .sort(
+        (a, b) => a.targetOn.localeCompare(b.targetOn) || a.createdAt.localeCompare(b.createdAt),
+      )
+      .map((t) => ({ ...t }));
+  }
+
+  async insertExamTarget(input: NewExamTarget): Promise<ExamTarget> {
+    if (!this.deadlines.some((d) => d.id === input.deadlineId))
+      throw notFound('deadline_not_found');
+    if (this.examTargets.some((t) => t.id === input.id)) throw conflict('duplicate');
+    const now = this.stamp();
+    const target: ExamTarget = { ...input, createdAt: input.createdAt ?? now, updatedAt: now };
+    this.examTargets.push(target);
+    return { ...target };
+  }
+
+  async updateExamTarget(id: string, patch: ExamTargetPatch): Promise<ExamTarget> {
+    const target = this.examTargets.find((t) => t.id === id);
+    if (!target) throw notFound('exam_target_not_found');
+    Object.assign(target, defined(patch), { updatedAt: this.stamp() });
+    return { ...target };
+  }
+
+  async deleteExamTarget(id: string): Promise<void> {
+    const index = this.examTargets.findIndex((t) => t.id === id);
+    if (index === -1) throw notFound('exam_target_not_found');
+    this.examTargets.splice(index, 1);
   }
 
   async getSettings(): Promise<Settings> {

@@ -3,7 +3,7 @@ import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
 import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
-import { recordChanges } from '@/core/repo/RecordingRepository';
+import { dailyPrune, recordChanges } from '@/core/repo/RecordingRepository';
 import type { Repository } from '@/core/repo/Repository';
 import * as changes from '@/core/services/changes';
 import * as dashboard from '@/core/services/dashboard';
@@ -46,7 +46,11 @@ export class DemoDataSource implements DataSource {
   ) {
     const store = new InMemoryRepository(clock);
     // UNDO-3, UNDO-6: the demo records changes like the app does; its sample data isn't recorded.
-    this.repo = recordChanges(store, { source: 'app', newId });
+    this.repo = recordChanges(store, {
+      source: 'app',
+      newId,
+      pruneBefore: dailyPrune(clock, 'demo', new Map()),
+    });
     this.ready = fill(store, clock, newId);
   }
 
