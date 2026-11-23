@@ -31,6 +31,7 @@ import { defaultKind, scorePercent } from '@/core/logic/scores';
 import { hiddenIds } from '@/core/logic/tree';
 import { useDataMutation, useScores, useTree } from '@/data/queries';
 import { useToday } from '@/data/useToday';
+import { useUndoToast } from '@/features/changes/useUndo';
 import { formatDay, SCORE_KIND_LABELS } from '@/lib/format';
 
 import { ScoreChart } from './ScoreChart.js';
@@ -140,7 +141,18 @@ export function ScoreTable({
             <tr key={s.id} className="align-top">
               <td className="p-3 whitespace-nowrap">{formatDay(s.takenOn)}</td>
               <td className="min-w-40 p-3">
-                <p className="font-medium">{s.title}</p>
+                {onEdit ? (
+                  // UNDO-2: tapping a result opens its edit sheet.
+                  <button
+                    type="button"
+                    className="rounded-sm text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                    onClick={() => onEdit(s)}
+                  >
+                    {s.title}
+                  </button>
+                ) : (
+                  <p className="font-medium">{s.title}</p>
+                )}
                 <p className="text-muted-foreground">{SCORE_KIND_LABELS[s.kind]}</p>
                 <NodeLabel nodes={nodes} nodeId={s.nodeId} className="text-muted-foreground" />
                 {s.note && <p className="mt-1 whitespace-pre-wrap">{s.note}</p>}
@@ -194,20 +206,24 @@ export function ScoresPage() {
   const [deleting, setDeleting] = useState<Score | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const undoToast = useUndoToast();
   const save = useDataMutation(
     (ds, values: ScoreValues) =>
       editing ? ds.updateScore(editing.id, toInput(values)) : ds.addScore(toInput(values)),
     SCORE_KEYS,
     {
-      onSuccess: () => {
+      onSuccess: (score) => {
         setFormOpen(false);
-        toast.success(editing ? 'Score updated.' : 'Score saved.');
+        if (editing) toast.success('Score updated.');
+        else undoToast(`Saved “${score.title}”.`, 'score', score.id);
       },
     },
   );
-  const remove = useDataMutation((ds, id: string) => ds.deleteScore(id), SCORE_KEYS, {
-    onSuccess: () => toast.success('Score deleted.'),
-  });
+  const remove = useDataMutation(
+    (ds, id: string) => ds.deleteScore(id).then(() => id),
+    SCORE_KEYS,
+    { onSuccess: (id) => undoToast('Score deleted.', 'score', id) },
+  );
 
   const nodes = tree.data ?? [];
   const all = scores.data ?? [];
@@ -335,6 +351,18 @@ export function ScoresPage() {
                 onSubmit={(values) => save.mutate(values)}
               />
             )}
+            {editing && (
+              <Button
+                variant="ghost"
+                className="h-11 self-start text-destructive"
+                onClick={() => {
+                  setDeleting(editing);
+                  setConfirmOpen(true);
+                }}
+              >
+                Delete…
+              </Button>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -347,7 +375,7 @@ export function ScoresPage() {
               {deleting?.taskCompletionId
                 ? 'It was recorded with a task; the task stays completed. '
                 : ''}
-              This can’t be undone.
+              You can undo it from Recent changes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -355,7 +383,11 @@ export function ScoresPage() {
             <AlertDialogAction
               className="h-11"
               variant="destructive"
-              onClick={() => deleting && remove.mutate(deleting.id)}
+              onClick={() => {
+                if (!deleting) return;
+                setFormOpen(false);
+                remove.mutate(deleting.id);
+              }}
             >
               Delete
             </AlertDialogAction>

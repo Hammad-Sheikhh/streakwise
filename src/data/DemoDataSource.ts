@@ -8,7 +8,9 @@ import type { Repository } from '@/core/repo/Repository';
 import * as changes from '@/core/services/changes';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
+import * as exams from '@/core/services/exams';
 import * as exportsService from '@/core/services/exports';
+import * as mistakes from '@/core/services/mistakes';
 import * as reports from '@/core/services/reports';
 import * as scores from '@/core/services/scores';
 import * as sessions from '@/core/services/sessions';
@@ -243,5 +245,41 @@ export class DemoDataSource implements DataSource {
 
   undoChange(id: string) {
     return this.run((repo) => changes.undoChange(repo, this.clock, id));
+  }
+
+  getMistakes() {
+    return this.run((repo) => mistakes.getMistakesOverview(repo, this.clock));
+  }
+
+  addMistake(input: Parameters<DataSource['addMistake']>[0]) {
+    return this.run((repo) => mistakes.addMistake(repo, this.clock, this.newId, input, 'app'));
+  }
+
+  updateMistake(id: string, input: Parameters<DataSource['updateMistake']>[1]) {
+    return this.run((repo) => mistakes.updateMistake(repo, id, input));
+  }
+
+  deleteMistake(id: string) {
+    return this.run((repo) => mistakes.deleteMistake(repo, id));
+  }
+
+  reviewMistake(id: string, input: Parameters<DataSource['reviewMistake']>[1]) {
+    return this.run((repo) => mistakes.reviewMistake(repo, this.clock, id, input));
+  }
+
+  getExamView(deadlineId?: string) {
+    return this.run((repo) => exams.getExamView(repo, this.clock, deadlineId));
+  }
+
+  addExamTarget(deadlineId: string, input: Parameters<DataSource['addExamTarget']>[1]) {
+    return this.run((repo) => exams.addExamTarget(repo, this.newId, deadlineId, input));
+  }
+
+  updateExamTarget(id: string, input: Parameters<DataSource['updateExamTarget']>[1]) {
+    return this.run((repo) => exams.updateExamTarget(repo, id, input));
+  }
+
+  deleteExamTarget(id: string) {
+    return this.run((repo) => exams.deleteExamTarget(repo, id));
   }
 }

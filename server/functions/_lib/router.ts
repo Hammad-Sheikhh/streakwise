@@ -15,6 +15,12 @@ import { createChangesHandler } from '../changes.js';
 import { createClaudeConnectionHandler } from '../claude-connection.js';
 import { createCompletionHandler } from '../completion.js';
 import { createDashboardHandler } from '../dashboard.js';
+import { createExamTargetHandler } from '../exam-target.js';
+import { createExamTargetsHandler } from '../exam-targets.js';
+import { createExamHandler } from '../exam.js';
+import { createMistakeReviewHandler } from '../mistake-review.js';
+import { createMistakeHandler } from '../mistake.js';
+import { createMistakesHandler } from '../mistakes.js';
 import { createExportHandler } from '../data-export.js';
 import { createDeadlineHandler } from '../deadline.js';
 import { createDeadlinesHandler } from '../deadlines.js';
@@ -151,6 +157,28 @@ function buildRoutes(getDeps: () => ServerDeps): Route[] {
     { path: '/api/shares/:id', method: 'DELETE', handle: createShareHandler(getDeps) },
     { path: '/api/share/:slug', method: 'GET', handle: createPublicShareHandler(getDeps) },
     { path: '/api/changes', method: 'GET', handle: createChangesHandler(getDeps) },
+    { path: '/api/mistakes', method: ['GET', 'POST'], handle: createMistakesHandler(getDeps) },
+    {
+      path: '/api/mistakes/:id/review',
+      method: 'POST',
+      handle: createMistakeReviewHandler(getDeps),
+    },
+    {
+      path: '/api/mistakes/:id',
+      method: ['PATCH', 'DELETE'],
+      handle: createMistakeHandler(getDeps),
+    },
+    { path: '/api/exam', method: 'GET', handle: createExamHandler(getDeps) },
+    {
+      path: '/api/deadlines/:id/targets',
+      method: 'POST',
+      handle: createExamTargetsHandler(getDeps),
+    },
+    {
+      path: '/api/exam-targets/:id',
+      method: ['PATCH', 'DELETE'],
+      handle: createExamTargetHandler(getDeps),
+    },
     { path: '/api/changes/:id/undo', method: 'POST', handle: createChangeUndoHandler(getDeps) },
   ];
 }

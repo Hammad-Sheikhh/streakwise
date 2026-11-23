@@ -1,13 +1,22 @@
 import { addDays, weekStart } from '../logic/dates.js';
+import { applyReview, newSchedule } from '../logic/mistakes.js';
 import { studyToday } from '../services/today.js';
-import type { Clock, IdGenerator, ScoreKind, TopicStatus, TrackColor } from '../domain/types.js';
+import type {
+  Clock,
+  IdGenerator,
+  ReviewResult,
+  ScoreKind,
+  TopicStatus,
+  TrackColor,
+} from '../domain/types.js';
 import type { Repository } from '../repo/Repository.js';
 import { seededRandom } from './random.js';
 
 // DEMO-3: the demo's sample data, built relative to today with a seeded generator so every visit
 // (and every test) sees the same shape: about 12 weeks of sessions, topics in every status, nested
-// and weekly tasks, past scores, 3 deadlines, and one neglected subtask (Science). General names
-// only; no personal data.
+// and weekly tasks, past scores, 3 deadlines, and one neglected subtask (Science). For v1.1 it also
+// has an exam with targets and three rounds of mocks, mistakes to review, and a task due today.
+// General names only; no personal data.
 
 export const DEMO_STUDENT_NAME = 'Demo Student';
 export const DEMO_SEED = 20_261_010;
@@ -237,14 +246,16 @@ export async function loadSampleData(
     ['End-of-year exams', schoolSubjects, 45],
   ] as const) {
     if (!nodeId) continue;
-    await repo.insertDeadline({
+    const deadline = await repo.insertDeadline({
       id: newId(),
       nodeId,
       title,
       dueOn: addDays(today, inDays),
       isExam: title === 'End-of-year exams',
     });
+    if (deadline.isExam) await addExamPlan(repo, newId, today, deadline.id, node);
   }
+  await addMistakes(repo, newId, today, node);
 
   await repo.updateSettings({ studentName: DEMO_STUDENT_NAME });
   // A recent export, so Home doesn't open on a backup reminder.
@@ -370,6 +381,20 @@ async function addTasks(
     }
   }
 
+  // TODAY-1: today's task, with a description and sub-tasks.
+  const todays = await task({
+    nodeId: node('maths').subtaskId,
+    title: 'Probability exercises',
+    dueOn: today,
+    sortOrder: 5,
+  });
+  await repo.updateTask(todays, {
+    description: 'Work through exercises 4.1 to 4.3, then check the answers and note any mistakes.',
+  });
+  for (const [index, title] of ['Exercise 4.1', 'Exercise 4.2', 'Exercise 4.3'].entries()) {
+    await task({ nodeId: node('maths').subtaskId, parentTaskId: todays, title, sortOrder: index });
+  }
+
   // An overdue one, and a finished task that isn't tied to any track ("Other").
   await task({
     nodeId: node('english').subtaskId,
@@ -416,4 +441,86 @@ async function addScores(
       });
     }
   }
+}
+
+/** EXAM-3–5: targets for three mock rounds, and their results per module (one still missing). */
+async function addExamPlan(
+  repo: Repository,
+  newId: IdGenerator,
+  today: string,
+  deadlineId: string,
+  node: (key: string) => Placed,
+): Promise<void> {
+  const rounds = [
+    { title: 'Mock 1', daysAgo: 28, target: 60, results: { maths: 32, english: 28, science: 25 } },
+    { title: 'Mock 2', daysAgo: 14, target: 70, results: { maths: 36, english: 37, science: 30 } },
+    { title: 'Mock 3', daysAgo: 3, target: 80, results: { maths: 41, english: 40 } },
+  ];
+  for (const round of rounds) {
+    const takenOn = addDays(today, -round.daysAgo);
+    await repo.insertExamTarget({
+      id: newId(),
+      deadlineId,
+      label: round.title,
+      targetOn: takenOn,
+      minPercent: round.target,
+    });
+    for (const [key, score] of Object.entries(round.results)) {
+      await repo.insertScore({
+        id: newId(),
+        nodeId: node(key).subtaskId,
+        kind: 'mock_test',
+        title: round.title,
+        takenOn,
+        score,
+        maxScore: 50,
+        note: null,
+      });
+    }
+  }
+}
+
+/** ERR: two mistakes due today, one learned, and one that isn't due yet. */
+async function addMistakes(
+  repo: Repository,
+  newId: IdGenerator,
+  today: string,
+  node: (key: string) => Placed,
+): Promise<void> {
+  /** Each review is on its scheduled day, so the schedule reads like real use. */
+  const mistake = async (key: string, text: string, createdOn: string, reviews: ReviewResult[]) => {
+    let schedule = newSchedule(createdOn);
+    for (const result of reviews) {
+      schedule = applyReview(schedule, result, schedule.nextDueOn ?? createdOn);
+    }
+    await repo.insertMistake({
+      id: newId(),
+      nodeId: node(key).subtaskId,
+      text,
+      createdOn,
+      source: 'app',
+      ...schedule,
+    });
+  };
+  // Due today: one noted yesterday, and one reviewed right once (its second review is today).
+  await mistake(
+    'english',
+    'their / there / they’re: “their” is for belonging',
+    addDays(today, -1),
+    [],
+  );
+  await mistake(
+    'maths',
+    'P(A or B) = P(A) + P(B) − P(A and B), not just the sum',
+    addDays(today, -3),
+    ['right'],
+  );
+  // Learned after three right answers; and one noted today, first due tomorrow.
+  await mistake(
+    'maths',
+    'Divide by the coefficient before taking the square root',
+    addDays(today, -20),
+    ['right', 'right', 'right'],
+  );
+  await mistake('practice', 'Read the whole question before planning the essay', today, []);
 }

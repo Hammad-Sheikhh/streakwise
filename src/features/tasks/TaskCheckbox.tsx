@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
-import { toast } from 'sonner';
 
 import { DayField } from '@/components/DayField';
 import { NativeSelect } from '@/components/NativeSelect';
@@ -30,6 +29,7 @@ import type { ScoreKind, TaskItem } from '@/core/domain/types';
 import { pastDayError } from '@/lib/pastDay';
 import { useDataMutation } from '@/data/queries';
 import { useToday } from '@/data/useToday';
+import { useUndoToast } from '@/features/changes/useUndo';
 import { formatDay, SCORE_KIND_LABELS } from '@/lib/format';
 
 import { TASK_KEYS } from './taskValues.js';
@@ -43,6 +43,7 @@ export function TaskCheckbox({ item }: { item: TaskItem }) {
   const [scoring, setScoring] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const today = useToday();
+  const undoToast = useUndoToast();
 
   const complete = useDataMutation(
     (
@@ -59,17 +60,23 @@ export function TaskCheckbox({ item }: { item: TaskItem }) {
     {
       onSuccess: (done) => {
         setScoring(false);
-        toast.success(
+        undoToast(
           done.completedOn === today
             ? `Completed “${task.title}”.`
             : `Completed “${task.title}” for ${formatDay(done.completedOn)}.`,
+          'completion',
+          done.id,
         );
       },
     },
   );
   const uncomplete = useDataMutation(
-    (ds, completionId: string) => ds.uncompleteTask(completionId),
+    (ds, completionId: string) => ds.uncompleteTask(completionId).then(() => completionId),
     TASK_KEYS,
+    {
+      onSuccess: (completionId) =>
+        undoToast(`Marked “${task.title}” not done.`, 'completion', completionId),
+    },
   );
 
   function toggle() {
