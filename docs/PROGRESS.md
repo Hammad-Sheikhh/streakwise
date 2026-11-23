@@ -1,7 +1,7 @@
 # Progress
 
-_Last updated: 2026-11-23 by Claude (**v1.1.0 is live** (R6); next: the owner makes a new Claude
-link and replaces the connector, then Claude Code deletes the Netlify project with the owner's yes)_
+_Last updated: 2026-11-23 by Claude (**v1.1.0 is live** (R6); the new Claude connector works;
+the old Netlify project is deleted. No owner task is open; one optional clean-up is listed below)_
 
 ## Milestones
 
@@ -133,7 +133,11 @@ One database for everything (D15), so each migration runs once.
         (redirect URLs are already saved; owner confirmed in chat, 2026-10-30)
   - [x] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
         (owner: "claude works", 2026-11-23; the database shows a Claude call on the live v1.1.0 site)
-  - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
+  - [x] Delete the Netlify project: done by Claude Code with the owner's "yes delete netlify"
+        (2026-11-23) via `netlify sites:delete`; `https://streakwise-ap.netlify.app` now answers 404,
+        and the live site still reports 1.1.0. The local `.netlify` link was removed.
+  - [ ] Optional: Supabase → Authentication → URL Configuration → remove the `streakwise-ap.netlify.app`
+        redirect URLs (harmless to keep; nothing uses them any more)
 - [x] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor (owner said
       "done", 2026-11-23; a read-only check found every new column and table, and no completion
       without a date)
@@ -188,7 +192,8 @@ commit), tag `v1.1.0`, and live checks. Trying the previews was skipped at the o
 1. ~~**Owner (guided in chat):**~~ Done 2026-11-23 ("claude works"). Settings → Claude connection → "Make a new link" on the live site,
    then in Claude remove the old Streakwise connector and add the new one (No sign in), and switch
    it on in chats/projects. Then confirm Claude answers.
-2. **Claude Code, after the owner confirms step 1 and says yes:** delete the Netlify project
+2. ~~**Claude Code, after the owner confirms step 1 and says yes:**~~ Done 2026-11-23 (owner: "yes
+   delete netlify"). Delete the Netlify project
    `streakwise-ap` with the linked Netlify CLI (`netlify sites:delete 81b99859-71c3-4df1-a4e1-7d0edd9567b7`),
    then check `https://streakwise-ap.netlify.app` no longer answers. Optional afterwards: remove the
    Netlify addresses from Supabase → Authentication → URL Configuration.
@@ -676,10 +681,9 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 
 ## Open questions for the owner
 
-- Supabase → Authentication → URL Configuration → **Site URL**: set it to `https://streakwise-mu.vercel.app`
-  (redirect URLs are already there; the old Netlify site is no longer production).
-- When you have tried the live site: make a new Claude connection link and replace the connector, then
-  delete the Netlify project (and remove its Supabase URL entries).
+- None blocking. Optional: remove the old Netlify redirect URLs in Supabase (see the owner steps).
+- `scripts/rewrite-imports.mjs` (a finished one-off from the Vercel move) is still untracked in the
+  working folder; keep or delete it, the owner's choice.
 
 ## Decisions made during the build
 
