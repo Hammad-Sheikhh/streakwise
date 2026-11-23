@@ -19,8 +19,8 @@ v1.0.1)_
 | M7 Demo + PWA   | ✅ done   | #26           | DEMO-1–5, PWA-1–3 (incl. COULD PWA-3), e2e suite in CI. No migration. Merged into `develop` 2026-10-10 (owner's OK); live in R3a (2026-10-10)                                                                                                                                           |
 | Cleanup         | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
 | M8 Polish       | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
-| M9a Claude v1.1 | 🔍 review | #43           | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
-| M9b App v1.1    | 🔍 built  | (after #43)   | UNDO-1/2/4/7, ERR-3–6, EXAM-1–6, TODAY-1–4, exam targets. Branch `feat/v1.1-app` (on top of `feat/v1.1-claude`); PR opens once #43 is merged and the branch is rebased                                                                                                                  |
+| M9a Claude v1.1 | ✅ done   | #43           | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
+| M9b App v1.1    | ✅ done   | #44           | UNDO-1/2/4/7, ERR-3–6, EXAM-1–6, TODAY-1–4, exam targets. Branch `feat/v1.1-app` (on top of `feat/v1.1-claude`); PR opens once #43 is merged and the branch is rebased                                                                                                                  |
 | M9c Timer/data  | 🔍 built  | (after M9b)   | TIMER-1–3, DATA-1–4, README/architecture/screenshots. Branch `feat/v1.1-timer-data` (on top of `feat/v1.1-app`); then **R6 = v1.1.0** with the owner's yes                                                                                                                              |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
@@ -62,6 +62,7 @@ One database for everything (D15), so each migration runs once.
 | `0002_tasks_without_node.sql` | ✅ 2026-10-06 (owner, SQL Editor)                                                      |
 | `0003_accounts.sql`           | ✅ 2026-10-08 (owner, SQL Editor); verified: `user_settings` exists, 9 unclaimed nodes |
 | `0004_accounts_cleanup.sql`   | ✅ 2026-10-10 (owner, SQL Editor): "Success"                                           |
+| `0005_v1_1.sql`               | ✅ 2026-11-23 (owner, SQL Editor; confirmed by a read-only check of all new parts)     |
 
 ## Owner's manual steps
 
@@ -131,8 +132,9 @@ One database for everything (D15), so each migration runs once.
         (redirect URLs are already saved; owner confirmed in chat, 2026-10-30)
   - [ ] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
   - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
-- [ ] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor. Only when
-      Claude Code asks, after the M9a PR's CI is green; Claude Code explains every click then
+- [x] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor (owner said
+      "done", 2026-11-23; a read-only check found every new column and table, and no completion
+      without a date)
 - [ ] v1.1: try M9a, M9b, and M9c on their previews (demo first; restore only in demo or a throwaway account)
 - [ ] v1.1: say yes/no to release R6 (v1.1.0), and whether the waiting 1.0.2 fixes ship with it
 
@@ -170,9 +172,15 @@ One database for everything (D15), so each migration runs once.
   rule rather than repairing it.
 - Nothing cut: every MUST and SHOULD of v1.1 is built.
 
+**2026-11-23 (owner's go-ahead): "yes release, you can merge".** The owner ran `0005` (verified);
+#43 and #44 were squash-merged into `develop` after green CI, and `feat/v1.1-timer-data` was rebased
+onto `develop` for its own PR. Then: the 1.1.0 version PR, the release PR into `main` (merge
+commit), tag `v1.1.0`, and live checks. Trying the previews was skipped at the owner's choice.
+
 **Next (in order):**
 
-1. **Owner:** run `0005` in Supabase (instructions were given in chat; the script was put on the
+1. ~~**Owner:** run `0005` in Supabase~~ Done (2026-11-23).
+   Original note: run `0005` in Supabase (instructions were given in chat; the script was put on the
    clipboard), then say it worked.
 2. **Owner:** OK to merge #43 into `develop`. Then Claude Code squash-merges it, rebases
    `feat/v1.1-app` onto `develop` (`git rebase --onto develop feat/v1.1-claude feat/v1.1-app`),
