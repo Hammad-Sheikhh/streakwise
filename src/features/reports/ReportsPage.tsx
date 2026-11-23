@@ -11,11 +11,12 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MAX_REPORT_DAYS } from '@/core/domain/types';
 import type { Report, ReportPeriodKind } from '@/core/domain/types';
-import { addDays, localDate } from '@/core/logic/dates';
+import { addDays } from '@/core/logic/dates';
 import { reportAsMarkdown, reportAsWhatsApp } from '@/core/logic/reportFormat';
 import type { ReportQuery } from '@/core/schemas/inputs';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
+import { useToday } from '@/data/useToday';
 import { copyText } from '@/lib/clipboard';
 import { cn } from '@/lib/utils';
 
@@ -35,7 +36,7 @@ const PERIODS: { kind: ReportPeriodKind; label: string }[] = [
 export function ReportsPage() {
   const ds = useDataSource();
   const id = useId();
-  const today = localDate(ds.now());
+  const today = useToday();
   const [period, setPeriod] = useState<ReportPeriodKind>('this_week');
   const [from, setFrom] = useState(addDays(today, -13));
   const [to, setTo] = useState(today);

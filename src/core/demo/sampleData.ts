@@ -1,4 +1,5 @@
-import { addDays, localDate, weekStart } from '../logic/dates.js';
+import { addDays, weekStart } from '../logic/dates.js';
+import { studyToday } from '../services/today.js';
 import type { Clock, IdGenerator, ScoreKind, TopicStatus, TrackColor } from '../domain/types.js';
 import type { Repository } from '../repo/Repository.js';
 import { seededRandom } from './random.js';
@@ -134,7 +135,7 @@ export async function loadSampleData(
   seed: number = DEMO_SEED,
 ): Promise<void> {
   const random = seededRandom(seed);
-  const today = localDate(clock());
+  const today = await studyToday(repo, clock);
   const subtasks = new Map<string, Placed>();
   const trackIds: string[] = [];
 
@@ -236,7 +237,13 @@ export async function loadSampleData(
     ['End-of-year exams', schoolSubjects, 45],
   ] as const) {
     if (!nodeId) continue;
-    await repo.insertDeadline({ id: newId(), nodeId, title, dueOn: addDays(today, inDays) });
+    await repo.insertDeadline({
+      id: newId(),
+      nodeId,
+      title,
+      dueOn: addDays(today, inDays),
+      isExam: title === 'End-of-year exams',
+    });
   }
 
   await repo.updateSettings({ studentName: DEMO_STUDENT_NAME });
@@ -301,6 +308,7 @@ async function addTasks(
       taskId: selfTest,
       periodStart,
       completedAt: eveningOf(takenOn),
+      completedOn: takenOn,
       note: null,
       score: {
         id: newId(),
@@ -329,6 +337,7 @@ async function addTasks(
       taskId: flashcards,
       periodStart,
       completedAt: eveningOf(doneOn),
+      completedOn: doneOn,
       note: null,
       score: null,
     });
@@ -354,6 +363,7 @@ async function addTasks(
         taskId: id,
         periodStart: null,
         completedAt: eveningOf(addDays(today, -3)),
+        completedOn: addDays(today, -3),
         note: null,
         score: null,
       });
@@ -372,6 +382,7 @@ async function addTasks(
     taskId: desk,
     periodStart: null,
     completedAt: eveningOf(addDays(today, -4)),
+    completedOn: addDays(today, -4),
     note: null,
     score: null,
   });

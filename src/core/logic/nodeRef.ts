@@ -60,8 +60,16 @@ function closest(candidates: readonly Candidate[], wanted: string[]): Candidate[
   return [...candidates].sort((a, b) => score(a) - score(b)).slice(0, MAX_SUGGESTIONS);
 }
 
-/** Finds the node a reference points to, or throws a DomainError with suggestions. */
-export function resolveNodeRef(nodes: readonly TreeNode[], ref: string): TreeNode {
+/**
+ * Finds the node a reference points to, or throws a DomainError with suggestions. Visible nodes
+ * win over archived ones, unless `preferArchived` (for unarchive_node): then nodes that are
+ * archived themselves win.
+ */
+export function resolveNodeRef(
+  nodes: readonly TreeNode[],
+  ref: string,
+  options: { preferArchived?: boolean } = {},
+): TreeNode {
   const trimmed = ref.trim();
   if (UUID_PATTERN.test(trimmed)) {
     const node = nodes.find((n) => n.id === trimmed.toLowerCase());
@@ -85,9 +93,11 @@ export function resolveNodeRef(nodes: readonly TreeNode[], ref: string): TreeNod
   if (wanted.length > 0) {
     for (const matches of TIERS) {
       const found = candidates.filter((c) => matches(c.segments, wanted));
-      // Archived nodes only win when nothing visible matches.
-      const visible = found.filter((c) => !hidden.has(c.node.id));
-      const pick = visible.length > 0 ? visible : found;
+      // Archived nodes only win when nothing visible matches (or when asked to).
+      const preferred = options.preferArchived
+        ? found.filter((c) => c.node.archivedAt !== null)
+        : found.filter((c) => !hidden.has(c.node.id));
+      const pick = preferred.length > 0 ? preferred : found;
       if (pick.length === 1 && pick[0]) return pick[0].node;
       if (pick.length > 1) {
         throw new DomainError(

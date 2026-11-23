@@ -61,6 +61,8 @@ export interface Deadline {
   nodeId: string;
   title: string;
   dueOn: string;
+  /** EXAM-1: shown with an "Exam" badge and in the exam view. */
+  isExam: boolean;
   createdAt: string;
 }
 
@@ -133,9 +135,12 @@ export interface Task {
 export interface TaskCompletion {
   id: string;
   taskId: string;
-  /** The week's Monday for weekly tasks; null for one-off tasks. */
+  /** The week's Monday for weekly tasks (the week of `completedOn`); null for one-off tasks. */
   periodStart: string | null;
+  /** When the tick was made (a real instant). */
   completedAt: string;
+  /** TASK-11: the study day it counts for; today or any earlier day. Reports use this. */
+  completedOn: string;
   note: string | null;
 }
 
@@ -175,6 +180,8 @@ export interface Settings {
   /** Empty until the owner enters it (asked for on the first report). */
   studentName: string;
   neglectDays: number;
+  /** DAY-1: study before this many minutes after midnight counts for the day before (0–360). */
+  dayEndsAtMinutes: number;
   lastExportAt: string | null;
   lastMcpCallAt: string | null;
 }
@@ -183,9 +190,84 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Readonly<Settings> = {
   studentName: '',
   neglectDays: 3,
+  dayEndsAtMinutes: 0,
   lastExportAt: null,
   lastMcpCallAt: null,
 };
+
+/** DAY-1: the latest "My day ends at" (06:00), in minutes after midnight. */
+export const MAX_DAY_ENDS_AT_MINUTES = 360;
+
+export const MISTAKE_STATUSES = ['open', 'learned'] as const;
+export type MistakeStatus = (typeof MISTAKE_STATUSES)[number];
+
+export const REVIEW_RESULTS = ['right', 'wrong'] as const;
+export type ReviewResult = (typeof REVIEW_RESULTS)[number];
+
+/** ERR (SPEC §B3.7): a mistake to review +1, +3, and +7 days after its anchor date (§B9.13). */
+export interface Mistake {
+  id: string;
+  nodeId: string;
+  text: string;
+  /** The study day it was noted. */
+  createdOn: string;
+  source: SessionSource;
+  status: MistakeStatus;
+  /** 1, 2, or 3: which review comes next. */
+  step: 1 | 2 | 3;
+  /** The day the schedule counts from (creation, or the last wrong review). */
+  anchorOn: string;
+  /** null once learned. */
+  nextDueOn: string | null;
+  reviewCount: number;
+  lastReviewedOn: string | null;
+  lastResult: ReviewResult | null;
+  learnedOn: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const CHANGE_ENTITIES = [
+  'session',
+  'score',
+  'task',
+  'completion',
+  'mistake',
+  'node',
+  'deadline',
+  'exam_target',
+] as const;
+export type ChangeEntity = (typeof CHANGE_ENTITIES)[number];
+
+export const CHANGE_ACTIONS = [
+  'create',
+  'update',
+  'delete',
+  'complete',
+  'uncomplete',
+  'archive',
+  'unarchive',
+  'review',
+] as const;
+export type ChangeAction = (typeof CHANGE_ACTIONS)[number];
+
+/**
+ * UNDO (SPEC §B3.8): one recorded change. `before` and `after` are JSON snapshots of the item
+ * (null when it didn't exist), which undo uses to put things back.
+ */
+export interface ChangeEntry {
+  id: string;
+  at: string;
+  source: SessionSource;
+  entity: ChangeEntity;
+  entityId: string;
+  action: ChangeAction;
+  /** One line for the Recent changes list, e.g. "Logged 45m · Exam Prep > Flashcards". */
+  summary: string;
+  before: unknown;
+  after: unknown;
+  undoneAt: string | null;
+}
 
 /**
  * SET-4, ACCT-8: the user's Claude link. Only a hash is stored, so `url` is set only in the answer

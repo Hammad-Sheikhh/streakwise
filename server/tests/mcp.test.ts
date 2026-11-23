@@ -146,21 +146,38 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
     const reply = await rpc('tools/list');
     const tools = (reply.result as { tools: Record<string, unknown>[] }).tools;
     const byTool = Object.fromEntries(tools.map((t) => [t.name as string, t]));
+    // The 14 v1.0 tools keep their names (MCP-10); v1.1 adds 16 (MCP-15–21).
     expect(Object.keys(byTool).sort()).toEqual([
+      'add_mistake',
       'add_node',
       'add_task',
+      'archive_node',
       'complete_task',
+      'delete_score',
       'delete_session',
+      'delete_task',
       'find_gaps',
+      'get_latest_note',
       'get_progress',
       'get_report',
       'get_structure',
+      'get_task',
       'list_deadlines',
+      'list_due_mistakes',
+      'list_scores',
       'list_sessions',
       'list_tasks',
       'log_score',
       'log_session',
+      'log_sessions',
+      'review_mistake',
       'set_topic_status',
+      'unarchive_node',
+      'uncomplete_task',
+      'update_node',
+      'update_score',
+      'update_session',
+      'update_task',
     ]);
     for (const tool of tools) {
       expect(String(tool.description).length).toBeGreaterThan(40);
@@ -174,8 +191,32 @@ describe('the server (MCP-2, MCP-3, MCP-8)', () => {
       'list_deadlines',
       'list_tasks',
       'get_report',
+      'get_task',
+      'get_latest_note',
+      'list_scores',
+      'list_due_mistakes',
     ]) {
       expect(byTool[name]?.annotations).toMatchObject({ readOnlyHint: true });
+    }
+    for (const name of ['delete_session', 'delete_score', 'delete_task']) {
+      expect(byTool[name]?.annotations).toMatchObject({ destructiveHint: true });
+    }
+    for (const name of [
+      'update_session',
+      'uncomplete_task',
+      'update_score',
+      'update_task',
+      'update_node',
+      'archive_node',
+      'unarchive_node',
+      'log_sessions',
+      'add_mistake',
+      'review_mistake',
+    ]) {
+      expect(byTool[name]?.annotations).toMatchObject({
+        readOnlyHint: false,
+        destructiveHint: false,
+      });
     }
     for (const name of ['add_task', 'complete_task', 'log_score', 'set_topic_status']) {
       expect(byTool[name]?.annotations).toMatchObject({

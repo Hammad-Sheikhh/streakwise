@@ -1,5 +1,5 @@
 import type { Clock, TreeNode, UpcomingDeadline } from '../domain/types.js';
-import { daysBetween, localDate, weekStart } from '../logic/dates.js';
+import { daysBetween, studyDate, weekStart } from '../logic/dates.js';
 import { neglectWarnings } from '../logic/neglect.js';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
 import { currentStreak, longestStreak } from '../logic/streak.js';
@@ -10,7 +10,7 @@ import { hiddenIds, nodePath } from '../logic/tree.js';
 import type { Repository } from '../repo/Repository.js';
 import { selectUpcoming } from './deadlines.js';
 import { listTree } from './structure.js';
-import { listTaskItems } from './tasks.js';
+import { buildTaskItems } from './tasks.js';
 
 // Summaries for Claude (MCP-9 `get_progress` and `find_gaps`). Names and paths are included so the
 // results read well without a second lookup.
@@ -75,13 +75,14 @@ const OTHER = 'Other';
 const pathOf = (nodes: readonly TreeNode[], id: string) => nodePath(nodes, id).join(' > ');
 
 export async function getProgress(repo: Repository, clock: Clock): Promise<Progress> {
-  const today = localDate(clock());
-  const monday = weekStart(today);
-  const [nodes, facts, deadlines] = await Promise.all([
+  const [nodes, facts, deadlines, settings] = await Promise.all([
     listTree(repo),
     repo.listSessionFacts(),
     repo.listDeadlines(),
+    repo.getSettings(),
   ]);
+  const today = studyDate(clock(), settings.dayEndsAtMinutes);
+  const monday = weekStart(today);
   const hidden = hiddenIds(nodes);
   const visible = nodes.filter((n) => !hidden.has(n.id));
   const totals = dailyTotals(facts);
@@ -126,13 +127,15 @@ export async function getProgress(repo: Repository, clock: Clock): Promise<Progr
 }
 
 export async function findGaps(repo: Repository, clock: Clock): Promise<Gaps> {
-  const today = localDate(clock());
-  const [nodes, facts, settings, tasks] = await Promise.all([
+  const [nodes, facts, settings, taskRows, completions] = await Promise.all([
     listTree(repo),
     repo.listSessionFacts(),
     repo.getSettings(),
-    listTaskItems(repo, clock),
+    repo.listTasks(),
+    repo.listTaskCompletions(),
   ]);
+  const today = studyDate(clock(), settings.dayEndsAtMinutes);
+  const tasks = buildTaskItems(taskRows, completions, nodes, today);
   const hidden = hiddenIds(nodes);
   const visible = nodes.filter((n) => !hidden.has(n.id));
   const thisWeek = minutesByNode(nodes, facts, { from: weekStart(today), to: today });
@@ -162,6 +165,7 @@ export async function findGaps(repo: Repository, clock: Clock): Promise<Gaps> {
       latestDateByNode(nodes, facts),
       today,
       settings.neglectDays,
+      settings.dayEndsAtMinutes,
     ).map((w) => ({
       id: w.nodeId,
       path: pathOf(nodes, w.nodeId),

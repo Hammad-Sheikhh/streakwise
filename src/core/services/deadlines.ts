@@ -1,12 +1,13 @@
 import { invalid, notFound } from '../domain/errors.js';
 import type { Clock, Deadline, IdGenerator, TreeNode, UpcomingDeadline } from '../domain/types.js';
-import { daysBetween, localDate } from '../logic/dates.js';
+import { daysBetween } from '../logic/dates.js';
 import { syllabusPercent } from '../logic/syllabus.js';
 import { hiddenIds } from '../logic/tree.js';
 import type { DeadlinePatch, Repository } from '../repo/Repository.js';
 import { createDeadlineInputSchema, updateDeadlineInputSchema } from '../schemas/inputs.js';
 import type { CreateDeadlineInput, UpdateDeadlineInput } from '../schemas/inputs.js';
 import { parseInput } from '../schemas/parse.js';
+import { studyToday } from './today.js';
 
 // DEAD-1: deadlines (title, date, node).
 
@@ -50,8 +51,12 @@ export async function upcomingDeadlines(
   clock: Clock,
   options: { includePast?: boolean } = {},
 ): Promise<UpcomingDeadline[]> {
-  const [nodes, deadlines] = await Promise.all([repo.listNodes(), repo.listDeadlines()]);
-  return selectUpcoming(nodes, deadlines, localDate(clock()), options);
+  const [nodes, deadlines, today] = await Promise.all([
+    repo.listNodes(),
+    repo.listDeadlines(),
+    studyToday(repo, clock),
+  ]);
+  return selectUpcoming(nodes, deadlines, today, options);
 }
 
 export async function addDeadline(
@@ -75,6 +80,7 @@ export async function updateDeadline(
   if (input.nodeId !== undefined) patch.nodeId = input.nodeId;
   if (input.title !== undefined) patch.title = input.title;
   if (input.dueOn !== undefined) patch.dueOn = input.dueOn;
+  if (input.isExam !== undefined) patch.isExam = input.isExam;
   return repo.updateDeadline(id, patch);
 }
 

@@ -42,3 +42,12 @@ export function weekStart(date: string): string {
   const daysSinceMonday = (new Date(time).getUTCDay() + 6) % 7;
   return fromUtcMidnight(time - daysSinceMonday * DAY_MS);
 }
+
+/**
+ * DAY (SPEC §B9.1a): the study day of an instant. Study before `dayEndsAtMinutes` after midnight
+ * counts for the day before, so with a 04:00 cutoff, 01:50 on the 23rd is the 22nd. With the
+ * default 0 this is `localDate`.
+ */
+export function studyDate(instant: Date, dayEndsAtMinutes: number): string {
+  return localDate(new Date(instant.getTime() - dayEndsAtMinutes * 60_000));
+}

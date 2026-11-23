@@ -1,18 +1,24 @@
 import { z } from 'zod';
 
 import {
+  CHANGE_ACTIONS,
+  CHANGE_ENTITIES,
+  MISTAKE_STATUSES,
   REPORT_PERIODS,
+  REVIEW_RESULTS,
   SCORE_KINDS,
   SESSION_SOURCES,
   TOPIC_STATUSES,
   TRACK_COLORS,
 } from '../domain/types.js';
 import type {
+  ChangeEntry,
   ClaudeConnection,
   Dashboard,
   Deadline,
   DataExport,
   HistoryPage,
+  Mistake,
   Report,
   Score,
   Session,
@@ -71,6 +77,7 @@ export const deadlineSchema = z.object({
   nodeId: z.uuid(),
   title: z.string().min(1).max(200),
   dueOn: z.iso.date(),
+  isExam: z.boolean(),
   createdAt: timestamp,
 }) satisfies z.ZodType<Deadline>;
 
@@ -86,6 +93,7 @@ export const trackOverviewSchema = z.object({
 export const settingsSchema = z.object({
   studentName: z.string().max(80),
   neglectDays: z.number().int().min(1).max(14),
+  dayEndsAtMinutes: z.number().int().min(0).max(360),
   lastExportAt: timestamp.nullable(),
   lastMcpCallAt: timestamp.nullable(),
 }) satisfies z.ZodType<Settings>;
@@ -121,8 +129,40 @@ export const taskCompletionSchema = z.object({
   taskId: z.uuid(),
   periodStart: z.iso.date().nullable(),
   completedAt: timestamp,
+  completedOn: z.iso.date(),
   note: z.string().max(500).nullable(),
 }) satisfies z.ZodType<TaskCompletion>;
+
+export const mistakeSchema = z.object({
+  id: z.uuid(),
+  nodeId: z.uuid(),
+  text: z.string().min(1).max(500),
+  createdOn: z.iso.date(),
+  source: z.enum(SESSION_SOURCES),
+  status: z.enum(MISTAKE_STATUSES),
+  step: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  anchorOn: z.iso.date(),
+  nextDueOn: z.iso.date().nullable(),
+  reviewCount: z.number().int().min(0),
+  lastReviewedOn: z.iso.date().nullable(),
+  lastResult: z.enum(REVIEW_RESULTS).nullable(),
+  learnedOn: z.iso.date().nullable(),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}) satisfies z.ZodType<Mistake>;
+
+export const changeEntrySchema = z.object({
+  id: z.uuid(),
+  at: timestamp,
+  source: z.enum(SESSION_SOURCES),
+  entity: z.enum(CHANGE_ENTITIES),
+  entityId: z.uuid(),
+  action: z.enum(CHANGE_ACTIONS),
+  summary: z.string().max(200),
+  before: z.unknown(),
+  after: z.unknown(),
+  undoneAt: timestamp.nullable(),
+}) satisfies z.ZodType<ChangeEntry>;
 
 export const taskItemSchema = z.object({
   task: taskSchema,

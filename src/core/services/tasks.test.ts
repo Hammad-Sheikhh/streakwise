@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { DomainError } from '../domain/errors.js';
 import type { TreeNode } from '../domain/types.js';
 import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { buildReport } from './reports.js';
 import { seedIfEmpty } from './seed.js';
 import { updateNode } from './structure.js';
 import {
@@ -11,6 +12,7 @@ import {
   deleteTask,
   listTaskItems,
   uncompleteTask,
+  uncompleteTaskOn,
   updateTask,
 } from './tasks.js';
 
@@ -270,5 +272,79 @@ describe('updateTask and deleteTask (TASK-8)', () => {
     expect(await repo.listScores()).toEqual([
       expect.objectContaining({ score: 8, taskCompletionId: null }),
     ]);
+  });
+});
+
+describe('completion dates (TASK-10, TASK-11)', () => {
+  const selfTest = async () => {
+    const task = (await repo.listTasks()).find((t) => t.title === 'Weekly self-test');
+    if (!task) throw new Error('seed has no weekly task');
+    return task;
+  };
+
+  it('defaults to today and records the date on the completion and its score', async () => {
+    const task = await selfTest();
+    const completion = await completeTask(repo, clock, newId, task.id, { score: 15 });
+    expect(completion).toMatchObject({ completedOn: '2026-10-07', periodStart: '2026-10-05' });
+    const [score] = await repo.listScores();
+    expect(score).toMatchObject({ takenOn: '2026-10-07', taskCompletionId: completion.id });
+  });
+
+  it('completes a weekly task for an earlier week, dating the score that day', async () => {
+    const task = await selfTest();
+    const completion = await completeTask(repo, clock, newId, task.id, {
+      score: 12,
+      completedOn: '2026-09-30',
+    });
+    expect(completion).toMatchObject({ completedOn: '2026-09-30', periodStart: '2026-09-28' });
+    expect((await repo.listScores())[0]?.takenOn).toBe('2026-09-30');
+    // This week is still open.
+    const item = (await listTaskItems(repo, clock)).find((i) => i.task.id === task.id);
+    expect(item?.completion).toBeNull();
+    expect(item?.completedWeeks).toEqual(['2026-09-28']);
+  });
+
+  it('allows any earlier day but never a future one', async () => {
+    const task = await createTask(repo, newId, { nodeId: maths.id, title: 'Read chapter 1' });
+    const future = await errorOf(
+      completeTask(repo, clock, newId, task.id, { completedOn: '2026-10-08' }),
+    );
+    expect(future.code).toBe('future_date');
+    const old = await completeTask(repo, clock, newId, task.id, { completedOn: '2025-01-01' });
+    expect(old.completedOn).toBe('2025-01-01');
+  });
+
+  it('unticks the week containing a date, removing the score it created', async () => {
+    const task = await selfTest();
+    await completeTask(repo, clock, newId, task.id, { score: 12, completedOn: '2026-09-30' });
+    await completeTask(repo, clock, newId, task.id, { score: 16 });
+    const removed = await uncompleteTaskOn(repo, clock, task.id, '2026-10-01');
+    expect(removed.completion.periodStart).toBe('2026-09-28');
+    expect(removed.score?.score).toBe(12);
+    expect((await repo.listScores()).map((s) => s.score)).toEqual([16]);
+    const notDone = await errorOf(uncompleteTaskOn(repo, clock, task.id, '2026-09-29'));
+    expect(notDone.code).toBe('not_completed');
+    // Without a date it unticks this week.
+    await uncompleteTaskOn(repo, clock, task.id);
+    expect(await repo.listTaskCompletions()).toEqual([]);
+  });
+
+  it('shows a completion on its completion date in reports', async () => {
+    const task = await createTask(repo, newId, { nodeId: maths.id, title: 'Past paper 2019' });
+    await completeTask(repo, clock, newId, task.id, { completedOn: '2026-10-01' });
+    const lastWeek = await buildReport(repo, clock, { period: 'last_week' });
+    expect(lastWeek.tasksCompleted).toEqual([
+      expect.objectContaining({ title: 'Past paper 2019', completedOn: '2026-10-01' }),
+    ]);
+    const thisWeek = await buildReport(repo, clock, { period: 'this_week' });
+    expect(thisWeek.tasksCompleted).toEqual([]);
+  });
+
+  it('uses the study day as "today" when the day ends after midnight', async () => {
+    await repo.updateSettings({ dayEndsAtMinutes: 240 });
+    now = new Date('2026-10-07T21:30:00Z'); // 02:30 on Thursday the 8th in Karachi
+    const task = await createTask(repo, newId, { nodeId: maths.id, title: 'Late task' });
+    const completion = await completeTask(repo, clock, newId, task.id, {});
+    expect(completion.completedOn).toBe('2026-10-07');
   });
 });

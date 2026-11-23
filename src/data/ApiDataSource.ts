@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { meSchema, signUpResultSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
+  changeEntrySchema,
   claudeConnectionSchema,
   dashboardSchema,
   dataExportSchema,
@@ -42,6 +43,8 @@ const scoresResponse = z.object({ scores: z.array(scoreSchema) });
 const reportResponse = z.object({ report: reportSchema });
 const shareResponse = z.object({ share: sharedReportLinkSchema });
 const sharesResponse = z.object({ shares: z.array(sharedReportLinkSchema) });
+const changesResponse = z.object({ changes: z.array(changeEntrySchema) });
+const changeResponse = z.object({ change: changeEntrySchema });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -279,5 +282,14 @@ export class ApiDataSource implements DataSource {
 
   async exportData() {
     return this.request('export', dataExportSchema, { method: 'POST' });
+  }
+
+  async listChanges() {
+    return (await this.request('changes', changesResponse)).changes;
+  }
+
+  async undoChange(id: string) {
+    const path = `changes/${encodeURIComponent(id)}/undo`;
+    return (await this.request(path, changeResponse, { method: 'POST' })).change;
   }
 }

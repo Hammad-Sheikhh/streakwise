@@ -2,15 +2,17 @@ import { randomUUID } from 'node:crypto';
 
 import { createClient } from '@supabase/supabase-js';
 
-import type { Clock, IdGenerator } from '../../../src/core/domain/types.js';
+import type { Clock, IdGenerator, SessionSource } from '../../../src/core/domain/types.js';
 import { newShareSlug } from '../../../src/core/logic/slug.js';
 import type { SlugGenerator } from '../../../src/core/logic/slug.js';
+import { recordChanges } from '../../../src/core/repo/RecordingRepository.js';
 import type { Repository } from '../../../src/core/repo/Repository.js';
 import { SupabaseAccountStore } from './accounts.js';
 import type { AccountStore } from './accounts.js';
 import { SupabaseAuthProvider } from './authProvider.js';
 import type { AuthProvider } from './authProvider.js';
 import { readServerEnv } from './env.js';
+import { log } from './log.js';
 import type { ServerEnv } from './env.js';
 import { SupabaseLoginAttemptStore } from './loginAttempts.js';
 import type { LoginAttemptStore } from './loginAttempts.js';
@@ -33,14 +35,26 @@ export interface ServerDeps {
   newSlug: SlugGenerator;
 }
 
-/** What a handler that requires login gets: the deps plus the logged-in user's repository. */
+/**
+ * What a handler that requires login gets: the deps plus the logged-in user's repository, which
+ * records every change in the change history (UNDO-3) as coming from `source`.
+ */
 export interface UserDeps extends ServerDeps {
   userId: string;
   repo: Repository;
 }
 
-export function forUser(deps: ServerDeps, userId: string): UserDeps {
-  return { ...deps, userId, repo: deps.repoFor(userId) };
+export function forUser(deps: ServerDeps, userId: string, source: SessionSource = 'app'): UserDeps {
+  const repo = recordChanges(deps.repoFor(userId), {
+    source,
+    newId: deps.newId,
+    // The write itself stands (UNDO-3); only the kind of failure is logged, never data.
+    onRecordError: (error) =>
+      log.warn('change_record_failed', {
+        errorName: error instanceof Error ? error.name : typeof error,
+      }),
+  });
+  return { ...deps, userId, repo };
 }
 
 let cached: ServerDeps | undefined;

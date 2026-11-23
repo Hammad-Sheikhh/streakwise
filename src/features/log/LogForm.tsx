@@ -1,6 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 
+import { Chip } from '@/components/Chip';
 import { NativeSelect } from '@/components/NativeSelect';
 import { NewTrackDialog } from '@/components/NewTrackDialog';
 import { NodeLabel } from '@/components/NodeLabel';
@@ -34,6 +35,8 @@ const NEW_TRACK = 'new-track';
 interface Props {
   nodes: readonly TreeNode[];
   today: string;
+  /** DAY-5: shown under the date while "Today" is picked, e.g. between midnight and 04:00. */
+  dayHint?: string;
   initial?: Partial<LogFormValues>;
   /** LOG-7 shortcuts; left out when editing. */
   recentNodeIds?: readonly string[];
@@ -58,31 +61,10 @@ function pathIds(nodes: readonly TreeNode[], nodeId: string | undefined): string
   return ids;
 }
 
-function Chip({
-  pressed,
-  onClick,
-  children,
-}: {
-  pressed: boolean;
-  onClick: () => void;
-  children: string;
-}) {
-  return (
-    <Button
-      type="button"
-      variant={pressed ? 'default' : 'outline'}
-      aria-pressed={pressed}
-      className="h-11 min-w-14"
-      onClick={onClick}
-    >
-      {children}
-    </Button>
-  );
-}
-
 export function LogForm({
   nodes,
   today,
+  dayHint,
   initial = {},
   recentNodeIds = [],
   editing,
@@ -355,6 +337,9 @@ export function LogForm({
             />
           </div>
         </div>
+        {dayHint && studiedOn === today && (
+          <p className="text-sm text-muted-foreground">{dayHint}</p>
+        )}
         {errorText('date')}
       </fieldset>
 
