@@ -5,6 +5,7 @@ import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
 import { dailyPrune, recordChanges } from '@/core/repo/RecordingRepository';
 import type { Repository } from '@/core/repo/Repository';
+import * as backup from '@/core/services/backup';
 import * as changes from '@/core/services/changes';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
@@ -281,5 +282,10 @@ export class DemoDataSource implements DataSource {
 
   deleteExamTarget(id: string) {
     return this.run((repo) => exams.deleteExamTarget(repo, id));
+  }
+
+  /** DATA-4: the demo restores into memory; a reload brings the sample data back. */
+  restoreBackup(data: unknown) {
+    return this.run((repo) => backup.restoreFromBackup(repo, this.newId, data));
   }
 }

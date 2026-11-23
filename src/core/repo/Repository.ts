@@ -4,6 +4,7 @@ import type {
   ExamTarget,
   Mistake,
   Report,
+  RestoreData,
   Score,
   Session,
   SessionFact,
@@ -289,4 +290,11 @@ export interface Repository {
 
   /** Atomically writes the seed if there are no nodes yet. Returns whether it seeded. */
   seedIfEmpty(seed: SeedData): Promise<boolean>;
+
+  /**
+   * DATA-4: replaces all study data and the name, neglect, and "day ends at" settings in one
+   * atomic write, and clears the change history. Keeps the account, the Claude link, shared
+   * links, and the export and MCP times.
+   */
+  restoreBackup(data: RestoreData): Promise<void>;
 }

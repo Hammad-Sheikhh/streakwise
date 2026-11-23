@@ -18,6 +18,7 @@ import type {
   Deadline,
   ExamTarget,
   Mistake,
+  RestoreData,
   Score,
   Session,
   SessionFact,
@@ -1077,5 +1078,92 @@ export class SupabaseRepository implements Repository {
     });
     if (error) throwDbError(error);
     return z.boolean().parse(data);
+  }
+
+  async restoreBackup(data: RestoreData): Promise<void> {
+    // One RPC, one transaction (restore_user_backup, 0005).
+    const { error } = await this.db.rpc('restore_user_backup', {
+      p_user_id: this.userId,
+      p_payload: {
+        settings: {
+          student_name: data.settings.studentName,
+          neglect_days: data.settings.neglectDays,
+          day_ends_at_minutes: data.settings.dayEndsAtMinutes,
+        },
+        nodes: data.nodes.map((n) => ({
+          id: n.id,
+          parent_id: n.parentId,
+          depth: n.depth,
+          name: n.name,
+          color: n.color,
+          sort_order: n.sortOrder,
+          weekly_target_minutes: n.weeklyTargetMinutes,
+          topic_status: n.topicStatus,
+          topic_done_at: n.topicDoneAt,
+          archived_at: n.archivedAt,
+          created_at: n.createdAt,
+          updated_at: n.updatedAt,
+        })),
+        sessions: data.sessions.map((x) => ({
+          id: x.id,
+          node_id: x.nodeId,
+          studied_on: x.studiedOn,
+          minutes: x.minutes,
+          note: x.note,
+          source: x.source,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+        })),
+        tasks: data.tasks.map(taskRowValues),
+        completions: data.taskCompletions.map(completionRowValues),
+        scores: data.scores.map((x) => ({
+          id: x.id,
+          node_id: x.nodeId,
+          task_completion_id: x.taskCompletionId,
+          kind: x.kind,
+          title: x.title,
+          taken_on: x.takenOn,
+          score: x.score,
+          max_score: x.maxScore,
+          note: x.note,
+          created_at: x.createdAt,
+        })),
+        deadlines: data.deadlines.map((d) => ({
+          id: d.id,
+          node_id: d.nodeId,
+          title: d.title,
+          due_on: d.dueOn,
+          is_exam: d.isExam,
+          created_at: d.createdAt,
+        })),
+        exam_targets: data.examTargets.map((t) => ({
+          id: t.id,
+          deadline_id: t.deadlineId,
+          label: t.label,
+          target_on: t.targetOn,
+          min_percent: t.minPercent,
+          created_at: t.createdAt,
+          updated_at: t.updatedAt,
+        })),
+        mistakes: data.mistakes.map((m) => ({
+          id: m.id,
+          node_id: m.nodeId,
+          text: m.text,
+          created_on: m.createdOn,
+          source: m.source,
+          status: m.status,
+          step: m.step,
+          anchor_on: m.anchorOn,
+          next_due_on: m.nextDueOn,
+          review_count: m.reviewCount,
+          last_reviewed_on: m.lastReviewedOn,
+          last_result: m.lastResult,
+          learned_on: m.learnedOn,
+          created_at: m.createdAt,
+          updated_at: m.updatedAt,
+        })),
+      },
+    });
+    if (error) throwDbError(error);
   }
 }

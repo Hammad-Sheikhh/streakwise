@@ -183,7 +183,7 @@ export async function getHistory(
   const windowStart = addDays(to, -(HISTORY_PAGE_DAYS - 1));
   const start = query.from && query.from > windowStart ? query.from : windowStart;
 
-  const filter: SessionFilter = { source: query.source };
+  const filter: SessionFilter = { source: query.source, noteContains: query.noteContains };
   if (query.nodeId) filter.nodeIds = subtreeIds(await repo.listNodes(), query.nodeId);
 
   if (start > to) return { days: [], nextTo: null };

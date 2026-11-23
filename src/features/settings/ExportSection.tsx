@@ -4,34 +4,33 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import type { DataExport } from '@/core/domain/types';
 import { formatTimestamp } from '@/core/logic/labels';
-import { isBackupDue, sessionsCsv } from '@/core/services/exports';
+import { isBackupDue } from '@/core/services/exports';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
-import { downloadText } from '@/lib/download';
+import { useToday } from '@/data/useToday';
+import { saveExport } from '@/lib/saveExport';
+import type { ExportFormat as Format } from '@/lib/saveExport';
 
-type Format = 'json' | 'csv';
+import { RestoreSection } from './RestoreSection.js';
 
-function save(data: DataExport, format: Format): void {
-  const day = data.exportedAt.slice(0, 10);
-  if (format === 'json') {
-    downloadText(`streakwise-${day}.json`, JSON.stringify(data, null, 2), 'application/json');
-  } else {
-    downloadText(
-      `streakwise-sessions-${day}.csv`,
-      sessionsCsv(data.nodes, data.sessions),
-      'text/csv;charset=utf-8',
-    );
-  }
-}
+const DOWNLOADS: { format: Format; label: string }[] = [
+  { format: 'json', label: 'All data (JSON)' },
+  { format: 'sessions', label: 'Sessions (CSV)' },
+  { format: 'scores', label: 'Scores (CSV)' },
+  { format: 'tasks', label: 'Tasks (CSV)' },
+  { format: 'mistakes', label: 'Mistakes (CSV)' },
+];
 
-// SET-2: download everything as JSON, or sessions as CSV. SET-3: remind when a backup is due.
+// SET-2, DATA-2: download everything as JSON, or a table as CSV. SET-3: remind when a backup is
+// due. DATA-3: restore from a backup.
 export function ExportSection() {
   const ds = useDataSource();
+  const today = useToday();
   const settings = useSettings();
   // The format only decides which file is saved afterwards.
   const exportData = useDataMutation<Format, DataExport>((d) => d.exportData(), ['settings'], {
     onSuccess: (data, format) => {
-      save(data, format);
+      saveExport(data, format, today);
       toast.success('Download started.');
     },
   });
@@ -57,23 +56,19 @@ export function ExportSection() {
           : 'Download a copy of everything you’ve entered.'}
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          className="h-11"
-          disabled={exportData.isPending}
-          onClick={() => exportData.mutate('json')}
-        >
-          <Download aria-hidden="true" /> All data (JSON)
-        </Button>
-        <Button
-          variant="outline"
-          className="h-11"
-          disabled={exportData.isPending}
-          onClick={() => exportData.mutate('csv')}
-        >
-          <Download aria-hidden="true" /> Sessions (CSV)
-        </Button>
+        {DOWNLOADS.map(({ format, label }) => (
+          <Button
+            key={format}
+            variant="outline"
+            className="h-11"
+            disabled={exportData.isPending}
+            onClick={() => exportData.mutate(format)}
+          >
+            <Download aria-hidden="true" /> {label}
+          </Button>
+        ))}
       </div>
+      <RestoreSection />
     </section>
   );
 }

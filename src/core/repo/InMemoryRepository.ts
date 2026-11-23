@@ -6,6 +6,7 @@ import type {
   Deadline,
   ExamTarget,
   Mistake,
+  RestoreData,
   Score,
   Session,
   SessionFact,
@@ -614,5 +615,19 @@ export class InMemoryRepository implements Repository {
 
   async deleteChangesBefore(at: string): Promise<void> {
     this.changes = this.changes.filter((c) => c.at >= at);
+  }
+
+  async restoreBackup(data: RestoreData): Promise<void> {
+    // The rows were checked by the restore service; this is one swap, so it's all or nothing.
+    this.nodes = data.nodes.map((n) => ({ ...n }));
+    this.sessions = data.sessions.map((x) => ({ ...x }));
+    this.tasks = data.tasks.map((t) => ({ ...t }));
+    this.completions = data.taskCompletions.map((c) => ({ ...c }));
+    this.scores = data.scores.map((x) => ({ ...x }));
+    this.deadlines = data.deadlines.map((d) => ({ ...d }));
+    this.examTargets = data.examTargets.map((t) => ({ ...t }));
+    this.mistakes = data.mistakes.map((m) => ({ ...m }));
+    this.changes = [];
+    Object.assign(this.settings, data.settings);
   }
 }

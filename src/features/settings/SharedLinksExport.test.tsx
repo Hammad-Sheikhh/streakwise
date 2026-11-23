@@ -53,7 +53,7 @@ describe('Settings → Your data (SET-2, SET-3)', () => {
     expect(await within(section).findByText(/Last downloaded Sat 3 Oct 2026/)).toBeInTheDocument();
     expect(within(section).queryByText(/backup yet/)).not.toBeInTheDocument();
     const json = await (createUrl.mock.calls[0]?.[0] as Blob).text();
-    expect(JSON.parse(json)).toMatchObject({ app: 'Streakwise', formatVersion: 1 });
+    expect(JSON.parse(json)).toMatchObject({ app: 'Streakwise', formatVersion: 2 });
 
     await user.click(within(section).getByRole('button', { name: 'Sessions (CSV)' }));
     const csv = await (createUrl.mock.calls[1]?.[0] as Blob).text();

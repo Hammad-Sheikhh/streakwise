@@ -1,3 +1,4 @@
+import { Timer as TimerIcon } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 
@@ -45,6 +46,10 @@ interface Props {
   submitLabel: string;
   pending: boolean;
   onSubmit: (values: LogFormValues) => void;
+  /** TIMER-1: offered on the Log screen; starts a timer on the chosen node instead of saving. */
+  onStartTimer?: (nodeId: string) => void;
+  /** TIMER-2: after a stopped timer, the note is the next thing to fill in. */
+  focusNote?: boolean;
 }
 
 /** The track, subtask, and topic ids along a node's path. */
@@ -69,6 +74,8 @@ export function LogForm({
   recentNodeIds = [],
   editing,
   submitLabel,
+  onStartTimer,
+  focusNote = false,
   pending,
   onSubmit,
 }: Props) {
@@ -396,6 +403,7 @@ export function LogForm({
         <Textarea
           id={`${ids}-note`}
           rows={3}
+          autoFocus={focusNote}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           {...describe('note')}
@@ -411,9 +419,28 @@ export function LogForm({
         {errorText('note')}
       </div>
 
-      <Button type="submit" className="h-11" disabled={pending}>
-        {pending ? 'Saving…' : submitLabel}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" className="h-11" disabled={pending}>
+          {pending ? 'Saving…' : submitLabel}
+        </Button>
+        {onStartTimer && (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11"
+            disabled={!nodeId}
+            aria-describedby={nodeId ? undefined : `${ids}-timer-help`}
+            onClick={() => nodeId && onStartTimer(nodeId)}
+          >
+            <TimerIcon aria-hidden="true" /> Start timer
+          </Button>
+        )}
+      </div>
+      {onStartTimer && !nodeId && (
+        <p id={`${ids}-timer-help`} className="text-sm text-muted-foreground">
+          Choose what you’re studying to start a timer.
+        </p>
+      )}
     </form>
   );
 }

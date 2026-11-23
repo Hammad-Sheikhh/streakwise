@@ -76,3 +76,46 @@ test('share links and the Claude connection are off in the demo (DEMO-5)', async
   await expect(page.getByLabel('Email')).toBeVisible();
   expect(serverCalls).toEqual([]);
 });
+
+// SPEC §B13 (v1.1): the new screens on the demo's sample data, still without the server.
+test('the v1.1 screens work in the demo without calling the server', async ({ page }) => {
+  const serverCalls = watchServerCalls(page);
+  await page.goto('/demo');
+  await expect(page.getByText('Demo — sample data. Changes aren’t saved.')).toBeVisible();
+
+  // TODAY-1: today's task with its sub-tasks; ERR-6: mistakes due.
+  const card = page.getByRole('region', { name: /^Today · / });
+  await expect(card.getByRole('button', { name: 'Probability exercises' })).toBeVisible();
+  await card.getByRole('checkbox', { name: 'Exercise 4.1' }).click();
+  await expect(card.getByRole('checkbox', { name: 'Exercise 4.1' })).toBeChecked();
+
+  // ERR-3: review a mistake that's due.
+  await page.getByRole('link', { name: '2 mistakes due today' }).click();
+  await page.getByRole('button', { name: /^Right: their \/ there/ }).click();
+  await expect(page.getByRole('button', { name: 'Due today (1)' })).toBeVisible();
+
+  // UNDO-4/5: the review is in Recent changes and can be undone.
+  await openScreen(page, 'Recent changes');
+  await page.getByRole('button', { name: /^Undo: Reviewed mistake · right/ }).click();
+  await expect(page.getByText('Undone').first()).toBeVisible();
+
+  // EXAM-2/5: the countdown and a below-target result.
+  await openScreen(page, 'Exam');
+  await expect(page.getByText(/^\d+ days left$/)).toBeVisible();
+  await expect(page.getByText('▼ below 60%').first()).toBeVisible();
+
+  // TIMER-1/2: start on a track page, stop into a filled-in Log form.
+  await openScreen(page, 'Tracks');
+  await page
+    .getByRole('link', { name: /Online Course/ })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Start timer' }).click();
+  const timer = page.getByRole('region', { name: 'Timer' });
+  await expect(timer).toContainText('Online Course');
+  await timer.getByRole('button', { name: 'Stop' }).click();
+  await expect(page.getByLabel('Note (optional)')).toBeFocused();
+  await expect(timer).toHaveCount(0);
+
+  expect(serverCalls).toEqual([]);
+});

@@ -7,6 +7,7 @@ import type {
   ExamTarget,
   IdGenerator,
   Mistake,
+  RestoreData,
   Score,
   Session,
   SessionFact,
@@ -591,6 +592,11 @@ export class RecordingRepository implements Repository {
 
   seedIfEmpty(seed: SeedData): Promise<boolean> {
     return this.inner.seedIfEmpty(seed);
+  }
+
+  /** DATA-4: not recorded; a restore clears the history instead. */
+  restoreBackup(data: RestoreData): Promise<void> {
+    return this.inner.restoreBackup(data);
   }
 }
 
