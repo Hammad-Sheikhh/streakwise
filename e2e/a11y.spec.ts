@@ -6,7 +6,19 @@ import { openScreen } from './helpers';
 // SPEC §B11: WCAG AA. One test per screen so a failure names the screen; the demo has sample data
 // everywhere, so every screen renders its real content. Run in both themes, since the theme follows
 // the system setting.
-const screens = ['Home', 'Log', 'History', 'Tasks', 'Scores', 'Tracks', 'Reports', 'Settings'];
+const screens = [
+  'Home',
+  'Log',
+  'History',
+  'Tasks',
+  'Scores',
+  'Tracks',
+  'Reports',
+  'Settings',
+  'Exam',
+  'Mistakes',
+  'Recent changes',
+];
 
 for (const colorScheme of ['light', 'dark'] as const) {
   for (const screen of screens) {

@@ -8,6 +8,10 @@ import {
   dashboardSchema,
   dataExportSchema,
   deadlineSchema,
+  examTargetSchema,
+  examViewSchema,
+  mistakeSchema,
+  mistakesOverviewSchema,
   historyPageSchema,
   reportSchema,
   scoreSchema,
@@ -45,6 +49,8 @@ const shareResponse = z.object({ share: sharedReportLinkSchema });
 const sharesResponse = z.object({ shares: z.array(sharedReportLinkSchema) });
 const changesResponse = z.object({ changes: z.array(changeEntrySchema) });
 const changeResponse = z.object({ change: changeEntrySchema });
+const mistakeResponse = z.object({ mistake: mistakeSchema });
+const targetResponse = z.object({ target: examTargetSchema });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -291,5 +297,49 @@ export class ApiDataSource implements DataSource {
   async undoChange(id: string) {
     const path = `changes/${encodeURIComponent(id)}/undo`;
     return (await this.request(path, changeResponse, { method: 'POST' })).change;
+  }
+
+  async getMistakes() {
+    return this.request('mistakes', mistakesOverviewSchema);
+  }
+
+  async addMistake(input: Parameters<DataSource['addMistake']>[0]) {
+    return (await this.request('mistakes', mistakeResponse, { method: 'POST', body: input }))
+      .mistake;
+  }
+
+  async updateMistake(id: string, input: Parameters<DataSource['updateMistake']>[1]) {
+    const path = `mistakes/${encodeURIComponent(id)}`;
+    return (await this.request(path, mistakeResponse, { method: 'PATCH', body: input })).mistake;
+  }
+
+  async deleteMistake(id: string) {
+    await this.request(`mistakes/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async reviewMistake(id: string, input: Parameters<DataSource['reviewMistake']>[1]) {
+    const path = `mistakes/${encodeURIComponent(id)}/review`;
+    return (await this.request(path, mistakeResponse, { method: 'POST', body: input })).mistake;
+  }
+
+  async getExamView(deadlineId?: string) {
+    const query = deadlineId ? `?deadline=${encodeURIComponent(deadlineId)}` : '';
+    return this.request(`exam${query}`, examViewSchema);
+  }
+
+  async addExamTarget(deadlineId: string, input: Parameters<DataSource['addExamTarget']>[1]) {
+    const path = `deadlines/${encodeURIComponent(deadlineId)}/targets`;
+    return (await this.request(path, targetResponse, { method: 'POST', body: input })).target;
+  }
+
+  async updateExamTarget(id: string, input: Parameters<DataSource['updateExamTarget']>[1]) {
+    const path = `exam-targets/${encodeURIComponent(id)}`;
+    return (await this.request(path, targetResponse, { method: 'PATCH', body: input })).target;
+  }
+
+  async deleteExamTarget(id: string) {
+    await this.request(`exam-targets/${encodeURIComponent(id)}`, okResponse, {
+      method: 'DELETE',
+    });
   }
 }

@@ -7,6 +7,7 @@ import { MorePage } from '@/app/SimplePages';
 import type { DataSource } from '@/data/DataSource';
 import { DataSourceProvider } from '@/data/DataSourceContext';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
+import { ChangesPage } from '@/features/changes/ChangesPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
 import { SignUpPage } from '@/features/auth/SignUpPage';
@@ -14,6 +15,7 @@ import { HomePage } from '@/features/dashboard/HomePage';
 import { DemoLayout } from '@/features/demo/DemoLayout';
 import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogPage } from '@/features/log/LogPage';
+import { MistakesPage } from '@/features/mistakes/MistakesPage';
 import { ScoresPage } from '@/features/scores/ScoresPage';
 import { DeadlinesPage } from '@/features/settings/DeadlinesPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
@@ -49,6 +51,15 @@ const appPages: RouteObject[] = [
         }),
       },
       { path: 'settings/shared-links', element: <SharedLinksPage /> },
+      { path: 'mistakes', element: <MistakesPage /> },
+      { path: 'changes', element: <ChangesPage /> },
+      // The exam view draws a chart, so it's lazy-loaded like Reports.
+      {
+        path: 'exam',
+        lazy: async () => ({
+          Component: (await import('@/features/exam/ExamPage')).ExamPage,
+        }),
+      },
     ],
   },
 ];

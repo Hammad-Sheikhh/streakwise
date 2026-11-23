@@ -27,6 +27,12 @@ const SECTIONS = [
   { path: 'shared-links', title: 'Shared links', description: 'Report links you’ve shared' },
 ];
 
+/** UNDO-4: Recent changes lives outside Settings, but is linked from it. */
+const RECENT_CHANGES = {
+  title: 'Recent changes',
+  description: 'What you or Claude changed in the last 7 days, with Undo',
+};
+
 // SET-1: the Settings shell, with shared links (SHARE-3) and export (SET-2/3).
 export function SettingsPage() {
   const dataSource = useDataSource();
@@ -66,6 +72,20 @@ export function SettingsPage() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              to={`${dataSource.basePath}/changes`}
+              className="flex min-h-14 items-center justify-between px-4 py-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span>
+                <span className="block font-medium">{RECENT_CHANGES.title}</span>
+                <span className="block text-sm text-muted-foreground">
+                  {RECENT_CHANGES.description}
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+            </Link>
+          </li>
         </ul>
       </section>
 

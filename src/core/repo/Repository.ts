@@ -1,6 +1,7 @@
 import type {
   ChangeEntry,
   Deadline,
+  ExamTarget,
   Mistake,
   Report,
   Score,
@@ -76,6 +77,15 @@ export type NewDeadline = Pick<Deadline, 'id' | 'nodeId' | 'title' | 'dueOn' | '
   createdAt?: string;
 };
 export type DeadlinePatch = Partial<Pick<Deadline, 'nodeId' | 'title' | 'dueOn' | 'isExam'>>;
+
+export type NewExamTarget = Pick<
+  ExamTarget,
+  'id' | 'deadlineId' | 'label' | 'targetOn' | 'minPercent'
+> & {
+  /** Only when undo brings back a deleted target. */
+  createdAt?: string;
+};
+export type ExamTargetPatch = Partial<Pick<ExamTarget, 'label' | 'targetOn' | 'minPercent'>>;
 
 export type NewSession = Pick<
   Session,
@@ -217,7 +227,14 @@ export interface Repository {
   listDeadlines(): Promise<Deadline[]>;
   insertDeadline(deadline: NewDeadline): Promise<Deadline>;
   updateDeadline(id: string, patch: DeadlinePatch): Promise<Deadline>;
+  /** Deleting a deadline deletes its exam targets too. */
   deleteDeadline(id: string): Promise<void>;
+
+  /** EXAM-3: every exam target, by date. */
+  listExamTargets(): Promise<ExamTarget[]>;
+  insertExamTarget(target: NewExamTarget): Promise<ExamTarget>;
+  updateExamTarget(id: string, patch: ExamTargetPatch): Promise<ExamTarget>;
+  deleteExamTarget(id: string): Promise<void>;
 
   listTasks(): Promise<Task[]>;
   insertTask(task: NewTask): Promise<Task>;

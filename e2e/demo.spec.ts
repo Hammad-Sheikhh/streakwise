@@ -17,7 +17,7 @@ test('the full demo journey works without ever calling the server', async ({ pag
   const streak = page.getByRole('region', { name: 'Streak' });
   await expect(streak).toContainText(/\d+ days/);
   const daysBefore = Number((await streak.textContent())?.match(/(\d+) days/)?.[1]);
-  await expect(page.getByRole('region', { name: 'Today' })).toContainText('0m');
+  await expect(page.getByRole('region', { name: 'Today', exact: true })).toContainText('0m');
 
   // NEG-1: the neglect warning opens Log with Science chosen.
   await page.getByRole('link', { name: /^Science — \d+ days untouched/ }).click();
@@ -27,13 +27,13 @@ test('the full demo journey works without ever calling the server', async ({ pag
   await expect(page.getByText(/Logged 45m/)).toBeVisible();
 
   // Home: today's time, a longer streak, and no more warning.
-  await expect(page.getByRole('region', { name: 'Today' })).toContainText('45m');
+  await expect(page.getByRole('region', { name: 'Today', exact: true })).toContainText('45m');
   await expect(streak).toContainText(`${daysBefore + 1} days`);
   await expect(page.getByRole('region', { name: 'Needs attention' })).toHaveCount(0);
 
   // History shows it under Today.
   await openScreen(page, 'History');
-  const today = page.getByRole('region', { name: 'Today' });
+  const today = page.getByRole('region', { name: 'Today', exact: true });
   await expect(today).toContainText('Science');
   await expect(today).toContainText('45m');
 

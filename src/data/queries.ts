@@ -134,3 +134,24 @@ export function useDataMutation<TInput, TResult>(
 
 /** Everything a session change can affect: lists, recent shortcuts, and topic statuses. */
 export const SESSION_KEYS = ['sessions', 'recent', 'tree', 'dashboard', 'track'];
+
+/** UNDO-4: the last 7 days of changes. */
+export function useChanges() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'changes'], queryFn: () => ds.listChanges() });
+}
+
+/** ERR-3, ERR-4. */
+export function useMistakes() {
+  const ds = useDataSource();
+  return useQuery({ queryKey: [ds.mode, 'mistakes'], queryFn: () => ds.getMistakes() });
+}
+
+/** EXAM-2: one exam (undefined = the next upcoming one). */
+export function useExamView(deadlineId: string | undefined) {
+  const ds = useDataSource();
+  return useQuery({
+    queryKey: [ds.mode, 'exam', deadlineId ?? null],
+    queryFn: () => ds.getExamView(deadlineId),
+  });
+}

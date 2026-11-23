@@ -2,12 +2,15 @@ import {
   ChartLine,
   Ellipsis,
   FileText,
+  GraduationCap,
   History,
   House,
   Layers,
   ListChecks,
   Plus,
+  RotateCcw,
   Settings,
+  TriangleAlert,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router';
@@ -38,8 +41,11 @@ const DESKTOP_ITEMS: NavItem[] = [
   { to: '/history', label: 'History', icon: History },
   { to: '/tasks', label: 'Tasks', icon: ListChecks },
   { to: '/scores', label: 'Scores', icon: ChartLine },
+  { to: '/exam', label: 'Exam', icon: GraduationCap },
+  { to: '/mistakes', label: 'Mistakes', icon: TriangleAlert },
   { to: '/tracks', label: 'Tracks', icon: Layers },
   { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/changes', label: 'Recent changes', icon: RotateCcw },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 

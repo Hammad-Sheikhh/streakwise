@@ -1,7 +1,8 @@
-import { AlertTriangle, CalendarClock, FileText, Flame, Plus } from 'lucide-react';
+import { AlertTriangle, CalendarClock, FileText, Flame, Plus, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 
 import { NodeLabel } from '@/components/NodeLabel';
+import { Badge } from '@/components/ui/badge';
 import { QueryError } from '@/components/QueryError';
 import { trackSwatchClass } from '@/components/trackColors';
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,12 @@ import { cn } from '@/lib/utils';
 import { TaskRow } from '@/features/tasks/TaskList';
 
 import { Heatmap } from './Heatmap.js';
+import { TodayCard } from './TodayCard.js';
 
 // DASH-1: Home answers "How am I doing this week, and what am I neglecting?" (G2).
-// Order on mobile: neglect → today and streak → targets → tasks due → deadlines → heatmap →
-// this week's report. A backup reminder (SET-3) sits at the end when one is due.
+// Order on mobile: neglect → the Today card (TODAY-1) and mistakes due (ERR-6) → today and streak
+// → targets → tasks due → deadlines → heatmap → this week's report. A backup reminder (SET-3) sits
+// at the end when one is due.
 export function HomePage() {
   const dashboard = useDashboard();
   const tree = useTree();
@@ -118,6 +121,18 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
             })}
           </ul>
         </section>
+      )}
+
+      <TodayCard card={data.todayCard} nodes={nodes} today={data.today} />
+
+      {data.mistakesDue > 0 && (
+        <Link
+          to={`${basePath}/mistakes`}
+          className="flex min-h-11 items-center gap-2 self-start rounded-md font-medium underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <TriangleAlert aria-hidden="true" className="size-4" />
+          {data.mistakesDue} {data.mistakesDue === 1 ? 'mistake' : 'mistakes'} due today
+        </Link>
       )}
 
       <div className="grid grid-cols-2 gap-3">
@@ -259,7 +274,18 @@ function HomeContent({ data, nodes }: { data: Dashboard; nodes: readonly TreeNod
                 <CalendarClock aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <p className="font-medium">
-                    {deadline.title}{' '}
+                    {deadline.isExam ? (
+                      // EXAM-1, EXAM-2: exam deadlines link to the exam view.
+                      <Link
+                        to={`${basePath}/exam?deadline=${deadline.id}`}
+                        className="underline underline-offset-4"
+                      >
+                        {deadline.title}
+                      </Link>
+                    ) : (
+                      deadline.title
+                    )}{' '}
+                    {deadline.isExam && <Badge variant="secondary">Exam</Badge>}{' '}
                     <span className="font-normal text-muted-foreground">
                       {formatDaysLeft(deadline.daysLeft)}
                     </span>

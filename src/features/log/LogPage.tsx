@@ -1,6 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { toast } from 'sonner';
 
 import { QueryError } from '@/components/QueryError';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,11 +8,13 @@ import { nodePath } from '@/core/logic/tree';
 import { SESSION_KEYS, useDataMutation, useRecentNodeIds, useTree } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
 import { useStudyDay } from '@/data/useToday';
+import { useUndoToast } from '@/features/changes/useUndo';
 
 import { LogForm } from './LogForm.js';
 import type { LogFormValues } from './LogForm.js';
 
-// LOG-1: "+ Log", optionally with ?node=<id> preselected; LOG-9: Undo for 10 seconds after saving.
+// LOG-1: "+ Log", optionally with ?node=<id> preselected; LOG-9, UNDO-1: Undo for 10 seconds
+// after saving.
 export function LogPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,30 +25,13 @@ export function LogPage() {
   const recent = useRecentNodeIds();
 
   const dataSource = useDataSource();
-  const queryClient = useQueryClient();
-
-  // The page closes right after saving, so Undo can't rely on this component's hooks.
-  async function undo(id: string) {
-    try {
-      await dataSource.deleteSession(id);
-      toast.success('Session removed.');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Couldn’t undo. Delete it in History.');
-    }
-    await Promise.all(
-      SESSION_KEYS.map((key) =>
-        queryClient.invalidateQueries({ queryKey: [dataSource.mode, key] }),
-      ),
-    );
-  }
+  // The page closes right after saving; the toast's Undo doesn't depend on this page staying open.
+  const undoToast = useUndoToast();
 
   const log = useDataMutation((ds, values: LogFormValues) => ds.logSession(values), SESSION_KEYS, {
     onSuccess: (session) => {
       const name = nodePath(tree.data ?? [], session.nodeId).at(-1) ?? 'session';
-      toast.success(`Logged ${formatDuration(session.minutes)} · ${name}`, {
-        duration: 10_000,
-        action: { label: 'Undo', onClick: () => void undo(session.id) },
-      });
+      undoToast(`Logged ${formatDuration(session.minutes)} · ${name}`, 'session', session.id);
       // Back to where "+ Log" was opened from; Home if the page was opened directly.
       if (location.key !== 'default') void navigate(-1);
       else void navigate(dataSource.basePath || '/', { replace: true });

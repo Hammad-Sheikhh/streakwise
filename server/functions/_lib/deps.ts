@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Clock, IdGenerator, SessionSource } from '../../../src/core/domain/types.js';
 import { newShareSlug } from '../../../src/core/logic/slug.js';
 import type { SlugGenerator } from '../../../src/core/logic/slug.js';
-import { recordChanges } from '../../../src/core/repo/RecordingRepository.js';
+import { dailyPrune, recordChanges } from '../../../src/core/repo/RecordingRepository.js';
 import type { Repository } from '../../../src/core/repo/Repository.js';
 import { SupabaseAccountStore } from './accounts.js';
 import type { AccountStore } from './accounts.js';
@@ -44,10 +44,14 @@ export interface UserDeps extends ServerDeps {
   repo: Repository;
 }
 
+/** UNDO-7: the day each user's history was last cleaned up, while this instance stays warm. */
+const lastPrune = new Map<string, string>();
+
 export function forUser(deps: ServerDeps, userId: string, source: SessionSource = 'app'): UserDeps {
   const repo = recordChanges(deps.repoFor(userId), {
     source,
     newId: deps.newId,
+    pruneBefore: dailyPrune(deps.clock, userId, lastPrune),
     // The write itself stands (UNDO-3); only the kind of failure is logged, never data.
     onRecordError: (error) =>
       log.warn('change_record_failed', {

@@ -68,12 +68,24 @@ interface Hover {
   text: string;
 }
 
-export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
+/** EXAM-4: a target line that steps to each `minPercent` on its date. */
+export interface TargetStep {
+  date: string;
+  minPercent: number;
+}
+
+export function ScoreChart({
+  lines,
+  targets = [],
+}: {
+  lines: readonly ChartLine[];
+  targets?: readonly TargetStep[];
+}) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<Hover | null>(null);
 
   const all = lines.flatMap((l) => l.points);
-  const days = all.map((p) => toDay(p.date));
+  const days = [...all.map((p) => p.date), ...targets.map((t) => t.date)].map(toDay);
   let minDay = Math.min(...days);
   let maxDay = Math.max(...days);
   if (minDay === maxDay) {
@@ -107,6 +119,16 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
 
   const fromDate = new Date(minDay * DAY_MS).toISOString().slice(0, 10);
   const toDate = new Date(maxDay * DAY_MS).toISOString().slice(0, 10);
+
+  // The target line: flat from each target's date until the next one, then a step.
+  const steps = [...targets].sort((a, b) => a.date.localeCompare(b.date));
+  const targetPath = steps
+    .map((step, index) => {
+      const next = steps[index + 1];
+      const start = `${index === 0 ? 'M' : 'V'} ${index === 0 ? `${x(step.date)} ` : ''}${y(step.minPercent)}`;
+      return `${start} H ${next ? x(next.date) : MARGIN.left + plotWidth}`;
+    })
+    .join(' ');
 
   function handlePointer(event: PointerEvent<SVGSVGElement>) {
     const box = event.currentTarget.getBoundingClientRect();
@@ -178,6 +200,16 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
             {formatDay(toDate)}
           </text>
 
+          {targetPath && (
+            <path
+              d={targetPath}
+              fill="none"
+              className="stroke-foreground"
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+            />
+          )}
+
           {plotted.map((line) => (
             <g key={line.nodeId}>
               {line.coords.length > 1 && (
@@ -242,7 +274,7 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
         )}
       </div>
 
-      {lines.length > 1 && (
+      {(lines.length > 1 || targetPath) && (
         <ul aria-label="Legend" className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {lines.map((line) => (
             <li key={line.nodeId} className="flex items-center gap-1.5">
@@ -262,9 +294,25 @@ export function ScoreChart({ lines }: { lines: readonly ChartLine[] }) {
               <TrendLabel trend={line.trend} />
             </li>
           ))}
+          {targetPath && (
+            <li className="flex items-center gap-1.5">
+              <svg aria-hidden="true" width={18} height={10}>
+                <line
+                  x1={1}
+                  x2={17}
+                  y1={5}
+                  y2={5}
+                  className="stroke-foreground"
+                  strokeDasharray="4 3"
+                  strokeWidth={1.5}
+                />
+              </svg>
+              <span>Target</span>
+            </li>
+          )}
         </ul>
       )}
-      {lines.length === 1 && lines[0] && (
+      {lines.length === 1 && lines[0] && !targetPath && (
         <p className="text-sm">
           {lines[0].label} <TrendLabel trend={lines[0].trend} />
         </p>

@@ -2,7 +2,9 @@ import type {
   ChangeAction,
   ChangeEntity,
   ChangeEntry,
+  Clock,
   Deadline,
+  ExamTarget,
   IdGenerator,
   Mistake,
   Score,
@@ -15,15 +17,18 @@ import type {
   TaskCompletion,
   TreeNode,
 } from '../domain/types.js';
+import { localDate } from '../logic/dates.js';
 import { formatDay } from '../logic/labels.js';
 import { formatDuration } from '../logic/duration.js';
 import { nodePath, subtreeIds } from '../logic/tree.js';
 import type {
   DeadlinePatch,
+  ExamTargetPatch,
   MistakePatch,
   NewChange,
   NewCompletion,
   NewDeadline,
+  NewExamTarget,
   NewMistake,
   NewNode,
   NewScore,
@@ -54,6 +59,28 @@ export interface RecordingOptions {
   source: SessionSource;
   newId: IdGenerator;
   onRecordError?: (error: unknown) => void;
+  /**
+   * UNDO-7: after a change is recorded, entries older than the returned time are removed. Return
+   * null when no clean-up is due (see `dailyPrune`).
+   */
+  pruneBefore?: () => string | null;
+}
+
+/** UNDO-7: entries are kept this long. */
+export const CHANGE_KEEP_DAYS = 30;
+
+/**
+ * UNDO-7: a clean-up at most once per Karachi day for `key` (a user), remembered in `state`, which
+ * lives as long as the process (a warm function instance, or the demo).
+ */
+export function dailyPrune(clock: Clock, key: string, state: Map<string, string>) {
+  return (): string | null => {
+    const now = clock();
+    const day = localDate(now);
+    if (state.get(key) === day) return null;
+    state.set(key, day);
+    return new Date(now.getTime() - CHANGE_KEEP_DAYS * 86_400_000).toISOString();
+  };
 }
 
 /** What a completion entry stores: the completion, its task's title, and the score it made. */
@@ -67,6 +94,9 @@ export interface CompletionSnapshot {
 export interface NodeTreeSnapshot {
   nodes: TreeNode[];
 }
+
+/** What a deadline delete stores: the deadline and the exam targets that went with it. */
+export type DeadlineSnapshot = Deadline & { examTargets: ExamTarget[] };
 
 /** The change log's summary column holds at most this many characters. */
 export const MAX_SUMMARY_LENGTH = 200;
@@ -115,6 +145,8 @@ export class RecordingRepository implements Repository {
         ...change,
         summary: clip(change.summary),
       });
+      const cutoff = this.options.pruneBefore?.();
+      if (cutoff) await this.inner.deleteChangesBefore(cutoff);
     } catch (error) {
       this.options.onRecordError?.(error);
     }
@@ -287,11 +319,53 @@ export class RecordingRepository implements Repository {
   }
 
   async deleteDeadline(id: string): Promise<void> {
-    const before = (await this.inner.listDeadlines()).find((d) => d.id === id);
+    const [deadlines, targets] = await Promise.all([
+      this.inner.listDeadlines(),
+      this.inner.listExamTargets(),
+    ]);
+    const before = deadlines.find((d) => d.id === id);
     await this.inner.deleteDeadline(id);
     if (before) {
+      const snapshot: DeadlineSnapshot = {
+        ...before,
+        examTargets: targets.filter((t) => t.deadlineId === id),
+      };
       const summary = this.deadlineSummary('Deleted', before);
-      await this.entry('deadline', id, 'delete', summary, before, null);
+      await this.entry('deadline', id, 'delete', summary, snapshot, null);
+    }
+  }
+
+  listExamTargets(): Promise<ExamTarget[]> {
+    return this.inner.listExamTargets();
+  }
+
+  private targetSummary(verb: string, target: ExamTarget): string {
+    return `${verb} target · ${short(target.label)} · ${target.minPercent}% by ${formatDay(target.targetOn)}`;
+  }
+
+  async insertExamTarget(target: NewExamTarget): Promise<ExamTarget> {
+    const created = await this.inner.insertExamTarget(target);
+    const summary = this.targetSummary('Added', created);
+    await this.entry('exam_target', created.id, 'create', summary, null, created);
+    return created;
+  }
+
+  async updateExamTarget(id: string, patch: ExamTargetPatch): Promise<ExamTarget> {
+    const before = (await this.inner.listExamTargets()).find((t) => t.id === id);
+    const after = await this.inner.updateExamTarget(id, patch);
+    if (before && changedFields(before, after).length > 0) {
+      const summary = this.targetSummary('Edited', after);
+      await this.entry('exam_target', id, 'update', summary, before, after);
+    }
+    return after;
+  }
+
+  async deleteExamTarget(id: string): Promise<void> {
+    const before = (await this.inner.listExamTargets()).find((t) => t.id === id);
+    await this.inner.deleteExamTarget(id);
+    if (before) {
+      const summary = this.targetSummary('Deleted', before);
+      await this.entry('exam_target', id, 'delete', summary, before, null);
     }
   }
 
