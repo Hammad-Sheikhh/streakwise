@@ -1,7 +1,8 @@
 # Progress
 
-_Last updated: 2026-11-23 by Claude (M9a built, PR #43 into `develop`; the owner runs `0005` once
-its CI is green; production is v1.0.1)_
+_Last updated: 2026-11-23 by Claude (all of v1.1 built: M9a in PR #43 (CI green), M9b and M9c
+pushed on stacked branches; waiting for the owner to run `0005` and OK merging #43; production is
+v1.0.1)_
 
 ## Milestones
 
@@ -19,8 +20,8 @@ its CI is green; production is v1.0.1)_
 | Cleanup         | ✅ done   | #27           | Migration `0004` (applied 2026-10-10), old-passcode claim removed (D19). Merged into `develop` 2026-10-10                                                                                                                                                                               |
 | M8 Polish       | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
 | M9a Claude v1.1 | 🔍 review | #43           | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
-| M9b App v1.1    | planned   |               | Undo toasts, Recent changes, Mistakes screen, Exam view, Today card. Branch `feat/v1.1-app`                                                                                                                                                                                             |
-| M9c Timer/data  | planned   |               | Timer, notes search, export v2 + CSVs, restore. Branch `feat/v1.1-timer-data`; then **R6 = v1.1.0** with the owner's yes                                                                                                                                                                |
+| M9b App v1.1    | 🔍 built  | (after #43)   | UNDO-1/2/4/7, ERR-3–6, EXAM-1–6, TODAY-1–4, exam targets. Branch `feat/v1.1-app` (on top of `feat/v1.1-claude`); PR opens once #43 is merged and the branch is rebased                                                                                                                  |
+| M9c Timer/data  | 🔍 built  | (after M9b)   | TIMER-1–3, DATA-1–4, README/architecture/screenshots. Branch `feat/v1.1-timer-data` (on top of `feat/v1.1-app`); then **R6 = v1.1.0** with the owner's yes                                                                                                                              |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -137,34 +138,49 @@ One database for everything (D15), so each migration runs once.
 
 ## Current work / next step
 
-**2026-11-23 (later): M9a built, PR #43 into `develop`.** Branch `feat/v1.1-claude`, 9 commits:
-`0005` + PGlite tests; study day, completion dates, storage; mistakes core; change history + undo
-(core, API, demo); Claude tools; app ("My day ends at", "Done on"); docs. Locally: formatting,
-lint, typecheck, 499 tests, build (main bundle 230.6 KB gzipped of 250).
+**2026-11-23 (even later): all of v1.1 is built.** Three branches, each on top of the one before:
 
-- Delivered IDs: `0005` (all of §B7.1), DAY-1–5, TASK-10/11, UNDO-3, UNDO-5, UNDO-6 (API + demo),
-  ERR-1–2 (core), MCP-10–24. Not in M9a by design: the Recent changes screen, undo toasts, the
-  Mistakes/Exam screens, the Today card (M9b); exam targets in the repository (M9b; the table is in
-  `0005`); notes search in History, export v2, restore service (M9c; `restore_user_backup` is in
-  `0005`); UNDO-7 pruning (M9b).
-- **D29** (SPEC §B15): compact `list_tasks` shows `done` only when true and leaves out a
-  sub-task's path when it equals its parent's. Literal MCP-13 shape: 28% of the full answer on the
-  MCP-14 fixture (misses 25%); with D29: 24%.
-- Interpretations made while building (owner can change them): logging on a not-started topic
-  records two entries (the session, and the topic moving to in progress); reordering isn't
-  recorded; undoing a task's creation refuses once it has sub-tasks or ticks; unscored tasks are
-  ticked for an earlier day from "Done on another day…" in their details (scored ones in the score
-  dialog); the batch error message counts from 1 ("Session 3") and gives the 0-based index.
-- Until `0005` runs, any preview built from this branch fails on API calls (settings read the new
-  column). Production keeps working (it doesn't read the new columns).
+| Part | Branch                 | State                                                                                 |
+| ---- | ---------------------- | ------------------------------------------------------------------------------------- |
+| M9a  | `feat/v1.1-claude`     | PR #43 into `develop`, CI green (lint/typecheck/tests/build, e2e)                     |
+| M9b  | `feat/v1.1-app`        | pushed; 531+ unit tests and 52 e2e checks green locally                               |
+| M9c  | `feat/v1.1-timer-data` | pushed; **558 unit tests and 54 e2e checks green**, build 214 KB gzipped (budget 250) |
 
-**Next:**
+- **M9b delivered:** Recent changes (`/changes`) with Undo, undo toasts after logging, ticking and
+  unticking, adding/deleting scores and sessions, and adding/reviewing/deleting mistakes (UNDO-1,
+  UNDO-4); tap a session or score to open its edit sheet with Delete inside (UNDO-2); history older
+  than 30 days removed once a day per user (UNDO-7); Mistakes screen with Due today (Right/Wrong),
+  All grouped by node with a filter, counts per module, add/edit/delete (ERR-1, ERR-3, ERR-4) and
+  the Home link (ERR-6); "This is an exam" on deadlines, Exam badge, Exam view with countdown,
+  targets, chart with a stepped target line, and the mock grid with worded below-target marks,
+  averages, and targets (EXAM-1–6); the Today card (TODAY-1–4). Demo data has an exam with three
+  mock rounds, mistakes, and a task due today. The axe sweep now covers 11 screens.
+- **M9c delivered:** the timer (TIMER-1–3; device-only, one at a time, pill above the bottom nav,
+  Stop fills in the Log form with the note focused, runs over 24 h explained); notes search in
+  History with marked matches (DATA-1); export format 2 and CSVs for scores, tasks, and mistakes
+  (DATA-2); restore from a format 1 or 2 backup with a summary, typed RESTORE, and a safety
+  download first (DATA-3, DATA-4); README, architecture, and screenshots for v1.1.
+- **Found by running the e2e suite locally (fixed before pushing):** the tap-to-edit session
+  button's accessible name didn't contain its visible text; the mock grid scrolled sideways on
+  phones without keyboard access; stopping a timer while already on `/log` didn't refresh the form.
+- **Interpretations made while building (owner can change them):** Recent changes groups by the
+  calendar day the change was made; the Today card's task opens the same details dialog as Tasks;
+  unscored tasks are ticked for an earlier day from their details ("Done on another day…"); a demo
+  timer is stored separately from the real app's; restore refuses any file that breaks a database
+  rule rather than repairing it.
+- Nothing cut: every MUST and SHOULD of v1.1 is built.
 
-1. When #43's CI is green: ask the owner to run `0005` (explain every click; current Supabase docs
-   don't name the SQL Editor buttons any more, so use the direct link that worked for `0001`–`0004`
-   and ask the owner to describe the screen if it differs). Then ask for an OK to merge #43.
-2. M9b on `feat/v1.1-app` (from `feat/v1.1-claude` until #43 is merged): UNDO-1, UNDO-2, UNDO-4,
-   UNDO-7, ERR-3–6, EXAM-1–6 (+ exam targets in the repositories), TODAY-1–4.
+**Next (in order):**
+
+1. **Owner:** run `0005` in Supabase (instructions were given in chat; the script was put on the
+   clipboard), then say it worked.
+2. **Owner:** OK to merge #43 into `develop`. Then Claude Code squash-merges it, rebases
+   `feat/v1.1-app` onto `develop` (`git rebase --onto develop feat/v1.1-claude feat/v1.1-app`),
+   force-pushes that feature branch, opens the M9b PR; same for `feat/v1.1-timer-data` after M9b.
+3. **Owner:** try each preview (demo first; restore only in demo or a throwaway account).
+4. **Owner:** yes/no to **R6 = v1.1.0**. The 2026-10-29 mobile login and install-icon fixes are
+   already in `develop`, so they ship with R6. Before the release: a `chore: set version 1.1.0`
+   PR, then `develop` → `main` as a merge commit, tag `v1.1.0`, live checks, log it here.
 
 **2026-11-23: v1.1 "the exam update" specified (SPEC v3.0), nothing built yet.** The owner pasted a
 feature list (MCP: compact lists and filters, get_task, get_latest_note, edit/undo tools, completion
