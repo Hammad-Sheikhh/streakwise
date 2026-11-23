@@ -74,7 +74,7 @@ describe('undo toasts (UNDO-1)', () => {
     });
     renderRoutes('/history', api);
 
-    await user.click(await screen.findByRole('button', { name: '30m of Maths. Edit' }));
+    await user.click(await screen.findByRole('button', { name: /^Edit:.*Maths.*30m/ }));
     const sheet = await screen.findByRole('dialog', { name: 'Edit session' });
     await user.click(within(sheet).getByRole('button', { name: 'Delete…' }));
     await user.click(

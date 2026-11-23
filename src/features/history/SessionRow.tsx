@@ -70,9 +70,10 @@ export function SessionRow({
       <button
         type="button"
         className="flex min-w-0 flex-1 flex-col gap-1 rounded-md text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        aria-label={`${summary}. Edit`}
         onClick={() => setEditing(true)}
       >
+        {/* The accessible name is the visible text (WCAG 2.5.3), introduced as an edit. */}
+        <span className="sr-only">Edit: </span>
         <span className="flex flex-wrap items-center gap-2">
           <NodeLabel nodes={nodes} nodeId={session.nodeId} className="font-medium" />
           {session.source === 'claude' && <Badge variant="secondary">via Claude</Badge>}

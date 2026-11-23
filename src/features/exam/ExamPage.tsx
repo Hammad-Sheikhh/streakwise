@@ -372,7 +372,13 @@ function MockGrid({ exam }: { exam: Exam }) {
           with the same title make one row.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        // On a phone the grid scrolls sideways, so the region takes focus for keyboard scrolling.
+        <div
+          role="region"
+          aria-label="Mock tests by module"
+          tabIndex={0}
+          className="overflow-x-auto rounded-lg border outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
           <table className="w-full text-sm">
             <thead className="text-left text-muted-foreground">
               <tr className="border-b">

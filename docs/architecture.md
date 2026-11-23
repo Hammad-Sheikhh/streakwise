@@ -124,6 +124,25 @@ their ids and creation times; a deleted task tree comes back with its completion
 in one database call. It refuses with 409 `changed_since` while a later change to the same item
 stands, and 409 `cannot_undo` when the item can't be put back.
 
+In the app, `useUndoToast` (`src/features/changes/useUndo.ts`) shows the 10-second Undo after
+logging, ticking, scoring, deleting, and reviewing a mistake: it looks up the newest recorded
+change to that item and undoes it, so the Recent changes screen (`/changes`) shows it as undone.
+History older than 30 days is removed after a recorded change, at most once a day per user per warm
+function instance (`dailyPrune`, UNDO-7).
+
+## Exam view and Today card (v1.1, EXAM, TODAY)
+
+- An exam is a deadline with `isExam`; its score targets are `exam_targets` rows. `getExamView`
+  (`src/core/services/exams.ts`) picks the next upcoming exam (or the one asked for) and uses the
+  pure rules in `src/core/logic/exam.ts` (§B9.16): modules are the exam node's visible children,
+  each score goes to the module whose subtree holds it (scores on the exam node itself go to
+  "Overall"), mock rows are distinct `mock_test` titles by their first date, and a row's target is
+  the one named like it or the latest one dated by its first date. The page is lazy-loaded and
+  reuses the score chart with a stepped target line.
+- The Today card is part of the dashboard response (TODAY-4): today's task (§B9.15), minutes per
+  subtask today, and pace per track with "needed per day" (§B9.14), from
+  `src/core/logic/todayCard.ts`. The dashboard also counts mistakes due (ERR-6).
+
 ## Dashboard
 
 `getDashboard` reads the tree, settings, deadlines, and a light list of every session
@@ -138,38 +157,44 @@ All require a session cookie except `auth/login`, `auth/signup`, `auth/forgot`,
 `auth/resend`, `auth/logout`, `health`, and `keepalive`. Every data endpoint reads and writes only the
 logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below).
 
-| Endpoint                  | Methods       | Purpose                                                          |
-| ------------------------- | ------------- | ---------------------------------------------------------------- |
-| `/api/auth/signup`        | POST          | Create an account (Supabase Auth), limited per IP                |
-| `/api/auth/login`         | POST          | Email + password login (lockout), first-login seed               |
-| `/api/auth/forgot`        | POST          | Email a reset link (same answer for unknown emails)              |
-| `/api/auth/resend`        | POST          | Send the confirmation email again                                |
-| `/api/auth/password`      | POST          | Change password; logs out other devices                          |
-| `/api/auth/account`       | DELETE        | Delete the account and all its data                              |
-| `/api/auth/logout`        | POST          | Clear the session cookie                                         |
-| `/api/auth/me`            | GET           | Who is logged in (email, name), reset-link state                 |
-| `/auth/confirm`           | GET           | Where email links land; logs in, then redirects                  |
-| `/api/nodes`              | GET, POST     | The structure tree; add a node                                   |
-| `/api/nodes/:id`          | PATCH, DELETE | Rename, recolor, archive/restore; delete                         |
-| `/api/nodes/:id/move`     | POST          | Move up/down among siblings                                      |
-| `/api/sessions`           | GET, POST     | A 30-day History page (filters); log a session                   |
-| `/api/sessions/:id`       | PATCH, DELETE | Edit or delete a session                                         |
-| `/api/recent-nodes`       | GET           | The 5 most recently used nodes                                   |
-| `/api/dashboard`          | GET           | Everything Home shows, in one request (DASH-1)                   |
-| `/api/deadlines`          | GET, POST     | List and add deadlines                                           |
-| `/api/deadlines/:id`      | PATCH, DELETE | Edit or delete a deadline                                        |
-| `/api/settings`           | GET, PATCH    | Student name, neglect threshold, "My day ends at"                |
-| `/api/claude-connection`  | GET, POST     | Whether a link exists; POST makes a new one (shown once)         |
-| `/api/reports`            | POST          | Build a report for a period (`buildReport`, REP-9)               |
-| `/api/shares`             | GET, POST     | List share links; create one (server rebuilds the report)        |
-| `/api/shares/:id`         | DELETE        | Revoke a share link (kept in the list, marked revoked)           |
-| `/api/share/:slug`        | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked       |
-| `/api/export`             | POST          | All data as JSON (CSV is made in the browser); stamps time       |
-| `/api/tasks/:id/complete` | POST, DELETE  | Complete (optional `completedOn`); untick the period of `?date=` |
-| `/api/changes`            | GET           | Changes from the last 7 days, newest first (UNDO-4)              |
-| `/api/changes/:id/undo`   | POST          | Undo one change (UNDO-5)                                         |
-| `/api/health`             | GET           | Liveness, no database                                            |
-| `/api/keepalive`          | GET           | One trivial database read                                        |
+| Endpoint                     | Methods       | Purpose                                                          |
+| ---------------------------- | ------------- | ---------------------------------------------------------------- |
+| `/api/auth/signup`           | POST          | Create an account (Supabase Auth), limited per IP                |
+| `/api/auth/login`            | POST          | Email + password login (lockout), first-login seed               |
+| `/api/auth/forgot`           | POST          | Email a reset link (same answer for unknown emails)              |
+| `/api/auth/resend`           | POST          | Send the confirmation email again                                |
+| `/api/auth/password`         | POST          | Change password; logs out other devices                          |
+| `/api/auth/account`          | DELETE        | Delete the account and all its data                              |
+| `/api/auth/logout`           | POST          | Clear the session cookie                                         |
+| `/api/auth/me`               | GET           | Who is logged in (email, name), reset-link state                 |
+| `/auth/confirm`              | GET           | Where email links land; logs in, then redirects                  |
+| `/api/nodes`                 | GET, POST     | The structure tree; add a node                                   |
+| `/api/nodes/:id`             | PATCH, DELETE | Rename, recolor, archive/restore; delete                         |
+| `/api/nodes/:id/move`        | POST          | Move up/down among siblings                                      |
+| `/api/sessions`              | GET, POST     | A 30-day History page (filters); log a session                   |
+| `/api/sessions/:id`          | PATCH, DELETE | Edit or delete a session                                         |
+| `/api/recent-nodes`          | GET           | The 5 most recently used nodes                                   |
+| `/api/dashboard`             | GET           | Everything Home shows, in one request (DASH-1)                   |
+| `/api/deadlines`             | GET, POST     | List and add deadlines                                           |
+| `/api/deadlines/:id`         | PATCH, DELETE | Edit or delete a deadline                                        |
+| `/api/settings`              | GET, PATCH    | Student name, neglect threshold, "My day ends at"                |
+| `/api/claude-connection`     | GET, POST     | Whether a link exists; POST makes a new one (shown once)         |
+| `/api/reports`               | POST          | Build a report for a period (`buildReport`, REP-9)               |
+| `/api/shares`                | GET, POST     | List share links; create one (server rebuilds the report)        |
+| `/api/shares/:id`            | DELETE        | Revoke a share link (kept in the list, marked revoked)           |
+| `/api/share/:slug`           | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked       |
+| `/api/export`                | POST          | All data as JSON (CSV is made in the browser); stamps time       |
+| `/api/tasks/:id/complete`    | POST, DELETE  | Complete (optional `completedOn`); untick the period of `?date=` |
+| `/api/changes`               | GET           | Changes from the last 7 days, newest first (UNDO-4)              |
+| `/api/changes/:id/undo`      | POST          | Undo one change (UNDO-5)                                         |
+| `/api/mistakes`              | GET, POST     | The Mistakes screen (due, all, per module); add one              |
+| `/api/mistakes/:id`          | PATCH, DELETE | Edit (text, node) or delete a mistake                            |
+| `/api/mistakes/:id/review`   | POST          | Review right or wrong (§B9.13)                                   |
+| `/api/exam`                  | GET           | The exam view (`?deadline=`; default the next exam)              |
+| `/api/deadlines/:id/targets` | POST          | Add a score target to an exam                                    |
+| `/api/exam-targets/:id`      | PATCH, DELETE | Edit or delete a score target                                    |
+| `/api/health`                | GET           | Liveness, no database                                            |
+| `/api/keepalive`             | GET           | One trivial database read                                        |
 
 ## Accounts (M5A, SPEC D17)
 
