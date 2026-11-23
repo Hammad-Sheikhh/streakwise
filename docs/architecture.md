@@ -143,6 +143,24 @@ function instance (`dailyPrune`, UNDO-7).
   subtask today, and pace per track with "needed per day" (§B9.14), from
   `src/core/logic/todayCard.ts`. The dashboard also counts mistakes due (ERR-6).
 
+## Timer, search, export, and restore (v1.1, TIMER, DATA)
+
+- **Timer:** one timer per device in `localStorage` (`streakwise.timer.api` or `.demo`: node and
+  start time), read through `useSyncExternalStore` (`src/features/timer/timerStore.ts`), so it
+  survives reloads and never calls the server while it runs. Stopping turns the run into minutes
+  and the study day of its start (`src/core/logic/timer.ts`) and opens `/log` with them filled in.
+- **Search:** History's `noteContains` goes down to the store (`ilike` in Supabase; `*` is a
+  PostgREST wildcard, so the exact match is re-checked in code) and pages like the other filters.
+- **Export format 2** adds mistakes, exam targets, and "day ends at"; CSVs for sessions, scores,
+  tasks, and mistakes are built in the browser from the same export, with the formula guard.
+- **Restore** (`src/core/services/backup.ts`): the file (format 1 or 2, at most 4 MB) is parsed
+  with Zod and checked against every database rule (levels, sibling names, links between rows,
+  one completion per period) before anything changes, so a restore never fails halfway. Every row
+  gets a new id with its links remapped, then `restore_user_backup` (one transaction) deletes the
+  user's study rows and inserts the new ones; the account, Claude link, shared links, and
+  export/MCP times stay, and the change history is cleared. The browser runs the same checks to
+  show a summary first, and downloads a fresh backup before it sends the file.
+
 ## Dashboard
 
 `getDashboard` reads the tree, settings, deadlines, and a light list of every session
@@ -183,6 +201,7 @@ logged-in user's rows (`deps.repo` is a per-user repository; see Accounts below)
 | `/api/shares`                | GET, POST     | List share links; create one (server rebuilds the report)        |
 | `/api/shares/:id`            | DELETE        | Revoke a share link (kept in the list, marked revoked)           |
 | `/api/share/:slug`           | GET (public)  | A shared report's snapshot; 404 if unknown/expired/revoked       |
+| `/api/restore`               | POST          | Replace all study data with a backup (checked first)             |
 | `/api/export`                | POST          | All data as JSON (CSV is made in the browser); stamps time       |
 | `/api/tasks/:id/complete`    | POST, DELETE  | Complete (optional `completedOn`); untick the period of `?date=` |
 | `/api/changes`               | GET           | Changes from the last 7 days, newest first (UNDO-4)              |
