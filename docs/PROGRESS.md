@@ -131,7 +131,8 @@ One database for everything (D15), so each migration runs once.
         tag `v1.0.0`)
   - [x] Owner: Supabase → Authentication → URL Configuration → Site URL = `https://streakwise-mu.vercel.app`
         (redirect URLs are already saved; owner confirmed in chat, 2026-10-30)
-  - [ ] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
+  - [x] Owner: Settings → Claude connection → "Make a new link", then replace the connector in Claude
+        (owner: "claude works", 2026-11-23; the database shows a Claude call on the live v1.1.0 site)
   - [ ] Owner: delete the Netlify project (Vercel is confirmed working; R3a stays reachable until then)
 - [x] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor (owner said
       "done", 2026-11-23; a read-only check found every new column and table, and no completion
@@ -184,7 +185,7 @@ commit), tag `v1.1.0`, and live checks. Trying the previews was skipped at the o
 
 **Next (in order):**
 
-1. **Owner (guided in chat):** Settings → Claude connection → "Make a new link" on the live site,
+1. ~~**Owner (guided in chat):**~~ Done 2026-11-23 ("claude works"). Settings → Claude connection → "Make a new link" on the live site,
    then in Claude remove the old Streakwise connector and add the new one (No sign in), and switch
    it on in chats/projects. Then confirm Claude answers.
 2. **Claude Code, after the owner confirms step 1 and says yes:** delete the Netlify project
