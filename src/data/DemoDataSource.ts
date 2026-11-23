@@ -3,10 +3,15 @@ import { DomainError } from '@/core/domain/errors';
 import type { Clock, IdGenerator } from '@/core/domain/types';
 import { newShareSlug } from '@/core/logic/slug';
 import { InMemoryRepository } from '@/core/repo/InMemoryRepository';
+import { dailyPrune, recordChanges } from '@/core/repo/RecordingRepository';
 import type { Repository } from '@/core/repo/Repository';
+import * as backup from '@/core/services/backup';
+import * as changes from '@/core/services/changes';
 import * as dashboard from '@/core/services/dashboard';
 import * as deadlines from '@/core/services/deadlines';
+import * as exams from '@/core/services/exams';
 import * as exportsService from '@/core/services/exports';
+import * as mistakes from '@/core/services/mistakes';
 import * as reports from '@/core/services/reports';
 import * as scores from '@/core/services/scores';
 import * as sessions from '@/core/services/sessions';
@@ -33,7 +38,7 @@ export type DemoFill = (repo: Repository, clock: Clock, newId: IdGenerator) => P
 export class DemoDataSource implements DataSource {
   readonly mode: DataSource['mode'] = 'demo';
   readonly basePath = '/demo';
-  private readonly repo: InMemoryRepository;
+  private readonly repo: Repository;
   private readonly ready: Promise<unknown>;
 
   constructor(
@@ -42,12 +47,18 @@ export class DemoDataSource implements DataSource {
     /** What the store starts with; component tests use the plain seed of a new account instead. */
     fill: DemoFill = loadSampleData,
   ) {
-    this.repo = new InMemoryRepository(clock);
-    this.ready = fill(this.repo, clock, newId);
+    const store = new InMemoryRepository(clock);
+    // UNDO-3, UNDO-6: the demo records changes like the app does; its sample data isn't recorded.
+    this.repo = recordChanges(store, {
+      source: 'app',
+      newId,
+      pruneBefore: dailyPrune(clock, 'demo', new Map()),
+    });
+    this.ready = fill(store, clock, newId);
   }
 
   /** Runs a service once the seed is in, with errors shaped like the API's. */
-  private async run<T>(action: (repo: InMemoryRepository) => Promise<T>): Promise<T> {
+  private async run<T>(action: (repo: Repository) => Promise<T>): Promise<T> {
     await this.ready;
     try {
       return await action(this.repo);
@@ -227,5 +238,54 @@ export class DemoDataSource implements DataSource {
 
   exportData() {
     return this.run((repo) => exportsService.exportData(repo, this.clock));
+  }
+
+  listChanges() {
+    return this.run((repo) => changes.listRecentChanges(repo, this.clock));
+  }
+
+  undoChange(id: string) {
+    return this.run((repo) => changes.undoChange(repo, this.clock, id));
+  }
+
+  getMistakes() {
+    return this.run((repo) => mistakes.getMistakesOverview(repo, this.clock));
+  }
+
+  addMistake(input: Parameters<DataSource['addMistake']>[0]) {
+    return this.run((repo) => mistakes.addMistake(repo, this.clock, this.newId, input, 'app'));
+  }
+
+  updateMistake(id: string, input: Parameters<DataSource['updateMistake']>[1]) {
+    return this.run((repo) => mistakes.updateMistake(repo, id, input));
+  }
+
+  deleteMistake(id: string) {
+    return this.run((repo) => mistakes.deleteMistake(repo, id));
+  }
+
+  reviewMistake(id: string, input: Parameters<DataSource['reviewMistake']>[1]) {
+    return this.run((repo) => mistakes.reviewMistake(repo, this.clock, id, input));
+  }
+
+  getExamView(deadlineId?: string) {
+    return this.run((repo) => exams.getExamView(repo, this.clock, deadlineId));
+  }
+
+  addExamTarget(deadlineId: string, input: Parameters<DataSource['addExamTarget']>[1]) {
+    return this.run((repo) => exams.addExamTarget(repo, this.newId, deadlineId, input));
+  }
+
+  updateExamTarget(id: string, input: Parameters<DataSource['updateExamTarget']>[1]) {
+    return this.run((repo) => exams.updateExamTarget(repo, id, input));
+  }
+
+  deleteExamTarget(id: string) {
+    return this.run((repo) => exams.deleteExamTarget(repo, id));
+  }
+
+  /** DATA-4: the demo restores into memory; a reload brings the sample data back. */
+  restoreBackup(data: unknown) {
+    return this.run((repo) => backup.restoreFromBackup(repo, this.newId, data));
   }
 }

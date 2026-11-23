@@ -3,12 +3,13 @@ import { Navigate, Outlet } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { useDataSource } from '@/data/useDataSource';
+import { sessionKey } from '@/features/auth/session';
 
 /** Shows the page only with a valid session; otherwise sends the visitor to /login. */
 export function RequireAuth() {
   const dataSource = useDataSource();
   const session = useQuery({
-    queryKey: [dataSource.mode, 'session'],
+    queryKey: sessionKey(dataSource.mode),
     queryFn: () => dataSource.isAuthenticated(),
     retry: false,
   });

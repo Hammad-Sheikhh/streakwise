@@ -1,8 +1,12 @@
 import { conflict, invalid, notFound } from '../domain/errors.js';
 import { DEFAULT_SETTINGS } from '../domain/types.js';
 import type {
+  ChangeEntry,
   Clock,
   Deadline,
+  ExamTarget,
+  Mistake,
+  RestoreData,
   Score,
   Session,
   SessionFact,
@@ -15,8 +19,13 @@ import type {
 } from '../domain/types.js';
 import type {
   DeadlinePatch,
+  ExamTargetPatch,
+  MistakePatch,
+  NewChange,
   NewCompletion,
   NewDeadline,
+  NewExamTarget,
+  NewMistake,
   NewNode,
   NewScore,
   NewSession,
@@ -30,6 +39,7 @@ import type {
   SessionPatch,
   SettingsPatch,
   TaskPatch,
+  TaskTreeSnapshot,
 } from './Repository.js';
 
 // Repository for demo mode (in the browser) and service tests. It mirrors the database rules that
@@ -49,6 +59,13 @@ const linkOf = (share: SharedReport): SharedReportLink => ({
 
 const SCORED_NEEDS_NODE = 'Scored tasks need a track or subject.';
 
+/** Like the database client, a patch's undefined fields mean "leave as is". */
+function defined<T extends object>(patch: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  ) as Partial<T>;
+}
+
 export class InMemoryRepository implements Repository {
   private nodes: TreeNode[] = [];
   private sessions: Session[] = [];
@@ -58,6 +75,9 @@ export class InMemoryRepository implements Repository {
   private deadlines: Deadline[] = [];
   private settings: Settings = { ...DEFAULT_SETTINGS };
   private shares: SharedReport[] = [];
+  private mistakes: Mistake[] = [];
+  private changes: ChangeEntry[] = [];
+  private examTargets: ExamTarget[] = [];
   // Creation times must be strictly increasing so "newest first" is stable, even when the clock
   // is frozen in tests.
   private lastStamp = 0;
@@ -115,7 +135,7 @@ export class InMemoryRepository implements Repository {
   async updateNode(id: string, patch: NodePatch): Promise<TreeNode> {
     const node = this.findNode(id);
     if (patch.name !== undefined) this.assertUniqueName(node.parentId, patch.name, id);
-    Object.assign(node, patch, { updatedAt: this.stamp() });
+    Object.assign(node, defined(patch), { updatedAt: this.stamp() });
     return { ...node };
   }
 
@@ -135,9 +155,25 @@ export class InMemoryRepository implements Repository {
       this.sessions.some((s) => ids.has(s.nodeId)) ||
       this.tasks.some((t) => t.nodeId !== null && ids.has(t.nodeId)) ||
       this.scores.some((s) => ids.has(s.nodeId)) ||
-      this.deadlines.some((d) => ids.has(d.nodeId));
+      this.deadlines.some((d) => ids.has(d.nodeId)) ||
+      this.mistakes.some((m) => ids.has(m.nodeId));
     if (inUse) throw conflict('node_in_use');
     this.nodes = this.nodes.filter((n) => !ids.has(n.id));
+  }
+
+  async restoreNodes(nodes: TreeNode[]): Promise<void> {
+    // Checked as a whole first, so a failure changes nothing (one statement in the database).
+    const known = new Set(this.nodes.map((n) => n.id));
+    for (const node of nodes) {
+      if (known.has(node.id)) throw conflict('duplicate');
+      if (node.parentId !== null && !known.has(node.parentId)) throw notFound('node_not_found');
+      const clash = this.nodes.some(
+        (n) => n.parentId === node.parentId && n.name.toLowerCase() === node.name.toLowerCase(),
+      );
+      if (clash) throw conflict('duplicate');
+      known.add(node.id);
+    }
+    for (const node of nodes) this.nodes.push({ ...node });
   }
 
   async getSession(id: string): Promise<Session | null> {
@@ -147,17 +183,26 @@ export class InMemoryRepository implements Repository {
 
   async insertSession(input: NewSession): Promise<Session> {
     this.findNode(input.nodeId);
+    if (this.sessions.some((s) => s.id === input.id)) throw conflict('duplicate');
     const now = this.stamp();
-    const session: Session = { ...input, createdAt: now, updatedAt: now };
+    const session: Session = { ...input, createdAt: input.createdAt ?? now, updatedAt: now };
     this.sessions.push(session);
     return { ...session };
+  }
+
+  async insertSessions(inputs: NewSession[]): Promise<Session[]> {
+    // All checked before any is stored, like the database's single insert.
+    for (const input of inputs) this.findNode(input.nodeId);
+    const saved: Session[] = [];
+    for (const input of inputs) saved.push(await this.insertSession(input));
+    return saved;
   }
 
   async updateSession(id: string, patch: SessionPatch): Promise<Session> {
     const session = this.sessions.find((s) => s.id === id);
     if (!session) throw notFound('session_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(session, patch, { updatedAt: this.stamp() });
+    Object.assign(session, defined(patch), { updatedAt: this.stamp() });
     return { ...session };
   }
 
@@ -169,12 +214,16 @@ export class InMemoryRepository implements Repository {
 
   private matching(filter: SessionFilter): Session[] {
     const nodeIds = filter.nodeIds && new Set(filter.nodeIds);
+    const contains = filter.noteContains?.toLowerCase();
+    const startsWith = filter.noteStartsWith?.toLowerCase();
     return this.sessions.filter(
       (s) =>
         (filter.from === undefined || s.studiedOn >= filter.from) &&
         (filter.to === undefined || s.studiedOn <= filter.to) &&
         (nodeIds === undefined || nodeIds.has(s.nodeId)) &&
-        (filter.source === undefined || s.source === filter.source),
+        (filter.source === undefined || s.source === filter.source) &&
+        (contains === undefined || (s.note ?? '').toLowerCase().includes(contains)) &&
+        (startsWith === undefined || (s.note ?? '').toLowerCase().startsWith(startsWith)),
     );
   }
 
@@ -212,7 +261,8 @@ export class InMemoryRepository implements Repository {
 
   async insertDeadline(input: NewDeadline): Promise<Deadline> {
     this.findNode(input.nodeId);
-    const deadline: Deadline = { ...input, createdAt: this.stamp() };
+    if (this.deadlines.some((d) => d.id === input.id)) throw conflict('duplicate');
+    const deadline: Deadline = { ...input, createdAt: input.createdAt ?? this.stamp() };
     this.deadlines.push(deadline);
     return { ...deadline };
   }
@@ -221,7 +271,7 @@ export class InMemoryRepository implements Repository {
     const deadline = this.deadlines.find((d) => d.id === id);
     if (!deadline) throw notFound('deadline_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(deadline, patch);
+    Object.assign(deadline, defined(patch));
     return { ...deadline };
   }
 
@@ -229,6 +279,39 @@ export class InMemoryRepository implements Repository {
     const index = this.deadlines.findIndex((d) => d.id === id);
     if (index === -1) throw notFound('deadline_not_found');
     this.deadlines.splice(index, 1);
+    // Like exam_targets_deadline_same_user (0005): targets go with their deadline.
+    this.examTargets = this.examTargets.filter((t) => t.deadlineId !== id);
+  }
+
+  async listExamTargets(): Promise<ExamTarget[]> {
+    return [...this.examTargets]
+      .sort(
+        (a, b) => a.targetOn.localeCompare(b.targetOn) || a.createdAt.localeCompare(b.createdAt),
+      )
+      .map((t) => ({ ...t }));
+  }
+
+  async insertExamTarget(input: NewExamTarget): Promise<ExamTarget> {
+    if (!this.deadlines.some((d) => d.id === input.deadlineId))
+      throw notFound('deadline_not_found');
+    if (this.examTargets.some((t) => t.id === input.id)) throw conflict('duplicate');
+    const now = this.stamp();
+    const target: ExamTarget = { ...input, createdAt: input.createdAt ?? now, updatedAt: now };
+    this.examTargets.push(target);
+    return { ...target };
+  }
+
+  async updateExamTarget(id: string, patch: ExamTargetPatch): Promise<ExamTarget> {
+    const target = this.examTargets.find((t) => t.id === id);
+    if (!target) throw notFound('exam_target_not_found');
+    Object.assign(target, defined(patch), { updatedAt: this.stamp() });
+    return { ...target };
+  }
+
+  async deleteExamTarget(id: string): Promise<void> {
+    const index = this.examTargets.findIndex((t) => t.id === id);
+    if (index === -1) throw notFound('exam_target_not_found');
+    this.examTargets.splice(index, 1);
   }
 
   async getSettings(): Promise<Settings> {
@@ -236,7 +319,7 @@ export class InMemoryRepository implements Repository {
   }
 
   async updateSettings(patch: SettingsPatch): Promise<Settings> {
-    Object.assign(this.settings, patch);
+    Object.assign(this.settings, defined(patch));
     return { ...this.settings };
   }
 
@@ -323,11 +406,35 @@ export class InMemoryRepository implements Repository {
   async updateTask(id: string, patch: TaskPatch): Promise<Task> {
     const task = this.findTask(id);
     if (patch.nodeId !== undefined && patch.nodeId !== null) this.findNode(patch.nodeId);
-    const next = { ...task, ...patch };
+    const next = { ...task, ...defined(patch) };
     if (next.isScored && next.nodeId === null)
       throw invalid('scored_needs_node', SCORED_NEEDS_NODE);
-    Object.assign(task, patch, { updatedAt: this.stamp() });
+    Object.assign(task, defined(patch), { updatedAt: this.stamp() });
     return { ...task };
+  }
+
+  async restoreTaskTree(snapshot: TaskTreeSnapshot): Promise<void> {
+    // Checked as a whole first: the database does this in one atomic call.
+    const taskIds = new Set(this.tasks.map((t) => t.id));
+    for (const task of snapshot.tasks) {
+      if (taskIds.has(task.id)) throw conflict('duplicate');
+      taskIds.add(task.id);
+    }
+    for (const task of snapshot.tasks) {
+      if (task.nodeId !== null) this.findNode(task.nodeId);
+      if (task.parentTaskId !== null && !taskIds.has(task.parentTaskId)) {
+        throw notFound('task_not_found');
+      }
+    }
+    for (const c of snapshot.completions) {
+      if (this.completions.some((e) => e.id === c.id)) throw conflict('duplicate');
+    }
+    this.tasks.push(...snapshot.tasks.map((t) => ({ ...t })));
+    this.completions.push(...snapshot.completions.map((c) => ({ ...c })));
+    for (const link of snapshot.scoreLinks) {
+      const score = this.scores.find((s) => s.id === link.scoreId);
+      if (score && score.taskCompletionId === null) score.taskCompletionId = link.completionId;
+    }
   }
 
   async deleteTask(id: string): Promise<void> {
@@ -360,24 +467,30 @@ export class InMemoryRepository implements Repository {
   async completeTask(input: NewCompletion): Promise<TaskCompletion> {
     this.findTask(input.taskId);
     if (
-      this.completions.some((c) => c.taskId === input.taskId && c.periodStart === input.periodStart)
+      this.completions.some(
+        (c) =>
+          (c.taskId === input.taskId && c.periodStart === input.periodStart) || c.id === input.id,
+      )
     ) {
       throw conflict('already_completed');
     }
     if (input.score) this.findNode(input.score.nodeId);
     const completion: TaskCompletion = {
-      id: this.newCompletionId(),
+      id: input.id ?? this.newCompletionId(),
       taskId: input.taskId,
       periodStart: input.periodStart,
       completedAt: input.completedAt,
+      completedOn: input.completedOn,
       note: input.note,
     };
     this.completions.push(completion);
     if (input.score) {
+      const { createdAt, ...score } = input.score;
       this.scores.push({
-        ...input.score,
+        ...score,
+        // The score always belongs to the completion it was recorded with.
         taskCompletionId: completion.id,
-        createdAt: this.stamp(),
+        createdAt: createdAt ?? this.stamp(),
       });
     }
     return { ...completion };
@@ -399,7 +512,16 @@ export class InMemoryRepository implements Repository {
 
   async insertScore(input: NewScore): Promise<Score> {
     this.findNode(input.nodeId);
-    const score: Score = { ...input, taskCompletionId: null, createdAt: this.stamp() };
+    if (this.scores.some((s) => s.id === input.id)) throw conflict('duplicate');
+    const link = input.taskCompletionId ?? null;
+    if (link !== null && !this.completions.some((c) => c.id === link)) {
+      throw notFound('completion_not_found');
+    }
+    const score: Score = {
+      ...input,
+      taskCompletionId: link,
+      createdAt: input.createdAt ?? this.stamp(),
+    };
     this.scores.push(score);
     return { ...score };
   }
@@ -408,7 +530,7 @@ export class InMemoryRepository implements Repository {
     const score = this.scores.find((s) => s.id === id);
     if (!score) throw notFound('score_not_found');
     if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
-    Object.assign(score, patch);
+    Object.assign(score, defined(patch));
     return { ...score };
   }
 
@@ -416,5 +538,96 @@ export class InMemoryRepository implements Repository {
     const index = this.scores.findIndex((s) => s.id === id);
     if (index === -1) throw notFound('score_not_found');
     this.scores.splice(index, 1);
+  }
+
+  async listMistakes(): Promise<Mistake[]> {
+    return this.mistakes.map((m) => ({ ...m }));
+  }
+
+  async insertMistake(input: NewMistake): Promise<Mistake> {
+    this.findNode(input.nodeId);
+    if (this.mistakes.some((m) => m.id === input.id)) throw conflict('duplicate');
+    const now = this.stamp();
+    const mistake: Mistake = { ...input, createdAt: input.createdAt ?? now, updatedAt: now };
+    this.mistakes.push(mistake);
+    return { ...mistake };
+  }
+
+  async updateMistake(id: string, patch: MistakePatch): Promise<Mistake> {
+    const mistake = this.mistakes.find((m) => m.id === id);
+    if (!mistake) throw notFound('mistake_not_found');
+    if (patch.nodeId !== undefined) this.findNode(patch.nodeId);
+    Object.assign(mistake, defined(patch), { updatedAt: this.stamp() });
+    return { ...mistake };
+  }
+
+  async deleteMistake(id: string): Promise<void> {
+    const index = this.mistakes.findIndex((m) => m.id === id);
+    if (index === -1) throw notFound('mistake_not_found');
+    this.mistakes.splice(index, 1);
+  }
+
+  async insertChange(input: NewChange): Promise<ChangeEntry> {
+    const entry: ChangeEntry = {
+      ...input,
+      before: structuredClone(input.before),
+      after: structuredClone(input.after),
+      at: this.stamp(),
+      undoneAt: null,
+    };
+    this.changes.push(entry);
+    return structuredClone(entry);
+  }
+
+  async listChanges(filter: { since: string; limit: number }): Promise<ChangeEntry[]> {
+    return this.changes
+      .filter((c) => c.at >= filter.since)
+      .sort((a, b) => b.at.localeCompare(a.at))
+      .slice(0, filter.limit)
+      .map((c) => structuredClone(c));
+  }
+
+  async getChange(id: string): Promise<ChangeEntry | null> {
+    const entry = this.changes.find((c) => c.id === id);
+    return entry ? structuredClone(entry) : null;
+  }
+
+  async laterChanges(id: string): Promise<ChangeEntry[]> {
+    const entry = this.changes.find((c) => c.id === id);
+    if (!entry) throw notFound('change_not_found');
+    return this.changes
+      .filter(
+        (c) =>
+          c.entity === entry.entity &&
+          c.entityId === entry.entityId &&
+          c.at > entry.at &&
+          c.undoneAt === null,
+      )
+      .map((c) => structuredClone(c));
+  }
+
+  async markChangeUndone(id: string, at: string): Promise<ChangeEntry> {
+    const entry = this.changes.find((c) => c.id === id);
+    if (!entry) throw notFound('change_not_found');
+    entry.undoneAt ??= at;
+    return structuredClone(entry);
+  }
+
+  async deleteChangesBefore(at: string): Promise<void> {
+    this.changes = this.changes.filter((c) => c.at >= at);
+  }
+
+  async restoreBackup(data: RestoreData): Promise<void> {
+    // The rows were checked by the restore service; this is one swap, so it's all or nothing.
+    this.nodes = data.nodes.map((n) => ({ ...n }));
+    this.sessions = data.sessions.map((x) => ({ ...x }));
+    this.tasks = data.tasks.map((t) => ({ ...t }));
+    this.completions = data.taskCompletions.map((c) => ({ ...c }));
+    this.scores = data.scores.map((x) => ({ ...x }));
+    this.deadlines = data.deadlines.map((d) => ({ ...d }));
+    this.examTargets = data.examTargets.map((t) => ({ ...t }));
+    this.mistakes = data.mistakes.map((m) => ({ ...m }));
+    this.changes = [];
+    Object.assign(this.settings, data.settings);
   }
 }

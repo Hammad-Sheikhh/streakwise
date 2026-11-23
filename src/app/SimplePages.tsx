@@ -9,7 +9,10 @@ export function MorePage() {
   const links = [
     { to: '/history', label: 'History' },
     { to: '/scores', label: 'Scores' },
+    { to: '/exam', label: 'Exam' },
+    { to: '/mistakes', label: 'Mistakes' },
     { to: '/tracks', label: 'Tracks' },
+    { to: '/changes', label: 'Recent changes' },
     { to: '/settings', label: 'Settings' },
   ];
   return (

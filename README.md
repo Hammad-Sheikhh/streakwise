@@ -13,7 +13,7 @@ on sample data
 
 ## Screenshots
 
-**Home** — today's time, the streak, weekly targets, and what needs attention.
+**Home** — the Today card, today's time, the streak, weekly targets, and what needs attention.
 
 ![Home dashboard](docs/screenshots/home-desktop-light.png)
 
@@ -21,15 +21,20 @@ on sample data
 
 ![A track's page](docs/screenshots/track-desktop-light.png)
 
+**Exam view** — the countdown, targets per mock, results per module, and a grid that marks every
+result below its target.
+
+![Exam view](docs/screenshots/exam-desktop-light.png)
+
 **Reports** — any range, ready to print, send, or hand to Claude.
 
 ![Weekly report](docs/screenshots/reports-desktop-light.png)
 
 **On a phone**, where most logging happens:
 
-| Home                                                      | Log a session                                               |
-| --------------------------------------------------------- | ----------------------------------------------------------- |
-| ![Home on a phone](docs/screenshots/home-phone-light.png) | ![Logging on a phone](docs/screenshots/log-phone-light.png) |
+| Home                                                      | Log a session                                               | Mistakes due today                                                |
+| --------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Home on a phone](docs/screenshots/home-phone-light.png) | ![Logging on a phone](docs/screenshots/log-phone-light.png) | ![Mistakes on a phone](docs/screenshots/mistakes-phone-light.png) |
 
 **Dark theme** — the theme follows the system setting.
 
@@ -44,21 +49,33 @@ on sample data
 - Organise goals as **tracks → subtasks → topics** (e.g. _Exam Prep → Practice_, or
   _School Subjects → Maths → Chapter 3_), each track with its own colour.
 - Rename, recolour, add to, archive, or delete a track from its own page.
-- Log a session in a few taps: pick what you studied, tap a duration, add an optional note.
+- Log a session in a few taps: pick what you studied, tap a duration, add an optional note. Or
+  start a **timer** and stop it when you're done; it fills in the session for you.
+- **"My day ends at"**: if you study past midnight, choose when your day ends (up to 06:00), and
+  late sessions count for the day you were still working on.
 - Mark topics _not started_, _in progress_, or _done_ and watch your syllabus percentage grow.
 
 **See how you're doing**
 
-- **Home dashboard:** today's time, current and longest streak, weekly targets with progress bars,
-  tasks due this week, upcoming deadlines with days left, and a 12-month heatmap.
+- **Home dashboard:** a **Today card** (today's task with its sub-tasks, minutes per subject, and
+  the pace needed per day to reach each weekly target), today's time, current and longest streak,
+  weekly targets with progress bars, tasks due this week, upcoming deadlines with days left, and a
+  12-month heatmap.
 - **Neglect warnings** when a track or subtask hasn't been touched for a few days.
-- **History** grouped by day, with filters and editing.
+- **History** grouped by day, with filters, editing, and a search across every note.
+- **Undo** for 10 seconds after each change, and a **Recent changes** list of the last 7 days
+  (yours and Claude's) with Undo on each.
 
 **Plan and measure**
 
-- **Tasks** with sub-tasks nested as deep as you like, one-off or weekly, optionally scored.
+- **Tasks** with sub-tasks nested as deep as you like, one-off or weekly, optionally scored, and
+  ticked for today or any earlier day.
 - **Scores** for past papers, quizzes, mock tests, and self-tests, with trend lines per subject.
 - **Deadlines** for exams and submissions, with the share of the syllabus still left.
+- **Exam view:** a countdown, score targets for each mock, results per module with the target
+  line, and a mock grid that marks every result below its target.
+- **Mistake tracker:** note a mistake and it comes back for review 1, 3, and 7 days later; answer
+  right or wrong, and see what's open or learned per module.
 
 **Share your progress**
 
@@ -66,12 +83,16 @@ on sample data
 - **Print / Save as PDF**, **copy for WhatsApp**, or **copy for Claude** as Markdown.
 - **Share links**: a frozen, read-only snapshot at an unguessable URL that expires after 7 days,
   30 days, or never, and can be revoked at any time. Private notes stay out unless you include them.
-- **Export** everything as JSON, or sessions as CSV, with a reminder when a backup is due.
+- **Export** everything as JSON, or sessions, scores, tasks, and mistakes as CSV, with a reminder
+  when a backup is due. **Restore** a backup file later; it's checked and summarised first, and a
+  fresh backup downloads before anything is replaced.
 
 **Use it with Claude**
 
 - Each account gets its own **Claude connector** (Model Context Protocol). Claude can read your
-  structure, log sessions, check progress and gaps, manage tasks and scores, and build reports.
+  structure, log sessions (up to 10 at once), check progress and gaps, manage tasks, scores, and
+  mistakes, fix or undo its own changes, and build reports. Compact answers and filters keep
+  Claude's replies small, and you can undo anything Claude changed from Recent changes.
 
 **Accounts**
 
@@ -105,8 +126,10 @@ Claude  ──►  /mcp/<your link>  (MCP server function)  ──►  core serv
   pointing at another user's data.
 - **Claude links.** A Claude link contains a long random token; only its hash is stored. Each link
   opens only its owner's data, and making a new link instantly retires the old one.
-- **Time is honest.** Days are calendar days in one time zone, weeks run Monday to Sunday, and
-  durations are whole minutes.
+- **Time is honest.** Days are calendar days in one time zone (moved by your "My day ends at"
+  setting), weeks run Monday to Sunday, and durations are whole minutes.
+- **Every change is recorded once.** A wrapper around the data store writes a change history for
+  the app, the demo, and Claude alike, which is what Undo and Recent changes use.
 
 More detail: [Architecture](docs/architecture.md).
 
@@ -118,10 +141,11 @@ Vitest · React Testing Library · Playwright · GitHub Actions
 
 ## Quality
 
-- **400 automated tests:** pure logic, services on an in-memory store, API handlers, the MCP server
-  through the real SDK, database migrations on PGlite, and React screens.
-- **End-to-end checks** in a real browser, on phone and desktop sizes: the demo journey (which must
-  make zero network calls), the installable app, and WCAG A/AA on all eight screens in both themes.
+- **558 automated tests:** pure logic, services on an in-memory store, API handlers, the MCP
+  server through the real SDK, database migrations on PGlite, and React screens.
+- **End-to-end checks** in a real browser, on phone and desktop sizes: the demo journeys (which must
+  make zero network calls), the installable app, and WCAG A/AA on all eleven screens in both
+  themes.
 - CI on every pull request: lint, Prettier, type-check, tests, a production build, and the
   end-to-end tests.
 - Accessible by design: labelled inputs, keyboard navigation, visible focus, 44 px tap targets,
@@ -165,7 +189,9 @@ docs/            specification, architecture, setup, progress
 ## Roadmap
 
 - **Shipped:** every milestone in the [specification](docs/SPEC.md) — accounts, Claude connector,
-  tasks and scores, reports and share links, demo mode and the installable app, and the polish pass.
+  tasks and scores, reports and share links, demo mode and the installable app, and the polish pass
+  (v1.0); then v1.1, the exam update: the study day, undo and change history, the exam view, the
+  mistake tracker, the Today card, the timer, note search, and backup restore.
 - **Later ideas:** sign-in (OAuth) for the Claude connector, drag-and-drop in the structure editor,
   heatmap per track.
 

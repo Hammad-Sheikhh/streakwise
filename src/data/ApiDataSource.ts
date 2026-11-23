@@ -3,10 +3,16 @@ import { z } from 'zod';
 import { meSchema, signUpResultSchema } from '@/core/schemas/auth';
 import {
   apiErrorSchema,
+  backupSummarySchema,
+  changeEntrySchema,
   claudeConnectionSchema,
   dashboardSchema,
   dataExportSchema,
   deadlineSchema,
+  examTargetSchema,
+  examViewSchema,
+  mistakeSchema,
+  mistakesOverviewSchema,
   historyPageSchema,
   reportSchema,
   scoreSchema,
@@ -42,6 +48,11 @@ const scoresResponse = z.object({ scores: z.array(scoreSchema) });
 const reportResponse = z.object({ report: reportSchema });
 const shareResponse = z.object({ share: sharedReportLinkSchema });
 const sharesResponse = z.object({ shares: z.array(sharedReportLinkSchema) });
+const changesResponse = z.object({ changes: z.array(changeEntrySchema) });
+const changeResponse = z.object({ change: changeEntrySchema });
+const mistakeResponse = z.object({ mistake: mistakeSchema });
+const targetResponse = z.object({ target: examTargetSchema });
+const restoreResponse = z.object({ summary: backupSummarySchema });
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -279,5 +290,62 @@ export class ApiDataSource implements DataSource {
 
   async exportData() {
     return this.request('export', dataExportSchema, { method: 'POST' });
+  }
+
+  async listChanges() {
+    return (await this.request('changes', changesResponse)).changes;
+  }
+
+  async undoChange(id: string) {
+    const path = `changes/${encodeURIComponent(id)}/undo`;
+    return (await this.request(path, changeResponse, { method: 'POST' })).change;
+  }
+
+  async getMistakes() {
+    return this.request('mistakes', mistakesOverviewSchema);
+  }
+
+  async addMistake(input: Parameters<DataSource['addMistake']>[0]) {
+    return (await this.request('mistakes', mistakeResponse, { method: 'POST', body: input }))
+      .mistake;
+  }
+
+  async updateMistake(id: string, input: Parameters<DataSource['updateMistake']>[1]) {
+    const path = `mistakes/${encodeURIComponent(id)}`;
+    return (await this.request(path, mistakeResponse, { method: 'PATCH', body: input })).mistake;
+  }
+
+  async deleteMistake(id: string) {
+    await this.request(`mistakes/${encodeURIComponent(id)}`, okResponse, { method: 'DELETE' });
+  }
+
+  async reviewMistake(id: string, input: Parameters<DataSource['reviewMistake']>[1]) {
+    const path = `mistakes/${encodeURIComponent(id)}/review`;
+    return (await this.request(path, mistakeResponse, { method: 'POST', body: input })).mistake;
+  }
+
+  async getExamView(deadlineId?: string) {
+    const query = deadlineId ? `?deadline=${encodeURIComponent(deadlineId)}` : '';
+    return this.request(`exam${query}`, examViewSchema);
+  }
+
+  async addExamTarget(deadlineId: string, input: Parameters<DataSource['addExamTarget']>[1]) {
+    const path = `deadlines/${encodeURIComponent(deadlineId)}/targets`;
+    return (await this.request(path, targetResponse, { method: 'POST', body: input })).target;
+  }
+
+  async updateExamTarget(id: string, input: Parameters<DataSource['updateExamTarget']>[1]) {
+    const path = `exam-targets/${encodeURIComponent(id)}`;
+    return (await this.request(path, targetResponse, { method: 'PATCH', body: input })).target;
+  }
+
+  async restoreBackup(data: unknown) {
+    return (await this.request('restore', restoreResponse, { method: 'POST', body: data })).summary;
+  }
+
+  async deleteExamTarget(id: string) {
+    await this.request(`exam-targets/${encodeURIComponent(id)}`, okResponse, {
+      method: 'DELETE',
+    });
   }
 }

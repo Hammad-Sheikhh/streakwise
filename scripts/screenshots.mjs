@@ -45,6 +45,18 @@ const SHOTS = [
     scheme: 'light',
     open: (page) => openScreen(page, 'Reports'),
   },
+  {
+    file: 'exam-desktop-light',
+    size: DESKTOP,
+    scheme: 'light',
+    open: (page) => openScreen(page, 'Exam'),
+  },
+  {
+    file: 'mistakes-phone-light',
+    size: PHONE,
+    scheme: 'light',
+    open: (page) => openScreen(page, 'Mistakes'),
+  },
   { file: 'home-desktop-dark', size: DESKTOP, scheme: 'dark', open: () => {} },
   {
     file: 'tasks-phone-dark',

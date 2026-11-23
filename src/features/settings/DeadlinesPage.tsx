@@ -30,6 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Deadline, TreeNode } from '@/core/domain/types';
 import { daysBetween } from '@/core/logic/dates';
 import { hiddenIds } from '@/core/logic/tree';
+import { Badge } from '@/components/ui/badge';
 import { useDataMutation, useDeadlines, useTree } from '@/data/queries';
 import { useToday } from '@/data/useToday';
 import { formatDay, formatDaysLeft } from '@/lib/format';
@@ -42,6 +43,8 @@ interface DeadlineValues {
   title: string;
   dueOn: string;
   nodeId: string;
+  /** EXAM-1. */
+  isExam: boolean;
 }
 
 function DeadlineForm({
@@ -66,6 +69,7 @@ function DeadlineForm({
     title: values.title.trim() ? null : 'Enter a title.',
     dueOn: /^\d{4}-\d{2}-\d{2}$/.test(values.dueOn) ? null : 'Choose a date.',
     nodeId: values.nodeId ? null : 'Choose what it’s for.',
+    isExam: null,
   };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -137,6 +141,22 @@ function DeadlineForm({
           {error('nodeId')}
         </div>
       </div>
+      <div className="flex items-start gap-3">
+        <input
+          id={`${id}-exam`}
+          type="checkbox"
+          className="mt-0.5 size-5 shrink-0 accent-primary"
+          checked={values.isExam}
+          onChange={(e) => setValues({ ...values, isExam: e.target.checked })}
+          aria-describedby={`${id}-exam-help`}
+        />
+        <div className="flex flex-col gap-0.5">
+          <Label htmlFor={`${id}-exam`}>This is an exam</Label>
+          <p id={`${id}-exam-help`} className="text-sm text-muted-foreground">
+            Exams get a countdown, score targets, and a mock grid in the Exam view.
+          </p>
+        </div>
+      </div>
       <Button type="submit" className="h-11 self-start" disabled={pending}>
         {pending ? 'Saving…' : submitLabel}
       </Button>
@@ -173,7 +193,9 @@ function DeadlineRow({
   return (
     <li className="flex items-start gap-2 p-3">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="font-medium">{deadline.title}</p>
+        <p className="font-medium">
+          {deadline.title} {deadline.isExam && <Badge variant="secondary">Exam</Badge>}
+        </p>
         <p className="text-sm text-muted-foreground">
           {formatDay(deadline.dueOn)}
           {daysLeft >= 0 && ` · ${formatDaysLeft(daysLeft)}`}
@@ -207,7 +229,12 @@ function DeadlineRow({
           </DialogHeader>
           <DeadlineForm
             nodes={nodes}
-            initial={{ title: deadline.title, dueOn: deadline.dueOn, nodeId: deadline.nodeId }}
+            initial={{
+              title: deadline.title,
+              dueOn: deadline.dueOn,
+              nodeId: deadline.nodeId,
+              isExam: deadline.isExam,
+            }}
             submitLabel="Save changes"
             pending={update.isPending}
             onSubmit={(values) => update.mutate(values)}
@@ -275,7 +302,7 @@ export function DeadlinesPage() {
           </h2>
           <DeadlineForm
             nodes={tree.data}
-            initial={{ title: '', dueOn: today, nodeId: '' }}
+            initial={{ title: '', dueOn: today, nodeId: '', isExam: false }}
             submitLabel="Add deadline"
             pending={add.isPending}
             onSubmit={(values, reset) =>

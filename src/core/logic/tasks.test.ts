@@ -26,7 +26,14 @@ function task(id: string, fields: Partial<Task> = {}): Task {
 }
 
 function done(taskId: string, periodStart: string | null = null): TaskCompletion {
-  return { id: `c-${taskId}`, taskId, periodStart, completedAt: '', note: null };
+  return {
+    id: `c-${taskId}`,
+    taskId,
+    periodStart,
+    completedAt: '',
+    completedOn: periodStart ?? '2026-10-01',
+    note: null,
+  };
 }
 
 const archivedAt = '2026-10-02T00:00:00.000Z';

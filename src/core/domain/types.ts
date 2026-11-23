@@ -61,7 +61,20 @@ export interface Deadline {
   nodeId: string;
   title: string;
   dueOn: string;
+  /** EXAM-1: shown with an "Exam" badge and in the exam view. */
+  isExam: boolean;
   createdAt: string;
+}
+
+/** EXAM-3: a minimum percentage to reach by a date, e.g. "Mock 1 · 1 Dec · 60%". */
+export interface ExamTarget {
+  id: string;
+  deadlineId: string;
+  label: string;
+  targetOn: string;
+  minPercent: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UpcomingDeadline extends Deadline {
@@ -87,6 +100,73 @@ export interface Dashboard {
   heatmap: { start: string; end: string; days: { date: string; minutes: number }[] };
   /** SET-3: no export yet, or the last one is more than 30 days old. */
   backupDue: boolean;
+  /** TODAY-1–3: the Today card at the top of Home. */
+  todayCard: TodayCard;
+  /** ERR-6: open mistakes due on or before today. */
+  mistakesDue: number;
+}
+
+/** TODAY-1–3 (SPEC §B9.14, §B9.15). */
+export interface TodayCard {
+  /** Today's task: due today, else the oldest overdue one; null when there's none. */
+  task: TaskItem | null;
+  /** Its direct, visible sub-tasks, in display order. */
+  subtasks: TaskItem[];
+  /** Today's minutes per subtask (topics count for their subtask; a track for time on itself). */
+  minutes: { nodeId: string; minutes: number }[];
+  /** Tracks with a weekly target: this week's minutes and what's needed per day to reach it. */
+  pace: {
+    trackId: string;
+    minutes: number;
+    targetMinutes: number;
+    /** 0 once the target is met. */
+    neededPerDay: number;
+    met: boolean;
+  }[];
+}
+
+/** EXAM-2: an exam the picker offers. */
+export interface ExamSummary {
+  deadlineId: string;
+  title: string;
+  dueOn: string;
+  nodeId: string;
+  /** Negative once it has passed. */
+  daysLeft: number;
+}
+
+/** EXAM-5: one cell of the mock grid. */
+export interface MockCell {
+  scoreId: string;
+  score: number;
+  maxScore: number;
+  percent: number;
+  takenOn: string;
+}
+
+/** EXAM-2–6: everything the exam view shows for one exam. */
+export interface ExamView {
+  today: string;
+  /** Every exam, soonest upcoming first, then past ones (most recent first). */
+  exams: ExamSummary[];
+  /** The chosen exam (by default the next upcoming one), or null when there are no exams. */
+  exam: {
+    summary: ExamSummary;
+    targets: ExamTarget[];
+    /** §B9.16: the exam node's visible children (or the node itself), plus "Overall" if used. */
+    modules: { id: string; name: string }[];
+    /** EXAM-4: % over time per module, oldest first. */
+    series: { moduleId: string; points: { date: string; percent: number; title: string }[] }[];
+    /** EXAM-5/6: mock tests by their earliest date. */
+    mocks: {
+      title: string;
+      firstDate: string;
+      cells: Record<string, MockCell | null>;
+      /** Average % across the modules that have a score (EXAM-6). */
+      average: number | null;
+      target: { label: string; minPercent: number } | null;
+    }[];
+  } | null;
 }
 
 /** TRACK-1: time per node in the track (the track itself included) and its latest sessions. */
@@ -133,9 +213,12 @@ export interface Task {
 export interface TaskCompletion {
   id: string;
   taskId: string;
-  /** The week's Monday for weekly tasks; null for one-off tasks. */
+  /** The week's Monday for weekly tasks (the week of `completedOn`); null for one-off tasks. */
   periodStart: string | null;
+  /** When the tick was made (a real instant). */
   completedAt: string;
+  /** TASK-11: the study day it counts for; today or any earlier day. Reports use this. */
+  completedOn: string;
   note: string | null;
 }
 
@@ -175,6 +258,8 @@ export interface Settings {
   /** Empty until the owner enters it (asked for on the first report). */
   studentName: string;
   neglectDays: number;
+  /** DAY-1: study before this many minutes after midnight counts for the day before (0–360). */
+  dayEndsAtMinutes: number;
   lastExportAt: string | null;
   lastMcpCallAt: string | null;
 }
@@ -183,9 +268,84 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Readonly<Settings> = {
   studentName: '',
   neglectDays: 3,
+  dayEndsAtMinutes: 0,
   lastExportAt: null,
   lastMcpCallAt: null,
 };
+
+/** DAY-1: the latest "My day ends at" (06:00), in minutes after midnight. */
+export const MAX_DAY_ENDS_AT_MINUTES = 360;
+
+export const MISTAKE_STATUSES = ['open', 'learned'] as const;
+export type MistakeStatus = (typeof MISTAKE_STATUSES)[number];
+
+export const REVIEW_RESULTS = ['right', 'wrong'] as const;
+export type ReviewResult = (typeof REVIEW_RESULTS)[number];
+
+/** ERR (SPEC §B3.7): a mistake to review +1, +3, and +7 days after its anchor date (§B9.13). */
+export interface Mistake {
+  id: string;
+  nodeId: string;
+  text: string;
+  /** The study day it was noted. */
+  createdOn: string;
+  source: SessionSource;
+  status: MistakeStatus;
+  /** 1, 2, or 3: which review comes next. */
+  step: 1 | 2 | 3;
+  /** The day the schedule counts from (creation, or the last wrong review). */
+  anchorOn: string;
+  /** null once learned. */
+  nextDueOn: string | null;
+  reviewCount: number;
+  lastReviewedOn: string | null;
+  lastResult: ReviewResult | null;
+  learnedOn: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const CHANGE_ENTITIES = [
+  'session',
+  'score',
+  'task',
+  'completion',
+  'mistake',
+  'node',
+  'deadline',
+  'exam_target',
+] as const;
+export type ChangeEntity = (typeof CHANGE_ENTITIES)[number];
+
+export const CHANGE_ACTIONS = [
+  'create',
+  'update',
+  'delete',
+  'complete',
+  'uncomplete',
+  'archive',
+  'unarchive',
+  'review',
+] as const;
+export type ChangeAction = (typeof CHANGE_ACTIONS)[number];
+
+/**
+ * UNDO (SPEC §B3.8): one recorded change. `before` and `after` are JSON snapshots of the item
+ * (null when it didn't exist), which undo uses to put things back.
+ */
+export interface ChangeEntry {
+  id: string;
+  at: string;
+  source: SessionSource;
+  entity: ChangeEntity;
+  entityId: string;
+  action: ChangeAction;
+  /** One line for the Recent changes list, e.g. "Logged 45m · Exam Prep > Flashcards". */
+  summary: string;
+  before: unknown;
+  after: unknown;
+  undoneAt: string | null;
+}
 
 /**
  * SET-4, ACCT-8: the user's Claude link. Only a hash is stored, so `url` is set only in the answer
@@ -299,18 +459,64 @@ export interface SharedReport extends SharedReportLink {
 /** SHARE-4: whether a link still shows its report. */
 export type ShareStatus = 'active' | 'expired' | 'revoked';
 
-/** SET-2: everything the user has, as one JSON file. */
+/** SET-2, DATA-2: everything the user has, as one JSON file (format 2 since v1.1). */
 export interface DataExport {
   app: 'Streakwise';
-  formatVersion: 1;
+  formatVersion: 2;
   exportedAt: string;
-  settings: Pick<Settings, 'studentName' | 'neglectDays'>;
+  settings: Pick<Settings, 'studentName' | 'neglectDays' | 'dayEndsAtMinutes'>;
   nodes: TreeNode[];
   sessions: Session[];
   tasks: Task[];
   taskCompletions: TaskCompletion[];
   scores: Score[];
   deadlines: Deadline[];
+  examTargets: ExamTarget[];
+  mistakes: Mistake[];
   /** The links only; their snapshots can be rebuilt from the data above. */
   sharedReports: SharedReportLink[];
+}
+
+/** DATA-4: the study data a restore writes, with fresh ids and the links between rows kept. */
+export interface RestoreData {
+  settings: Pick<Settings, 'studentName' | 'neglectDays' | 'dayEndsAtMinutes'>;
+  /** Parents before children. */
+  nodes: TreeNode[];
+  sessions: Session[];
+  /** Parents before sub-tasks. */
+  tasks: Task[];
+  taskCompletions: TaskCompletion[];
+  scores: Score[];
+  deadlines: Deadline[];
+  examTargets: ExamTarget[];
+  mistakes: Mistake[];
+}
+
+/** DATA-3: what a backup file holds, shown before anything changes. */
+export interface BackupSummary {
+  formatVersion: 1 | 2;
+  exportedAt: string;
+  counts: {
+    nodes: number;
+    sessions: number;
+    tasks: number;
+    taskCompletions: number;
+    scores: number;
+    deadlines: number;
+    examTargets: number;
+    mistakes: number;
+  };
+  /** The first and last session dates, or null without sessions. */
+  sessionRange: { from: string; to: string } | null;
+}
+
+/** ERR-3/ERR-4: the Mistakes screen. */
+export interface MistakesOverview {
+  today: string;
+  /** Open mistakes due on or before today, oldest due first. */
+  due: Mistake[];
+  /** Every visible mistake: due ones first, then the rest. */
+  all: Mistake[];
+  /** Open and learned counts per module (subtask, or track for mistakes on the track itself). */
+  modules: { moduleId: string; open: number; learned: number }[];
 }

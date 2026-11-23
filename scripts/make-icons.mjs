@@ -22,7 +22,7 @@ for (const { file, size, padding } of icons) {
   const inset = Math.round(size * padding);
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
-    `<body style="margin:0;background:${padding ? '#0f172a' : 'transparent'}">` +
+    `<body style="margin:0;background:${padding ? '#1b2622' : 'transparent'}">` +
       `<img src="${dataUrl}" style="display:block;margin:${inset}px;width:${size - 2 * inset}px;height:${size - 2 * inset}px"></body>`,
   );
   await page.screenshot({ path: `public/icons/${file}`, omitBackground: !padding });

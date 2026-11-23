@@ -1,9 +1,15 @@
 import type {
+  ChangeEntry,
   ClaudeConnection,
   Dashboard,
   DataExport,
   Deadline,
+  ExamTarget,
+  ExamView,
   HistoryPage,
+  BackupSummary,
+  Mistake,
+  MistakesOverview,
   Report,
   Score,
   Session,
@@ -18,16 +24,21 @@ import type {
 import type {
   CompleteTaskInput,
   CreateDeadlineInput,
+  CreateExamTargetInput,
+  CreateMistakeInput,
   CreateScoreInput,
   CreateShareInput,
   CreateTaskInput,
   UpdateTaskInput,
   CreateNodeInput,
   UpdateDeadlineInput,
+  UpdateExamTargetInput,
+  UpdateMistakeInput,
   HistoryQuery,
   LogSessionInput,
   MoveNodeInput,
   ReportQuery,
+  ReviewMistakeInput,
   SetTopicStatusInput,
   UpdateNodeInput,
   UpdateScoreInput,
@@ -103,6 +114,27 @@ export interface DataSource {
   revokeShare(id: string): Promise<SharedReportLink>;
   /** SET-2: everything, and records the export time. */
   exportData(): Promise<DataExport>;
+
+  /** UNDO-4, UNDO-6: changes from the last 7 days, newest first. */
+  listChanges(): Promise<ChangeEntry[]>;
+  /** UNDO-5: puts things back as they were before the change. */
+  undoChange(id: string): Promise<ChangeEntry>;
+
+  /** ERR-3, ERR-4: due today, all, and counts per module. */
+  getMistakes(): Promise<MistakesOverview>;
+  addMistake(input: CreateMistakeInput): Promise<Mistake>;
+  updateMistake(id: string, input: UpdateMistakeInput): Promise<Mistake>;
+  deleteMistake(id: string): Promise<void>;
+  reviewMistake(id: string, input: ReviewMistakeInput): Promise<Mistake>;
+
+  /** EXAM-2–6: one exam (by default the next upcoming one). */
+  getExamView(deadlineId?: string): Promise<ExamView>;
+  addExamTarget(deadlineId: string, input: CreateExamTargetInput): Promise<ExamTarget>;
+  updateExamTarget(id: string, input: UpdateExamTargetInput): Promise<ExamTarget>;
+  deleteExamTarget(id: string): Promise<void>;
+
+  /** DATA-3/4: replaces all study data with a backup (checked first). */
+  restoreBackup(backup: unknown): Promise<BackupSummary>;
 }
 
 /** A failed request, with the API's error code and a message that is safe to show. */

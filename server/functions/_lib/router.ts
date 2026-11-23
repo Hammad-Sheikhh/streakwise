@@ -10,9 +10,17 @@ import { createMeHandler } from '../auth-me.js';
 import { createPasswordHandler } from '../auth-password.js';
 import { createResendHandler } from '../auth-resend.js';
 import { createSignUpHandler } from '../auth-signup.js';
+import { createChangeUndoHandler } from '../change-undo.js';
+import { createChangesHandler } from '../changes.js';
 import { createClaudeConnectionHandler } from '../claude-connection.js';
 import { createCompletionHandler } from '../completion.js';
 import { createDashboardHandler } from '../dashboard.js';
+import { createExamTargetHandler } from '../exam-target.js';
+import { createExamTargetsHandler } from '../exam-targets.js';
+import { createExamHandler } from '../exam.js';
+import { createMistakeReviewHandler } from '../mistake-review.js';
+import { createMistakeHandler } from '../mistake.js';
+import { createMistakesHandler } from '../mistakes.js';
 import { createExportHandler } from '../data-export.js';
 import { createDeadlineHandler } from '../deadline.js';
 import { createDeadlinesHandler } from '../deadlines.js';
@@ -26,6 +34,7 @@ import { createPublicShareHandler } from '../public-share.js';
 import { createNodesHandler } from '../nodes.js';
 import { createRecentNodesHandler } from '../recent-nodes.js';
 import { createReportsHandler } from '../reports.js';
+import { createRestoreHandler } from '../restore.js';
 import { createScoreHandler } from '../score.js';
 import { createScoresHandler } from '../scores.js';
 import { createSessionHandler } from '../session.js';
@@ -115,6 +124,7 @@ function buildRoutes(getDeps: () => ServerDeps): Route[] {
     { path: '/api/auth/password', method: 'POST', handle: createPasswordHandler(getDeps) },
     { path: '/api/dashboard', method: 'GET', handle: createDashboardHandler(getDeps) },
     { path: '/api/export', method: 'POST', handle: createExportHandler(getDeps) },
+    { path: '/api/restore', method: 'POST', handle: createRestoreHandler(getDeps) },
     { path: '/api/deadlines', method: ['GET', 'POST'], handle: createDeadlinesHandler(getDeps) },
     {
       path: '/api/deadlines/:id',
@@ -137,13 +147,41 @@ function buildRoutes(getDeps: () => ServerDeps): Route[] {
     { path: '/api/scores', method: ['GET', 'POST'], handle: createScoresHandler(getDeps) },
     { path: '/api/scores/:id', method: ['PATCH', 'DELETE'], handle: createScoreHandler(getDeps) },
     { path: '/api/tasks', method: ['GET', 'POST'], handle: createTasksHandler(getDeps) },
-    { path: '/api/tasks/:id/complete', method: 'POST', handle: createTaskCompleteHandler(getDeps) },
+    {
+      path: '/api/tasks/:id/complete',
+      method: ['POST', 'DELETE'],
+      handle: createTaskCompleteHandler(getDeps),
+    },
     { path: '/api/tasks/:id', method: ['PATCH', 'DELETE'], handle: createTaskHandler(getDeps) },
     { path: '/api/tracks/:id', method: 'GET', handle: createTrackHandler(getDeps) },
     { path: '/api/reports', method: 'POST', handle: createReportsHandler(getDeps) },
     { path: '/api/shares', method: ['GET', 'POST'], handle: createSharesHandler(getDeps) },
     { path: '/api/shares/:id', method: 'DELETE', handle: createShareHandler(getDeps) },
     { path: '/api/share/:slug', method: 'GET', handle: createPublicShareHandler(getDeps) },
+    { path: '/api/changes', method: 'GET', handle: createChangesHandler(getDeps) },
+    { path: '/api/mistakes', method: ['GET', 'POST'], handle: createMistakesHandler(getDeps) },
+    {
+      path: '/api/mistakes/:id/review',
+      method: 'POST',
+      handle: createMistakeReviewHandler(getDeps),
+    },
+    {
+      path: '/api/mistakes/:id',
+      method: ['PATCH', 'DELETE'],
+      handle: createMistakeHandler(getDeps),
+    },
+    { path: '/api/exam', method: 'GET', handle: createExamHandler(getDeps) },
+    {
+      path: '/api/deadlines/:id/targets',
+      method: 'POST',
+      handle: createExamTargetsHandler(getDeps),
+    },
+    {
+      path: '/api/exam-targets/:id',
+      method: ['PATCH', 'DELETE'],
+      handle: createExamTargetHandler(getDeps),
+    },
+    { path: '/api/changes/:id/undo', method: 'POST', handle: createChangeUndoHandler(getDeps) },
   ];
 }
 

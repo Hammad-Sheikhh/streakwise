@@ -1,5 +1,5 @@
 import type { Clock, Report, Score, Session, TreeNode } from '../domain/types.js';
-import { daysBetween, localDate } from '../logic/dates.js';
+import { daysBetween, studyDate } from '../logic/dates.js';
 import { neglectWarnings } from '../logic/neglect.js';
 import { periodAsOf, resolvePeriod } from '../logic/reportPeriod.js';
 import { dailyTotals, latestDateByNode, minutesByNode } from '../logic/rollup.js';
@@ -29,25 +29,25 @@ export async function buildReport(
   rawQuery: ReportQuery,
 ): Promise<Report> {
   const query = parseInput(reportQuerySchema, rawQuery);
+  // Read first: the study day (DAY-2) decides which dates the period covers.
+  const settings = await repo.getSettings();
   const now = clock();
-  const today = localDate(now);
+  const today = studyDate(now, settings.dayEndsAtMinutes);
   const period = resolvePeriod(query, today);
   const { from, to } = period;
   const asOf = periodAsOf(period, today);
   const inPeriod = (date: string) => date >= from && date <= to;
 
-  const [nodes, facts, settings, tasks, completions, scores, deadlines, sessions] =
-    await Promise.all([
-      listTree(repo),
-      repo.listSessionFacts(),
-      repo.getSettings(),
-      repo.listTasks(),
-      repo.listTaskCompletions(),
-      repo.listScores(),
-      repo.listDeadlines(),
-      // Only notes need whole sessions; everything else comes from the light facts.
-      query.includeNotes ? repo.listSessions({ from, to }) : Promise.resolve([]),
-    ]);
+  const [nodes, facts, tasks, completions, scores, deadlines, sessions] = await Promise.all([
+    listTree(repo),
+    repo.listSessionFacts(),
+    repo.listTasks(),
+    repo.listTaskCompletions(),
+    repo.listScores(),
+    repo.listDeadlines(),
+    // Only notes need whole sessions; everything else comes from the light facts.
+    query.includeNotes ? repo.listSessions({ from, to }) : Promise.resolve([]),
+  ]);
 
   const hidden = hiddenIds(nodes);
   const periodFacts = facts.filter((f) => inPeriod(f.studiedOn));
@@ -79,7 +79,13 @@ export async function buildReport(
   const topicsDone = nodes
     .flatMap((n) =>
       n.depth === 3 && n.topicStatus === 'done' && n.topicDoneAt !== null
-        ? [{ path: pathOf(nodes, n.id), doneOn: localDate(new Date(n.topicDoneAt)) }]
+        ? [
+            {
+              path: pathOf(nodes, n.id),
+              // DAY-3: the done time becomes a day with the current setting.
+              doneOn: studyDate(new Date(n.topicDoneAt), settings.dayEndsAtMinutes),
+            },
+          ]
         : [],
     )
     .filter((t) => inPeriod(t.doneOn))
@@ -88,11 +94,15 @@ export async function buildReport(
   const tasksById = new Map(tasks.map((t) => [t.id, t]));
   const scoreByCompletion = new Map<string, Score>();
   for (const s of scores) if (s.taskCompletionId) scoreByCompletion.set(s.taskCompletionId, s);
+  // TASK-11: a completion counts on its completion date, which may be earlier than the tick.
   const tasksCompleted = completions
-    .map((c) => ({ completion: c, completedOn: localDate(new Date(c.completedAt)) }))
-    .filter(({ completedOn }) => inPeriod(completedOn))
-    .sort((a, b) => a.completion.completedAt.localeCompare(b.completion.completedAt))
-    .flatMap(({ completion, completedOn }) => {
+    .filter((c) => inPeriod(c.completedOn))
+    .sort(
+      (a, b) =>
+        a.completedOn.localeCompare(b.completedOn) || a.completedAt.localeCompare(b.completedAt),
+    )
+    .flatMap((completion) => {
+      const { completedOn } = completion;
       const task = tasksById.get(completion.taskId);
       if (!task) return [];
       const score = scoreByCompletion.get(completion.id);
@@ -132,6 +142,7 @@ export async function buildReport(
     latestDateByNode(nodes, factsSoFar),
     asOf,
     settings.neglectDays,
+    settings.dayEndsAtMinutes,
   ).map((w) => ({ path: pathOf(nodes, w.nodeId), days: w.days, neverLogged: w.neverLogged }));
   const activeDates = new Set(dailyTotals(factsSoFar).keys());
 

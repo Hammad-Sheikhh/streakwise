@@ -1,6 +1,13 @@
-import { invalid, notFound } from '../domain/errors.js';
-import type { Clock, IdGenerator, Task, TaskCompletion, TaskItem } from '../domain/types.js';
-import { localDate } from '../logic/dates.js';
+import { conflict, invalid, notFound } from '../domain/errors.js';
+import type {
+  Clock,
+  IdGenerator,
+  Score,
+  Task,
+  TaskCompletion,
+  TaskItem,
+  TreeNode,
+} from '../domain/types.js';
 import {
   currentCompletion,
   hiddenTaskIds,
@@ -13,12 +20,14 @@ import type { Repository, TaskPatch } from '../repo/Repository.js';
 import {
   completeTaskInputSchema,
   createTaskInputSchema,
+  localDateSchema,
   updateTaskInputSchema,
 } from '../schemas/inputs.js';
 import type { CompleteTaskInput, CreateTaskInput, UpdateTaskInput } from '../schemas/inputs.js';
 import { parseInput } from '../schemas/parse.js';
+import { studyToday } from './today.js';
 
-// TASK-1–9: tasks and sub-tasks, one-off or weekly, optionally scored.
+// TASK-1–11: tasks and sub-tasks, one-off or weekly, optionally scored.
 
 function findTask(tasks: readonly Task[], id: string): Task {
   const task = tasks.find((t) => t.id === id);
@@ -36,18 +45,17 @@ async function assertVisibleNode(repo: Repository, nodeId: string | null): Promi
   }
 }
 
-/** Every task (archived ones only when asked) with its state as of today, in display order. */
-export async function listTaskItems(
-  repo: Repository,
-  clock: Clock,
+/**
+ * Every task (archived ones only when asked) with its state as of `today`, in display order.
+ * Pure, so the dashboard and MCP can build it from rows they already read.
+ */
+export function buildTaskItems(
+  tasks: readonly Task[],
+  completions: readonly TaskCompletion[],
+  nodes: readonly TreeNode[],
+  today: string,
   options: { includeArchived?: boolean } = {},
-): Promise<TaskItem[]> {
-  const [tasks, completions, nodes] = await Promise.all([
-    repo.listTasks(),
-    repo.listTaskCompletions(),
-    repo.listNodes(),
-  ]);
-  const today = localDate(clock());
+): TaskItem[] {
   const hidden = hiddenTaskIds(tasks);
   // TREE-2: archiving a node hides its tasks too, even while "Show archived" lists archived tasks.
   const hiddenNodes = hiddenIds(nodes);
@@ -83,6 +91,21 @@ export async function listTaskItems(
               .reverse()
           : [],
     }));
+}
+
+/** Every task with its state as of today (the study day, DAY-2), in display order. */
+export async function listTaskItems(
+  repo: Repository,
+  clock: Clock,
+  options: { includeArchived?: boolean } = {},
+): Promise<TaskItem[]> {
+  const [tasks, completions, nodes, today] = await Promise.all([
+    repo.listTasks(),
+    repo.listTaskCompletions(),
+    repo.listNodes(),
+    studyToday(repo, clock),
+  ]);
+  return buildTaskItems(tasks, completions, nodes, today, options);
 }
 
 export async function createTask(
@@ -146,12 +169,30 @@ export async function updateTask(
   return repo.updateTask(id, patch);
 }
 
+/** The ids of a task's sub-tasks at every depth (not the task itself). */
+export function descendantTaskIds(tasks: readonly Task[], id: string): string[] {
+  const ids: string[] = [];
+  const visit = (parentId: string) => {
+    for (const task of tasks) {
+      if (task.parentTaskId === parentId) {
+        ids.push(task.id);
+        visit(task.id);
+      }
+    }
+  };
+  visit(id);
+  return ids;
+}
+
 /** TASK-8: removes sub-tasks and completions too; linked scores are kept, unlinked. */
 export async function deleteTask(repo: Repository, id: string): Promise<void> {
   await repo.deleteTask(id);
 }
 
-/** TASK-4–6: completes the task for today's period, recording a score if it's scored. */
+/**
+ * TASK-4–6, TASK-11: completes the task for the period of `completedOn` (default today; never in
+ * the future, no lower limit), recording a score dated that day if it's scored.
+ */
 export async function completeTask(
   repo: Repository,
   clock: Clock,
@@ -160,14 +201,16 @@ export async function completeTask(
   rawInput: CompleteTaskInput,
 ): Promise<TaskCompletion> {
   const input = parseInput(completeTaskInputSchema, rawInput);
-  const tasks = await repo.listTasks();
+  const [tasks, today] = await Promise.all([repo.listTasks(), studyToday(repo, clock)]);
   const task = findTask(tasks, id);
   if (hiddenTaskIds(tasks).has(id)) {
     throw invalid('task_archived', 'Restore the archived task before completing it.');
   }
+  const completedOn = input.completedOn ?? today;
+  if (completedOn > today) {
+    throw invalid('future_date', 'A task can’t be completed in the future.');
+  }
 
-  const now = clock();
-  const today = localDate(now);
   let score = null;
   if (task.isScored) {
     const maxScore = input.maxScore ?? task.defaultMaxScore;
@@ -184,7 +227,7 @@ export async function completeTask(
       nodeId: task.nodeId,
       kind: input.kind,
       title: task.title,
-      takenOn: today,
+      takenOn: completedOn,
       score: input.score,
       maxScore,
       note: input.note,
@@ -195,8 +238,9 @@ export async function completeTask(
 
   return repo.completeTask({
     taskId: id,
-    periodStart: periodStartFor(task, today),
-    completedAt: now.toISOString(),
+    periodStart: periodStartFor(task, completedOn),
+    completedAt: clock().toISOString(),
+    completedOn,
     note: input.note,
     score,
   });
@@ -205,4 +249,27 @@ export async function completeTask(
 /** TASK-6: deletes the completion and its linked score (the UI confirms first). */
 export async function uncompleteTask(repo: Repository, completionId: string): Promise<void> {
   await repo.uncompleteTask(completionId);
+}
+
+/**
+ * TASK-11, MCP-18: unticks the task for the period containing `date` (default today): the
+ * week of that date for weekly tasks, the one completion for one-off tasks. Removes the score
+ * that completing it created, atomically. Returns what was removed.
+ */
+export async function uncompleteTaskOn(
+  repo: Repository,
+  clock: Clock,
+  taskId: string,
+  date?: string,
+): Promise<{ completion: TaskCompletion; score: Score | null }> {
+  const day =
+    date === undefined ? await studyToday(repo, clock) : parseInput(localDateSchema, date);
+  const [tasks, completions] = await Promise.all([repo.listTasks(), repo.listTaskCompletions()]);
+  const task = findTask(tasks, taskId);
+  const period = periodStartFor(task, day);
+  const completion = completions.find((c) => c.taskId === taskId && c.periodStart === period);
+  if (!completion) throw conflict('not_completed');
+  const score = (await repo.listScores()).find((s) => s.taskCompletionId === completion.id) ?? null;
+  await repo.uncompleteTask(completion.id);
+  return { completion, score };
 }

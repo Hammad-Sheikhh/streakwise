@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { addDays, localDate } from '../logic/dates.js';
 import { InMemoryRepository } from '../repo/InMemoryRepository.js';
+import { getExamView } from '../services/exams.js';
 import { getDashboard } from '../services/dashboard.js';
 import { listTaskItems } from '../services/tasks.js';
 import { DEMO_STUDENT_NAME, loadSampleData } from './sampleData.js';
@@ -102,5 +103,24 @@ describe('loadSampleData (DEMO-3)', () => {
     const repo = await loaded();
     const kinds = new Set((await repo.listScores()).map((s) => s.kind));
     expect(kinds).toEqual(new Set(['past_paper', 'quiz', 'revision', 'mock_test']));
+  });
+
+  it('has a Today card, mistakes due, and an exam with targets and mocks (v1.1)', async () => {
+    const repo = await loaded();
+    const dashboard = await getDashboard(repo, clock);
+    expect(dashboard.todayCard.task?.task.title).toBe('Probability exercises');
+    expect(dashboard.todayCard.subtasks).toHaveLength(3);
+    expect(dashboard.mistakesDue).toBe(2);
+
+    const { exam } = await getExamView(repo, clock);
+    expect(exam?.summary.title).toBe('End-of-year exams');
+    expect(exam?.targets.map((t) => t.minPercent)).toEqual([60, 70, 80]);
+    const mocks = exam?.mocks.filter((m) => /^Mock \d$/.test(m.title)) ?? [];
+    expect(mocks.map((m) => m.title)).toEqual(['Mock 1', 'Mock 2', 'Mock 3']);
+    // English in Mock 1 is 56%, below the 60% target; Science has no Mock 3 yet.
+    const english = exam?.modules.find((m) => m.name === 'English')?.id ?? '';
+    const science = exam?.modules.find((m) => m.name === 'Science')?.id ?? '';
+    expect(mocks[0]?.cells[english]?.percent).toBe(56);
+    expect(mocks[2]?.cells[science]).toBeNull();
   });
 });

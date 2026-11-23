@@ -6,10 +6,12 @@ import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { signUpInputSchema } from '@/core/schemas/auth';
 import type { SignUpInput } from '@/core/schemas/auth';
+import { useDataSource } from '@/data/useDataSource';
 
 import { AuthField } from './AuthField.js';
 import { AuthLayout } from './AuthLayout.js';
 import { formValue } from './formValues.js';
+import { rememberSession } from './session.js';
 import { useAccount } from './useAccount.js';
 
 type FieldErrors = Partial<Record<keyof SignUpInput, string>>;
@@ -18,6 +20,7 @@ type FieldErrors = Partial<Record<keyof SignUpInput, string>>;
 // confirmation emails yet, the new account is logged in at once.
 export function SignUpPage() {
   const account = useAccount();
+  const dataSource = useDataSource();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -27,6 +30,8 @@ export function SignUpPage() {
     mutationFn: (input: SignUpInput) => account.signUp(input),
     onSuccess: async ({ status }) => {
       if (status === 'signed_in') {
+        // Same as login: the guard must see the new session, not the cached logged-out answer.
+        rememberSession(queryClient, dataSource.mode, true);
         await queryClient.invalidateQueries();
         void navigate('/', { replace: true });
       }

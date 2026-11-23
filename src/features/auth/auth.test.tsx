@@ -52,6 +52,20 @@ describe('login (ACCT-3, AUTH-4)', () => {
     expect(api.loggedIn).toBe(false);
   });
 
+  it('stays logged in when the app had already checked the session before login', async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    // Visiting the app first caches "logged out"; logging in must not bounce off that stale answer.
+    const { router } = renderRoutes('/', api);
+    await user.type(await screen.findByLabelText('Email'), TEST_EMAIL);
+    await user.type(screen.getByLabelText('Password'), TEST_PASSWORD);
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(router.state.location.pathname).toBe('/');
+  });
+
   it('logs in with details a password manager filled without input events', async () => {
     const user = userEvent.setup();
     const api = fakeApi();

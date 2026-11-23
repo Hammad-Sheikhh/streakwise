@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MAX_DAY_ENDS_AT_MINUTES } from '@/core/domain/types';
 import type { Settings } from '@/core/domain/types';
 import { useDataMutation, useSettings } from '@/data/queries';
 import { useDataSource } from '@/data/useDataSource';
@@ -17,6 +18,7 @@ import { useDataSource } from '@/data/useDataSource';
 import { AccountSection } from './AccountSection.js';
 import { ClaudeConnectionSection } from './ClaudeConnection.js';
 import { ExportSection } from './ExportSection.js';
+import { InstallAppSection } from './InstallAppSection.js';
 
 const SECTIONS = [
   { path: 'structure', title: 'Structure', description: 'Tracks, subtasks, and topics' },
@@ -24,6 +26,12 @@ const SECTIONS = [
   { path: 'deadlines', title: 'Deadlines', description: 'Exams and due dates' },
   { path: 'shared-links', title: 'Shared links', description: 'Report links you’ve shared' },
 ];
+
+/** UNDO-4: Recent changes lives outside Settings, but is linked from it. */
+const RECENT_CHANGES = {
+  title: 'Recent changes',
+  description: 'What you or Claude changed in the last 7 days, with Undo',
+};
 
 // SET-1: the Settings shell, with shared links (SHARE-3) and export (SET-2/3).
 export function SettingsPage() {
@@ -64,6 +72,20 @@ export function SettingsPage() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              to={`${dataSource.basePath}/changes`}
+              className="flex min-h-14 items-center justify-between px-4 py-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span>
+                <span className="block font-medium">{RECENT_CHANGES.title}</span>
+                <span className="block text-sm text-muted-foreground">
+                  {RECENT_CHANGES.description}
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground" />
+            </Link>
+          </li>
         </ul>
       </section>
 
@@ -71,24 +93,39 @@ export function SettingsPage() {
 
       <ClaudeConnectionSection />
 
+      <InstallAppSection />
+
       <AccountSection />
     </>
   );
 }
 
+/** DAY-1: 00:00 to 06:00 in half-hour steps. */
+const DAY_END_CHOICES = Array.from({ length: MAX_DAY_ENDS_AT_MINUTES / 30 + 1 }, (_, i) => i * 30);
+
+function clockTime(minutes: number): string {
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
+  return `${hours}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+/** Changing "My day ends at" can move "today", so everything that shows a day refreshes. */
+const SETTINGS_KEYS = ['settings', 'sessions', 'tasks', 'track', 'deadlines', 'scores', 'report'];
+
 function GeneralForm({ settings }: { settings: Settings }) {
   const id = useId();
   const [studentName, setStudentName] = useState(settings.studentName);
   const [neglectDays, setNeglectDays] = useState(settings.neglectDays);
+  const [dayEndsAtMinutes, setDayEndsAtMinutes] = useState(settings.dayEndsAtMinutes);
   const save = useDataMutation(
-    (ds, input: { studentName: string; neglectDays: number }) => ds.updateSettings(input),
-    ['settings'],
+    (ds, input: { studentName: string; neglectDays: number; dayEndsAtMinutes: number }) =>
+      ds.updateSettings(input),
+    SETTINGS_KEYS,
     { onSuccess: () => toast.success('Settings saved.') },
   );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    save.mutate({ studentName, neglectDays });
+    save.mutate({ studentName, neglectDays, dayEndsAtMinutes });
   }
 
   return (
@@ -122,6 +159,26 @@ function GeneralForm({ settings }: { settings: Settings }) {
             </option>
           ))}
         </NativeSelect>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`${id}-day-ends`}>My day ends at</Label>
+        <NativeSelect
+          id={`${id}-day-ends`}
+          className="sm:w-48"
+          value={dayEndsAtMinutes}
+          onChange={(e) => setDayEndsAtMinutes(Number(e.target.value))}
+          aria-describedby={`${id}-day-ends-help`}
+        >
+          {DAY_END_CHOICES.map((minutes) => (
+            <option key={minutes} value={minutes}>
+              {minutes === 0 ? '00:00 (midnight)' : clockTime(minutes)}
+            </option>
+          ))}
+        </NativeSelect>
+        <p id={`${id}-day-ends-help`} className="text-sm text-muted-foreground">
+          Study before this time counts for the day before, everywhere (sessions, ticks, scores,
+          streak, and Claude). With 04:00, a session at 01:50 counts for yesterday.
+        </p>
       </div>
       <Button type="submit" className="h-11 self-start" disabled={save.isPending}>
         {save.isPending ? 'Saving…' : 'Save'}

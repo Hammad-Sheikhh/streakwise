@@ -2,12 +2,15 @@ import {
   ChartLine,
   Ellipsis,
   FileText,
+  GraduationCap,
   History,
   House,
   Layers,
   ListChecks,
   Plus,
+  RotateCcw,
   Settings,
+  TriangleAlert,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router';
@@ -15,6 +18,8 @@ import { Link, NavLink, Outlet } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
 import { useDataSource } from '@/data/useDataSource';
+import { TimerPill } from '@/features/timer/TimerPill';
+import { useRunningTimer } from '@/features/timer/timerStore';
 import { cn } from '@/lib/utils';
 
 // SPEC §B6: a bottom nav on mobile (Home · Tasks · + Log · Reports · More) and a sidebar on desktop.
@@ -38,14 +43,19 @@ const DESKTOP_ITEMS: NavItem[] = [
   { to: '/history', label: 'History', icon: History },
   { to: '/tasks', label: 'Tasks', icon: ListChecks },
   { to: '/scores', label: 'Scores', icon: ChartLine },
+  { to: '/exam', label: 'Exam', icon: GraduationCap },
+  { to: '/mistakes', label: 'Mistakes', icon: TriangleAlert },
   { to: '/tracks', label: 'Tracks', icon: Layers },
   { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/changes', label: 'Recent changes', icon: RotateCcw },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AppLayout() {
   const { basePath } = useDataSource();
   const home = basePath || '/';
+  // TIMER-1: the pill sits above the bottom nav, so the page keeps clear of both.
+  const timing = useRunningTimer() !== null;
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
@@ -78,7 +88,9 @@ export function AppLayout() {
         </nav>
       </aside>
 
-      <main className="min-w-0 flex-1 pb-24 md:pb-10 print:p-0">
+      <main
+        className={cn('min-w-0 flex-1 md:pb-10 print:p-0', timing ? 'pb-40 md:pb-28' : 'pb-24')}
+      >
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-8 print:max-w-none print:p-0">
           <Outlet />
         </div>
@@ -111,6 +123,7 @@ export function AppLayout() {
           </NavLink>
         ))}
       </nav>
+      <TimerPill />
       <Toaster position="top-center" />
     </div>
   );

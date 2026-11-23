@@ -1,4 +1,4 @@
-import { invalid, notFound } from '../domain/errors.js';
+import { DomainError, invalid, notFound } from '../domain/errors.js';
 import type {
   Clock,
   HistoryDay,
@@ -8,7 +8,7 @@ import type {
   SessionSource,
   TreeNode,
 } from '../domain/types.js';
-import { addDays, localDate } from '../logic/dates.js';
+import { addDays } from '../logic/dates.js';
 import { hiddenIds, subtreeIds } from '../logic/tree.js';
 import type { Repository, SessionFilter, SessionPatch } from '../repo/Repository.js';
 import {
@@ -24,6 +24,7 @@ import type {
   UpdateSessionInput,
 } from '../schemas/inputs.js';
 import { parseInput } from '../schemas/parse.js';
+import { studyToday } from './today.js';
 
 // LOG and HIST: logging, editing, and listing study sessions.
 
@@ -34,22 +35,27 @@ export const RECENT_NODE_LIMIT = 5;
 /** LOG-10: a day above this many minutes gets a soft warning. */
 export const DAY_WARNING_MINUTES = 16 * 60;
 
-/** The node must exist and not be archived (B3.2); dates can't be in the future (LOG-3). */
-async function checkTarget(
-  repo: Repository,
-  clock: Clock,
+/** MCP-20: at most this many sessions in one batch. */
+export const MAX_BATCH_SESSIONS = 10;
+
+const futureDate = () => invalid('future_date', 'You can’t log time in the future.');
+
+/**
+ * The node must exist and not be archived (B3.2); dates can't be after today, the study day
+ * (LOG-3, DAY-2).
+ */
+function checkTarget(
+  nodes: readonly TreeNode[],
+  today: string,
   nodeId: string,
   studiedOn: string,
-): Promise<TreeNode> {
-  const nodes = await repo.listNodes();
+): TreeNode {
   const node = nodes.find((n) => n.id === nodeId);
   if (!node) throw notFound('node_not_found');
   if (hiddenIds(nodes).has(nodeId)) {
     throw invalid('node_archived', 'That item is archived. Restore it to log time on it.');
   }
-  if (studiedOn > localDate(clock())) {
-    throw invalid('future_date', 'You can’t log time in the future.');
-  }
+  if (studiedOn > today) throw futureDate();
   return node;
 }
 
@@ -68,10 +74,49 @@ export async function logSession(
   source: SessionSource = 'app',
 ): Promise<Session> {
   const input = parseInput(logSessionInputSchema, rawInput);
-  const node = await checkTarget(repo, clock, input.nodeId, input.studiedOn);
+  const [nodes, today] = await Promise.all([repo.listNodes(), studyToday(repo, clock)]);
+  const node = checkTarget(nodes, today, input.nodeId, input.studiedOn);
   const session = await repo.insertSession({ id: newId(), ...input, source });
   await startTopic(repo, node);
   return session;
+}
+
+/**
+ * MCP-20: up to 10 sessions, all or nothing. Every item is checked first; the first failure
+ * names its index (0-based) and nothing is saved. Then all are written in one atomic insert and
+ * returned in order. LOG-6 applies to each.
+ */
+export async function logSessions(
+  repo: Repository,
+  clock: Clock,
+  newId: IdGenerator,
+  rawInputs: readonly LogSessionInput[],
+  source: SessionSource = 'app',
+): Promise<Session[]> {
+  if (rawInputs.length < 1 || rawInputs.length > MAX_BATCH_SESSIONS) {
+    throw invalid('batch_size', `Send 1 to ${MAX_BATCH_SESSIONS} sessions at a time.`);
+  }
+  const [nodes, today] = await Promise.all([repo.listNodes(), studyToday(repo, clock)]);
+  const checked = rawInputs.map((raw, index) => {
+    try {
+      const input = parseInput(logSessionInputSchema, raw);
+      return { input, node: checkTarget(nodes, today, input.nodeId, input.studiedOn) };
+    } catch (error) {
+      if (!(error instanceof DomainError)) throw error;
+      throw new DomainError(
+        error.kind,
+        error.code,
+        `Session ${index + 1} (index ${index}): ${error.message} Nothing was saved.`,
+        { index },
+      );
+    }
+  });
+  const sessions = await repo.insertSessions(
+    checked.map(({ input }) => ({ id: newId(), ...input, source })),
+  );
+  const topics = new Map(checked.map(({ node }) => [node.id, node]));
+  for (const node of topics.values()) await startTopic(repo, node);
+  return sessions;
 }
 
 /** HIST-2: any field can change. A session may stay on its node even if that was archived. */
@@ -87,11 +132,12 @@ export async function updateSession(
 
   const nodeId = input.nodeId ?? existing.nodeId;
   const studiedOn = input.studiedOn ?? existing.studiedOn;
+  const today = await studyToday(repo, clock);
   let movedTo: TreeNode | undefined;
   if (nodeId !== existing.nodeId) {
-    movedTo = await checkTarget(repo, clock, nodeId, studiedOn);
-  } else if (studiedOn > localDate(clock())) {
-    throw invalid('future_date', 'You can’t log time in the future.');
+    movedTo = checkTarget(await repo.listNodes(), today, nodeId, studiedOn);
+  } else if (studiedOn > today) {
+    throw futureDate();
   }
 
   const patch: SessionPatch = {};
@@ -133,11 +179,11 @@ export async function getHistory(
   rawQuery: HistoryQuery = {},
 ): Promise<HistoryPage> {
   const query = parseInput(historyQuerySchema, rawQuery);
-  const to = query.to ?? localDate(clock());
+  const to = query.to ?? (await studyToday(repo, clock));
   const windowStart = addDays(to, -(HISTORY_PAGE_DAYS - 1));
   const start = query.from && query.from > windowStart ? query.from : windowStart;
 
-  const filter: SessionFilter = { source: query.source };
+  const filter: SessionFilter = { source: query.source, noteContains: query.noteContains };
   if (query.nodeId) filter.nodeIds = subtreeIds(await repo.listNodes(), query.nodeId);
 
   if (start > to) return { days: [], nextTo: null };
@@ -160,6 +206,24 @@ export async function listSessions(
   if (nodeId) filter.nodeIds = subtreeIds(await repo.listNodes(), nodeId);
   const sessions = await repo.listSessions(filter);
   return { sessions: sessions.slice(0, limit), truncated: sessions.length > limit };
+}
+
+/**
+ * MCP-17: the newest session (by date, then creation time) whose note starts with `prefix`
+ * (case-insensitive; notes are stored trimmed, so leading spaces never count), optionally within
+ * a node's subtree. null when there's none.
+ */
+export async function latestNoteWithPrefix(
+  repo: Repository,
+  prefix: string,
+  nodeId?: string,
+): Promise<Session | null> {
+  const text = prefix.trim();
+  if (text === '') throw invalid('empty_prefix', 'Give the start of the note to look for.');
+  const filter: SessionFilter = { noteStartsWith: text, limit: 1 };
+  if (nodeId !== undefined) filter.nodeIds = subtreeIds(await repo.listNodes(), nodeId);
+  const [session] = await repo.listSessions(filter);
+  return session ?? null;
 }
 
 /** LOG-7: the most recently used visible nodes, from recent sessions so it works on any device. */

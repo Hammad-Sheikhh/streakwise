@@ -1,7 +1,12 @@
+import { Search } from 'lucide-react';
+import { useId, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { QueryError } from '@/components/QueryError';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SESSION_SOURCES } from '@/core/domain/types';
 import type { SessionSource } from '@/core/domain/types';
@@ -24,6 +29,8 @@ function readFilters(params: URLSearchParams): HistoryQuery {
   const to = params.get('to');
   const nodeId = params.get('node');
   const source = params.get('source');
+  const query = params.get('q')?.trim();
+  if (query) filters.noteContains = query.slice(0, 200);
   if (from && DATE.test(from)) filters.from = from;
   if (to && DATE.test(to)) filters.to = to;
   if (nodeId) filters.nodeId = nodeId;
@@ -31,7 +38,18 @@ function readFilters(params: URLSearchParams): HistoryQuery {
   return filters;
 }
 
-// HIST-1–4.
+/** Writes the filters (and the note search) back to the URL. */
+function toParams(filters: HistoryQuery): URLSearchParams {
+  const search = new URLSearchParams();
+  if (filters.noteContains) search.set('q', filters.noteContains);
+  if (filters.nodeId) search.set('node', filters.nodeId);
+  if (filters.source) search.set('source', filters.source);
+  if (filters.from) search.set('from', filters.from);
+  if (filters.to) search.set('to', filters.to);
+  return search;
+}
+
+// HIST-1–4, DATA-1 (search every note).
 export function HistoryPage() {
   const { basePath } = useDataSource();
   const today = useToday();
@@ -40,25 +58,26 @@ export function HistoryPage() {
   const filtered = Object.keys(filters).length > 0;
   const tree = useTree();
   const history = useHistory(filters);
+  const { noteContains, ...otherFilters } = filters;
 
   const days = history.data?.pages.flatMap((page) => page.days) ?? [];
 
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">History</h1>
+      <NoteSearch
+        key={noteContains ?? ''}
+        value={noteContains ?? ''}
+        onSearch={(text) =>
+          setParams(toParams({ ...filters, noteContains: text || undefined }), { replace: true })
+        }
+      />
       {tree.data && (
         <HistoryFilters
           nodes={tree.data}
-          filters={filters}
+          filters={otherFilters}
           today={today}
-          onChange={(next) => {
-            const search = new URLSearchParams();
-            if (next.nodeId) search.set('node', next.nodeId);
-            if (next.source) search.set('source', next.source);
-            if (next.from) search.set('from', next.from);
-            if (next.to) search.set('to', next.to);
-            setParams(search, { replace: true });
-          }}
+          onChange={(next) => setParams(toParams({ ...next, noteContains }), { replace: true })}
         />
       )}
 
@@ -77,7 +96,11 @@ export function HistoryPage() {
       {history.data && tree.data && days.length === 0 && (
         <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-6">
           {filtered ? (
-            <p>No sessions match these filters.</p>
+            <p>
+              {noteContains
+                ? `No notes contain “${noteContains}”${Object.keys(otherFilters).length > 0 ? ' with these filters' : ''}.`
+                : 'No sessions match these filters.'}
+            </p>
           ) : (
             <>
               <p>No sessions yet. Log your first one and it shows up here.</p>
@@ -107,7 +130,13 @@ export function HistoryPage() {
             </div>
             <ul className="flex flex-col divide-y rounded-lg border">
               {day.sessions.map((session) => (
-                <SessionRow key={session.id} session={session} nodes={tree.data} today={today} />
+                <SessionRow
+                  key={session.id}
+                  session={session}
+                  nodes={tree.data}
+                  today={today}
+                  highlight={noteContains}
+                />
               ))}
             </ul>
           </section>
@@ -124,5 +153,40 @@ export function HistoryPage() {
         </Button>
       )}
     </>
+  );
+}
+
+/** DATA-1: searches the notes of all sessions, combined with the filters. */
+function NoteSearch({ value, onSearch }: { value: string; onSearch: (text: string) => void }) {
+  const id = useId();
+  const [text, setText] = useState(value);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSearch(text.trim());
+  }
+
+  return (
+    <form role="search" className="flex flex-col gap-2" onSubmit={handleSubmit}>
+      <Label htmlFor={`${id}-q`}>Search notes</Label>
+      <div className="flex gap-2">
+        <Input
+          id={`${id}-q`}
+          type="search"
+          className="h-11"
+          maxLength={200}
+          placeholder="e.g. Day 3"
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            // Clearing the box (or its ✕) clears the search.
+            if (e.target.value === '' && value) onSearch('');
+          }}
+        />
+        <Button type="submit" variant="outline" className="h-11">
+          <Search aria-hidden="true" /> Search
+        </Button>
+      </div>
+    </form>
   );
 }

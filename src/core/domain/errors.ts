@@ -7,12 +7,20 @@ export class DomainError extends Error {
   readonly kind: DomainErrorKind;
   /** A stable machine-readable code, e.g. `node_in_use`. */
   readonly code: string;
+  /** Extra facts for Claude, e.g. which batch item failed (MCP-20); safe to show. */
+  readonly details: Record<string, string | number> | undefined;
 
-  constructor(kind: DomainErrorKind, code: string, message: string) {
+  constructor(
+    kind: DomainErrorKind,
+    code: string,
+    message: string,
+    details?: Record<string, string | number>,
+  ) {
     super(message);
     this.name = 'DomainError';
     this.kind = kind;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -23,6 +31,11 @@ export const CONFLICT_MESSAGES: Record<string, string> = {
   node_has_children: 'Move or remove its children first.',
   already_completed: 'This task is already completed for that period.',
   duplicate: 'Something with that name already exists here.',
+  not_completed: 'This task isn’t completed for that period.',
+  already_undone: 'This change was already undone.',
+  changed_since: 'This was changed again afterwards. Undo the later change first.',
+  cannot_undo: 'This can’t be undone any more: something it depends on has changed.',
+  mistake_learned: 'This mistake is already learned.',
 };
 
 export function conflict(code: string): DomainError {

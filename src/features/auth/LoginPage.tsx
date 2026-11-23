@@ -6,10 +6,12 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { DataSourceError } from '@/data/DataSource';
+import { useDataSource } from '@/data/useDataSource';
 
 import { AuthField } from './AuthField.js';
 import { AuthLayout } from './AuthLayout.js';
 import { formValue } from './formValues.js';
+import { rememberSession } from './session.js';
 import { useAccount } from './useAccount.js';
 
 const LINK_MESSAGES: Record<string, string> = {
@@ -22,6 +24,7 @@ const LINK_MESSAGES: Record<string, string> = {
 // request until the visitor acts, so the demo stays offline.
 export function LoginPage() {
   const account = useAccount();
+  const dataSource = useDataSource();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -32,6 +35,9 @@ export function LoginPage() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       account.login({ email, password }),
     onSuccess: async () => {
+      // Record the session before the guard reads it, then refresh everything that depended on
+      // being logged out (an earlier visit caches the "logged out" answer).
+      rememberSession(queryClient, dataSource.mode, true);
       await queryClient.invalidateQueries();
       void navigate('/', { replace: true });
     },

@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Version** | 2.1 |
-| **Status** | Approved for build |
-| **Users** | One (the owner, a student) |
+| **Version** | 3.0 (adds v1.1, "the exam update": §A7, milestone M9, D23–D28) |
+| **Status** | v1.0 built and live (v1.0.1). v1.1 approved for build by the owner, 2026-11-23 |
+| **Users** | Anyone with an account (D17); built for the owner, a student |
 | **Builder** | Claude Code, following docs/SETUP.md and CLAUDE.md |
 
 ## How to use this document
@@ -12,8 +12,9 @@
 - **Part A** is plain English for the owner. It's the only part the owner needs to read.
 - **Part B** is the technical specification for Claude Code. It is the source of truth for what to build.
 - Every requirement in Part B has an **ID** (e.g. `LOG-3`) and a **priority**:
-  - **MUST**: required for v1.0
-  - **SHOULD**: build it unless time or usage runs short
+  - **MUST**: required for the release it belongs to (v1.0, or v1.1 for the M9 items)
+  - **SHOULD**: build it unless time or usage runs short (for v1.1 the owner asked for every item,
+    SHOULD included, to be built in one go)
   - **COULD**: only if everything else in the milestone is done
 
   If something has to be cut, follow the cut order in §B14.5. PR descriptions, tests, and the final
@@ -27,7 +28,7 @@
 ## A1. What you're building
 
 A private study tracker that works on your phone and laptop. You log your study time yourself
-(there's no timer) under your three tracks:
+(v1.1 adds an optional start/stop timer) under your three tracks:
 
 - **Exam Prep**: flashcards and your class
 - **School Subjects**: Maths and English
@@ -54,20 +55,23 @@ Visitors to your portfolio get a **demo with made-up data**, so your real data s
 
 | Screen | What it's for |
 |---|---|
-| **Home** | Warnings, today's total, streak, weekly goals, tasks due, exam countdowns, heatmap |
-| **+ Log** | Log a study session in under 15 seconds |
+| **Home** | Today's task and pace (v1.1), warnings, today's total, streak, weekly goals, tasks due, exam countdowns, mistakes due, heatmap |
+| **+ Log** | Log a study session in under 15 seconds, or start a timer (v1.1) |
 | **Tasks** | Your to-do lists, including the weekly revision |
 | **Scores** | Past papers, quizzes, revision scores, and how they're trending |
+| **Exam** (v1.1) | Days left to your exam, score charts per module with your targets, and the mock-test grid |
+| **Mistakes** (v1.1) | Your mistakes to review today (+1, +3, +7 days), and open vs learned per module |
+| **Recent changes** (v1.1) | Everything you or Claude changed in the last 7 days, with Undo on each |
 | **Reports** | Create, print, copy, and share reports |
-| **History** | Every session you've logged, which you can edit or delete |
+| **History** | Every session you've logged, which you can search, edit, or delete |
 | **Track pages** | Everything about one track on one page |
-| **Settings** | Your name, goals, subjects, exam dates, shared links, data download, Claude connection |
+| **Settings** | Your name, when your study day ends (v1.1), goals, subjects, exam dates, shared links, data download and restore, Claude connection |
 
 ## A3. Decisions you've already made
 
 - Only you use the app, protected by a passcode. There's no sign-up.
 - Three tracks with three levels each (track → subtask → topic). Tasks can nest as deep as you want.
-- You log time by hand. There's no timer.
+- You log time by hand. ~~There's no timer.~~ v1.1 adds an optional start/stop timer (D26).
 - Weekly goals are set per track. A warning appears after 3 days without study.
 - Scores: past papers, quizzes, mock tests, and weekly self-tests.
 - Reports are in English and formal enough for teachers and parents. Your private notes are hidden
@@ -102,6 +106,7 @@ The whole build takes roughly **10–13 Claude Code sessions**, split into 9 mil
 | Milestone 4 (second live update) | Home dashboard, heatmap, streaks, exam countdowns, and **Claude connected**. This is the **minimum useful version**: if exams or usage limits get in the way, it's fine to pause here |
 | Milestone 6 (third live update) | Topics and syllabus %, tasks, scores, reports, and share links |
 | Milestone 8 (final update) | The polished portfolio version: demo mode, installable app, README with screenshots |
+| Milestone 9 (v1.1, the exam update) | Everything in §A7 below |
 
 ## A6. Words you'll see
 
@@ -120,6 +125,47 @@ The whole build takes roughly **10–13 Claude Code sessions**, split into 9 mil
 | **RLS** | A database lock that makes sure only the server can read your data |
 | **MCP / connector** | How Claude connects to your app |
 | **PWA** | A website you can install like an app |
+| **Study day** | The day your study counts for. With "My day ends at 04:00", 01:50 at night still counts for the day before |
+
+## A7. Version 1.1: the exam update (owner's feature list, 2026-11-23)
+
+You use Streakwise with Claude for a 30-day ÖSD B1 exam plan, and five Claude projects read it
+every day. Three things hurt: big answers use up Claude's limits, mistakes can't be undone, and study
+after midnight lands on the wrong day. Version 1.1 fixes all three and adds exam tools. Everything
+below is built in one go (milestone M9, three parts), then released as **v1.1.0** after you say yes.
+
+**For Claude (the connector)**
+- **Smaller answers:** a "compact" mode for task and session lists, filters (due dates, title
+  contains "Day 3", note contains), one task in full by id, and "the latest note starting with Day".
+- **Undo and edit:** Claude can edit or delete sessions, scores, and tasks, untick a task (its score
+  goes too), rename a track or change its weekly goal, and archive or restore parts of your tree.
+  Claude can do this for items of **any date, past or future** (your decision, D24). Things that
+  already happened (sessions, scores, ticks) still can't be dated in the future. Claude still asks
+  you before deleting anything.
+- **Tick a task for an earlier day**, and **log up to 10 sessions at once** (all saved, or none).
+- **Mistake tracker:** Claude can save a mistake, list the ones due for review today, and mark a
+  review right or wrong. Your "ERR:" notes keep working as now.
+- Every change Claude makes comes back with the changed item, so it can confirm in one line.
+
+**In the app**
+- **"My day ends at"** setting (for example 04:00): study logged before that time counts for the
+  day before, everywhere (sessions, scores, ticks, streak, Claude's "today").
+- **Undo everywhere:** after logging, ticking, or scoring, a 10-second Undo button. A **Recent
+  changes** screen lists everything you or Claude changed in the last 7 days, with Undo on each.
+- **Mistakes screen:** mistakes grouped by module, a "Due today" tab with Right/Wrong buttons, and
+  open vs learned counts.
+- **Exam view:** days left to the deadline you mark as your exam, score charts per module with your
+  target lines (e.g. Mock 1 ≥ 60% … Mock 6 ≥ 90%), and a mock grid that marks scores below target.
+- **Today card on Home:** today's task (or the oldest overdue one) with its description and
+  sub-tasks, minutes per subject today, and a pace bar with "needed per day".
+- **Timer:** start and stop on any subject; stopping fills in the Log form for you.
+- **Search** all your session notes, **export** everything (JSON and CSV), and **restore** from a
+  backup file. Restore replaces all your study data with the file's contents, so it downloads a fresh
+  backup first and asks you to type RESTORE.
+- Your streak still counts only days with logged study time (your decision, D25).
+
+**What you'll do by hand:** run one database script (`0005`) when Claude Code asks, try each part on
+its preview, and say yes to the release.
 
 ---
 
@@ -162,13 +208,33 @@ for every ancestor.
 - Recurrence is `none` (with an optional due date) or `weekly` (no due date; due every week).
 - A task can be scored, with a default maximum score.
 - Completions are stored as records. A one-off task has at most one completion; a weekly task has at most one per week.
+- (v1.1, TASK-11) Every completion has a **completion date** (`completed_on`, a study day, §B9.1a)
+  besides its timestamp. It defaults to today and may be any earlier day; reports use it. For a
+  weekly task, the completion's week is `weekStart(completed_on)`.
 
 **B3.4 Scores.** Each score has a kind (`past_paper` | `quiz` | `mock_test` | `revision` | `other`),
 a title, a date, a score, a maximum, a node, a note, and an optional link to a task completion.
 
-**B3.5 Deadlines.** A title, a date, and a node.
+**B3.5 Deadlines.** A title, a date, and a node. (v1.1, EXAM-1) A deadline can be marked as an
+**exam**; an exam can have **score targets**: a label (e.g. "Mock 1"), a date, and a minimum
+percentage (0–100).
 
 **B3.6 Shared reports.** A frozen JSON snapshot, a slug, a creation date, and optional expiry and revocation dates.
+
+**B3.7 Mistakes (v1.1, ERR).** A mistake belongs to any node and has a text (1–500 characters), a
+created date (study day), a source (`app` | `claude`), a status (`open` | `learned`), a review
+step (1, 2, or 3), an anchor date, the next review date, a review count, and the last review date
+and result. The review schedule is §B9.13.
+
+**B3.8 Change history (v1.1, UNDO).** Every change to sessions, scores, tasks, task completions,
+mistakes, nodes, deadlines, and exam targets is recorded as an entry: time, source (`app` |
+`claude`), entity type and id, action (`create` | `update` | `delete` | `complete` | `uncomplete` |
+`archive` | `unarchive` | `review`), a one-line summary, the state before and after (JSON), and when
+it was undone (if it was). Entries are kept for 30 days.
+
+**B3.9 Study day (v1.1, DAY).** Each user has a "My day ends at" time between 00:00 and 06:00
+(default 00:00). Every "today" in the app, the API, and MCP is the study day of the current time
+(§B9.1a).
 
 ## B4. Seed data
 
@@ -284,7 +350,8 @@ Online Course      color: violet
 | TASK-7 | MUST | "Due this week" (on Home and as a Tasks filter) = weekly tasks not yet completed this week + one-off tasks due on or before this Sunday that aren't completed. Overdue tasks are highlighted. |
 | TASK-8 | MUST | Tasks can be edited, archived, and deleted. Deleting a task deletes its sub-tasks and completions after confirmation; linked scores are kept but unlinked. |
 | TASK-9 | SHOULD | Parent tasks show sub-task progress, e.g. "3/5". Weekly sub-tasks count as done if they're completed this week. Parents are never completed automatically. |
-| TASK-10 | COULD | A weekly task can be completed for the previous week (backfill). |
+| TASK-10 | COULD | A weekly task can be completed for the previous week (backfill). (v1.1: delivered by TASK-11.) |
+| TASK-11 | MUST | (v1.1) Completing a task (app and MCP) takes an optional **completion date**: default today (the study day), never in the future, no lower limit (D24). The completion, its week (weekly tasks: `period_start = weekStart(date)`), and its linked score's date all use it, and reports count it on that date. The app's complete dialog has a "Done on" date field with Today/Yesterday chips. Uncompleting a weekly task removes the completion for the week of the chosen date (default this week). |
 
 ### B5.8 Scores (SCORE)
 | ID | Priority | Requirement |
@@ -377,6 +444,50 @@ Online Course      color: violet
 | `log_score` | Record a score | M5 |
 | `get_report` | Report data for a period, from `buildReport` | M6 |
 
+#### v1.1 additions (M9a; owner's feature list, 2026-11-23, D23)
+
+Context: the owner runs a 30-day ÖSD B1 plan through Claude. Claude logs sessions, records scores,
+and ticks tasks, and five Claude projects read Streakwise daily, so response size directly costs
+the owner's Claude usage.
+
+| ID | Priority | Requirement |
+|---|---|---|
+| MCP-10 | MUST | **Compatibility.** Existing tools keep their names, parameters, defaults, and output shape. New behaviour comes only through new optional parameters whose defaults reproduce today's output, new fields added to existing outputs, and new tools. |
+| MCP-11 | MUST | **Writes confirm in one line.** Every write, edit, undo, and delete tool returns the changed item (deletes return the deleted item; batch tools return every item) in the same compact shape the matching list tool uses, so Claude can confirm without a second call. |
+| MCP-12 | MUST | **No age limit (D24).** Claude may edit, undo, or delete items of any date, past or future. Dates of things that already happened (session `date`, score `date`, completion `date`, mistake reviews) still can't be in the future, exactly as in the app. Deletes carry `destructiveHint: true`, and the instructions tell Claude to confirm with the student first. |
+| MCP-13 | MUST | **`list_tasks` options.** `compact` (boolean, default false): each task is only `id`, `title`, `path`, and `done`, plus `parentTaskId`, `dueOn`, `scored: true`, `weekly: true`, `overdue: true`, and `subtasks` ({done, total}) only when they carry information (non-null / true / has sub-tasks); never the description. `due_from` / `due_to` (date references, inclusive): only one-off tasks whose due date is in that range (tasks without a due date are left out when either is set). `title_contains`: case-insensitive substring of the title (e.g. "Day 3"). All combine with the existing `node`, `status`, `include_archived`, and `limit`. (Amended by D29: `done` is also listed only when true, and a sub-task leaves out `path` when it is the same as its parent task's.) |
+| MCP-14 | MUST | **Size target.** On a fixture of 70 tasks shaped like the owner's plan (two levels, descriptions of 200–400 characters, mixed due dates, some scored), `list_tasks` with `compact: true` returns under 25% of the characters of the default output. A test asserts it. |
+| MCP-15 | MUST | **`get_task(task_id)`.** One task in full (the `list_tasks` fields, including the description), its current completion (date, note, linked score) if done, completed weeks for weekly tasks, and all its sub-tasks nested to any depth (each in the full shape, with their own `subtasks` array). |
+| MCP-16 | MUST | **`list_sessions` options.** `note_contains`: case-insensitive substring of the note. `compact` (boolean, default false): each session is `id`, `date`, `minutes`, `path`, and the first 80 characters of the note (with "…" when cut; left out when there's no note). The id stays so Claude can edit or delete from a compact list. |
+| MCP-17 | MUST | **`get_latest_note(prefix, node?)`.** The newest session (by date, then creation time) whose note starts with `prefix` (case-insensitive, leading spaces ignored), optionally within a node's subtree. Returns `{ session: { id, date, minutes, path, note } }`, or `{ session: null }`. Used to work out "today's Day N". |
+| MCP-18 | MUST | **Edit and undo tools:** `update_session(session_id, minutes?, note?, date?, node?)` (`note: null` clears it); `uncomplete_task(task_id, date?)` (removes the completion for the task's period containing `date`, default today, and the score that completing it created, atomically); `list_scores(node?, from?, to?, kind?, title_contains?, limit?)` (newest first; each score also says `fromTask: true` when a completion created it); `update_score(score_id, score?, max_score?, title?, note?, date?, kind?)`; `delete_score(score_id)`; `update_task(task_id, title?, description?, due_date?, weekly?, scored?, default_max_score?)` (null clears `description` and `due_date`; same rules as TASK-2/TASK-8); `delete_task(task_id, include_subtasks = false)` (refuses with `has_subtasks` and the sub-task count unless `include_subtasks` is true; then removes the sub-tasks too, as TASK-8); `update_node(node, name?, weekly_target?)` (`weekly_target` in minutes, tracks only, null clears); `archive_node(node)` and `unarchive_node(node)` (TREE-2, TREE-5; `unarchive_node` resolves archived nodes too). Parameter names follow the existing snake_case style (`due_date`, `default_max_score`, as in `add_task`). |
+| MCP-19 | MUST | **`complete_task` date.** New optional `date` (date reference, default today; TASK-11). |
+| MCP-20 | MUST | **`log_sessions(sessions[])`.** 1–10 sessions, each with the `log_session` fields. Every item is resolved and validated first; if any fails, nothing is saved and the error names the failing item (`index`, 0-based, plus a message like "Session 3: …"). Otherwise all are saved in one atomic write (LOG-6 applies to each) and returned in order. |
+| MCP-21 | MUST | **Mistake tools (ERR):** `add_mistake(node, text, date?)` stores a mistake (source `claude`); `list_due_mistakes(node?, date?)` lists open mistakes whose next review is on or before `date` (default today), oldest due first; `review_mistake(mistake_id, result: "right" \| "wrong")` applies §B9.13 and returns the mistake with its new step, status, and next review date. |
+| MCP-22 | MUST | **Study day (DAY-2).** "today", "yesterday", every default date, and every `today` field in tool output use the study day. The instructions explain the "My day ends at" rule and give the current setting's meaning in one sentence. |
+| MCP-23 | MUST | **Instructions and version.** `MCP_INSTRUCTIONS` gain short paragraphs on compact mode (prefer it for lists), editing and undoing, the mistake tracker, and the study day, staying under about 3,500 characters in total. `MCP_SERVER_VERSION` becomes `1.1.0`. |
+| MCP-24 | MUST | **Change history.** Every MCP write is recorded in the change history (UNDO-3) with source `claude`, so the owner can see and undo Claude's changes in the app. |
+
+New tools (all M9a; the read-only ones are marked `readOnlyHint`, the deletes `destructiveHint`):
+
+| Tool | Purpose |
+|---|---|
+| `get_task` | One task in full, with nested sub-tasks (MCP-15) |
+| `get_latest_note` | Newest session whose note starts with a prefix (MCP-17) |
+| `update_session` | Edit a session (MCP-18) |
+| `uncomplete_task` | Untick a task, removing its linked score (MCP-18) |
+| `list_scores` | Find scores and their ids (MCP-18) |
+| `update_score` / `delete_score` | Edit or delete a score (MCP-18) |
+| `update_task` / `delete_task` | Edit or delete a task (MCP-18) |
+| `update_node` | Rename a node or set a track's weekly target (MCP-18) |
+| `archive_node` / `unarchive_node` | Hide or restore part of the tree (MCP-18) |
+| `log_sessions` | Up to 10 sessions, all or nothing (MCP-20) |
+| `add_mistake` / `list_due_mistakes` / `review_mistake` | The mistake tracker (MCP-21) |
+
+New options on existing tools: `list_tasks` (`compact`, `due_from`, `due_to`, `title_contains`),
+`list_sessions` (`note_contains`, `compact`), `complete_task` (`date`). `list_deadlines` items gain
+`isExam` (EXAM-1).
+
 ### B5.16 Operations (OPS)
 | ID | Priority | Requirement |
 |---|---|---|
@@ -384,6 +495,69 @@ Online Course      color: violet
 | OPS-2 | MUST | `GET /api/keepalive` does one trivial database read. A scheduled GitHub Actions workflow calls it on the production URL every 3 days (and on manual dispatch). The workflow skips quietly if the `PROD_URL` repository variable isn't set yet. |
 | OPS-3 | MUST | Server logs are structured and never contain secrets, passcodes, or note text. |
 | OPS-4 | MUST | A production release only happens with the owner's explicit OK, at the release points in §B14.2, and is logged in PROGRESS.md. |
+
+### B5.17 Study day (DAY) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| DAY-1 | MUST | Settings → General has **"My day ends at"**: 00:00 to 06:00 in 30-minute steps, default 00:00 (stored per user). |
+| DAY-2 | MUST | Every "today" uses the study day (§B9.1a): the log form's default date and Today/Yesterday chips, the future-date checks, the week (so a Sunday-night session before the cutoff still counts for that week), streaks, the heatmap's last day, targets and pace, neglect, tasks due and overdue, completion dates, score dates, mistake reviews, reports' "today", the timer, demo mode, and MCP (MCP-22). Timestamps (created/updated/completed-at) stay real UTC instants. |
+| DAY-3 | MUST | Stored dates are never rewritten when the setting changes. Where a timestamp becomes a day at read time (a topic's done time in reports, a node's creation for "never logged" neglect), the same rule applies with the current setting. |
+| DAY-4 | MUST | Acceptance: with the cutoff at 04:00, a session logged at 01:50 on 23 Nov (Karachi) with the default date is dated 22 Nov in the app and through MCP, and the streak counts it for 22 Nov. At 04:00 the study day becomes 23 Nov. |
+| DAY-5 | SHOULD | Between midnight and the cutoff, the log form shows a hint such as "Counts for Sun 22 Nov (your day ends at 04:00)". |
+
+### B5.18 Undo and change history (UNDO) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| UNDO-1 | MUST | After logging a session (LOG-9, already built), completing or uncompleting a task, adding a score, adding or reviewing a mistake, and deleting a session, score, or mistake, a toast offers **Undo** for 10 seconds. |
+| UNDO-2 | MUST | Sessions, scores, and tasks open an **edit sheet on tap** wherever they are listed (History, Scores, Tasks, track pages, the Today card), with Save and Delete (delete asks for confirmation). Editing and deleting themselves already exist (HIST-2, SCORE-1, TASK-8); this makes the entry point consistent. |
+| UNDO-3 | MUST | Every change listed in §B3.8, whether made in the app, in demo mode, or through MCP, is recorded once, in `src/core` (for example a change-recording wrapper around `Repository`, or one helper every service calls), so all three paths behave the same. Recording happens after the write succeeds; if recording fails, the write still stands and the failure is logged without data. |
+| UNDO-4 | MUST | **Recent changes** (`/changes`, in More and linked from Settings): the last 7 days, newest first, grouped by day, each with time, summary (e.g. "Logged 45m · Exam Prep > Flashcards"), a "via Claude" badge for Claude's changes, and an **Undo** button; undone entries show "Undone". |
+| UNDO-5 | MUST | **Undo means the inverse:** create → delete; update → restore the before-state; delete → recreate with the same id (a deleted task comes back with its sub-tasks, completions, and score links); complete → uncomplete (the linked score goes too); uncomplete → re-complete with the same completion and score; archive ↔ unarchive; review → the mistake's previous state. Undo refuses with a clear message (409 `changed_since`) when the item has a later change that isn't undone, or when it can't be restored (for example its node was deleted). Undo itself is not recorded and can't be undone (no redo). Multi-row undos (task tree, completion + score) are atomic. |
+| UNDO-6 | MUST | The changes list and undo are available in the API and in demo mode. |
+| UNDO-7 | SHOULD | Entries older than 30 days are removed automatically (on write, at most once a day per user). |
+
+### B5.19 Mistakes (ERR) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| ERR-1 | MUST | Mistakes (§B3.7) can be added (node, text, optional date: default today, not in the future), edited (text, node), and deleted (with confirmation) in the app, and added and reviewed through MCP (MCP-21). |
+| ERR-2 | MUST | The review schedule is §B9.13: due +1, +3, and +7 days after the anchor date; right moves to the next step; wrong goes back to step 1 from the review day; right at step 3 marks it learned. |
+| ERR-3 | MUST | **Mistakes screen** (`/mistakes`, in More): a **Due today** tab (open mistakes due on or before today, oldest due first, each with Right and Wrong buttons) and an **All** tab (grouped by node path, filter open / learned / all). |
+| ERR-4 | MUST | The top of the screen shows open vs learned counts per module (the mistake's subtask, or its track when the mistake is on the track itself). |
+| ERR-5 | MUST | "ERR:" text in session notes keeps working exactly as now (it's ordinary note text); the mistake tracker is an extra path. |
+| ERR-6 | SHOULD | Home shows "N mistakes due today" linking to the Due today tab when N > 0. |
+
+### B5.20 Exam view (EXAM) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| EXAM-1 | MUST | The deadline form (DEAD-1) has a **"This is an exam"** switch. Exam deadlines show an "Exam" badge on Home, and `list_deadlines` items gain `isExam`. |
+| EXAM-2 | MUST | **Exam view** (`/exam`, in More, and linked from exam deadlines on Home): the next upcoming exam by default, with a picker when there are several (past exams included, marked as past). It shows a large countdown ("23 days left", "Today", or "2 days ago"). Without any exam, an empty state explains how to mark a deadline as an exam. |
+| EXAM-3 | MUST | **Score targets** per exam: a list of label, date, and minimum % (e.g. Mock 1 · 1 Dec · 60%), added, edited, and deleted on the exam view. |
+| EXAM-4 | MUST | **Per-module chart:** % over time of the scores in the exam node's subtree, one line per module (§B9.16), with the targets drawn as a stepped target line by date. Lazy-loaded like the other charts. |
+| EXAM-5 | MUST | **Mock grid:** rows = mock tests (§B9.16), columns = modules, cell = % (with score/max on hover or tap). A cell below its row's target is marked red **and** with a text marker (e.g. "▼ below 70%"), so colour is never the only signal; empty cells show "—". |
+| EXAM-6 | SHOULD | Each grid row also shows its average across modules and its target. |
+
+### B5.21 Today card (TODAY) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| TODAY-1 | MUST | Home starts (below neglect warnings) with a **Today** card. **Today's task** (§B9.15) shows its title, description, and sub-tasks with working checkboxes, and opens the task's edit sheet on tap. With no such task, the card says so and links to Tasks. |
+| TODAY-2 | MUST | The card lists today's minutes per subtask (and per track for time logged on a track itself), from today's sessions. |
+| TODAY-3 | MUST | **Pace bar** per track with a weekly target: minutes this week vs target, and "needed per day" (§B9.14), or "Target met" when reached. |
+| TODAY-4 | MUST | All of it comes from the existing single dashboard request (DASH-1). |
+
+### B5.22 Timer (TIMER) — v1.1, supersedes D3
+| ID | Priority | Requirement |
+|---|---|---|
+| TIMER-1 | SHOULD | A **Start timer** button on the Log screen and on track pages starts a timer on the chosen node. One timer runs at a time. It is stored on the device (start time and node, in `localStorage`), so it survives reloads and closing the app; a pill in the layout shows the node and elapsed time. |
+| TIMER-2 | SHOULD | **Stop** opens the Log form prefilled with the node, the minutes (rounded to the nearest minute, at least 1, at most 1440; longer runs ask what to keep), the study day of the start time, and the note box focused. **Discard** cancels without saving. |
+| TIMER-3 | SHOULD | The timer works in demo mode and never calls the server while running. |
+
+### B5.23 Search, export, and restore (DATA) — v1.1
+| ID | Priority | Requirement |
+|---|---|---|
+| DATA-1 | SHOULD | **Search notes:** History has a search box that finds sessions in all history whose note contains the text (case-insensitive), combined with the existing filters, grouped by day, with the match highlighted. The history API takes `noteContains`. |
+| DATA-2 | SHOULD | **Export:** the JSON export becomes `formatVersion: 2` and adds mistakes, exam targets, deadlines' exam flag, completion dates, and the "day ends at" setting. Settings → Data offers CSV downloads for sessions (as now), scores, tasks (with path, due date, done), and mistakes. CSV cells keep the formula-injection guard. |
+| DATA-3 | SHOULD | **Restore from backup** (Settings → Data): choose a Streakwise JSON file (format 1 or 2, at most 4 MB). The whole file is validated first and a summary is shown (counts per type, date range, the file's export date) before anything changes. The owner must type RESTORE; the app then downloads a fresh backup of the current data and restores. |
+| DATA-4 | SHOULD | Restore **replaces** all of the user's study data (nodes, sessions, tasks, completions, scores, deadlines, exam targets, mistakes, and the name, neglect, and "day ends at" settings) in one atomic database call. It keeps the account, the Claude link, and shared links. Every restored row gets a new id, with the links between rows kept. The change history is cleared. It never merges. Demo mode restores into memory. |
 
 ## B6. Screens and navigation
 
@@ -395,13 +569,16 @@ Online Course      color: violet
 | `/history` | History | HIST |
 | `/tasks` | Tasks | TASK |
 | `/scores` | Scores | SCORE |
+| `/exam` | Exam view (v1.1) | EXAM |
+| `/mistakes` | Mistakes (v1.1) | ERR |
+| `/changes` | Recent changes (v1.1) | UNDO |
 | `/reports` | Reports | REP, SHARE |
 | `/tracks/:id` | Track page | TRACK, TOP |
 | `/settings/*` | Settings sections | SET, TREE, TGT, DEAD, SHARE |
 | `/r/:slug` | Public shared report | SHARE |
 | `/demo/*` | Demo mode, mirroring the app's routes | DEMO |
 
-- **Mobile:** a bottom nav with **Home · Tasks · + Log · Reports · More**. More contains History, Scores, Tracks, and Settings.
+- **Mobile:** a bottom nav with **Home · Tasks · + Log · Reports · More**. More contains History, Scores, Tracks, and Settings, plus (v1.1) Exam, Mistakes, and Recent changes. The running timer's pill (TIMER-1) sits above the bottom nav.
 - **Desktop:** a sidebar, with content in a comfortable max width.
 - Every list and chart has an empty state that tells the owner what to do next.
 
@@ -428,6 +605,32 @@ Names and types may be refined, but the rules below must hold.
 - **Enable RLS on every table with no policies**, and revoke execute on the RPC functions from `anon`
   and `authenticated`. Only the server's secret key can read or write.
 
+**B7.1 Migration `0005_v1_1.sql` (M9a, written once for all of v1.1, so the owner runs SQL once).**
+Since 0003, every data table has `user_id` (required since 0004) and same-user composite foreign
+keys, and per-user settings live in `user_settings`. New tables follow the same pattern.
+
+**It must be backward compatible:** there is one database (D15), so production keeps running v1.0.1
+code against it until R6. Only add columns (with defaults), tables, indexes, triggers, and new
+functions; never drop or rename anything the v1.0.1 code uses, and keep the old RPC signatures
+working.
+
+| Change | Details |
+|---|---|
+| `user_settings.day_ends_at_minutes` | smallint not null default 0 · check between 0 and 360 and a multiple of 30 (DAY-1) |
+| `task_completions.completed_on` | date; backfilled from `completed_at` in Asia/Karachi; then not null. A BEFORE INSERT trigger fills it the same way when an insert leaves it null (the v1.0.1 code). Index (user_id, completed_on) |
+| `deadlines.is_exam` | boolean not null default false (EXAM-1) |
+| `exam_targets` | id · user_id · deadline_id → deadlines (same user, on delete cascade) · label check length 1–60 · target_on date · min_percent numeric check 0–100 · created_at · updated_at · index (deadline_id, target_on) |
+| `mistakes` | id · user_id · node_id → nodes (same user, no action) · text check length 1–500 · created_on date · source check in (app, claude) · status check in (open, learned) · step smallint check 1–3 · anchor_on date · next_due_on date · review_count int default 0 · last_reviewed_on date · last_result check in (right, wrong) · learned_on date · created_at · updated_at · index (user_id, status, next_due_on), (node_id) |
+| `change_log` | id · user_id · at timestamptz · source check in (app, claude) · entity check in (session, score, task, completion, mistake, node, deadline, exam_target) · entity_id uuid · action check in (create, update, delete, complete, uncomplete, archive, unarchive, review) · summary text check length ≤ 200 · before jsonb · after jsonb · undone_at timestamptz · index (user_id, at desc) |
+| `delete_user_node_tree` | replaced (same signature) so `node_in_use` also counts mistakes |
+| `complete_user_task_on` | new RPC: like `complete_user_task` plus `p_completed_on date` and optional ids, so undo can recreate a completion and its score with their original ids |
+| `restore_user_task_tree` | new RPC: re-inserts a deleted task tree (tasks parents first, completions, score links) from a change-log snapshot, atomically (UNDO-5) |
+| `restore_user_backup` | new RPC: DATA-4 in one transaction: deletes the user's study rows (children first), inserts the file's rows with fresh ids and remapped links (nodes top-down, tasks parents first), updates the three settings, clears `change_log` |
+| `insert_user_sessions` | not needed: a single multi-row insert is already atomic (MCP-20) |
+
+RLS on, no policies, grants to `service_role` only, exactly as in 0003. `supabase/tests/migrations.test.ts`
+gains checks for the new file (RLS on every new table, no drops of existing objects).
+
 ## B8. API (Vercel Functions)
 
 - Host one deployable function (`api/server.ts`) that dispatches every `/api`, `/auth`, `/mcp`, and
@@ -441,12 +644,22 @@ Names and types may be refined, but the rules below must hold.
 - **Resources:** auth (login, logout, me) · nodes · sessions · tasks (+ complete / uncomplete) · scores ·
   deadlines · settings · dashboard (one aggregated read for Home) · reports (build) ·
   shares (create, list, revoke) · public share read · export · health · keepalive.
+- **v1.1 resources:** sessions and history take `noteContains` · tasks/complete takes `completedOn`
+  and uncomplete takes a date · deadlines take `isExam` · exam targets (CRUD under a deadline) ·
+  mistakes (list with status/due filters, create, update, delete, review) · changes (list the last 7
+  days, undo one) · restore (POST the backup JSON) · settings take `dayEndsAtMinutes`. Every new
+  route goes in the route table in `server/functions/_lib/router.ts` and follows the rules above.
 
 ## B9. Calculation rules
 
 All of these live in `src/core/logic` as pure functions that take `now` as a parameter.
 
 1. **Local date.** Every "day" is a calendar date in Asia/Karachi (UTC+5, no daylight saving). `today = localDate(now)`.
+   1a. **Study day (v1.1, DAY).** `studyDate(instant, dayEndsAtMinutes) = localDate(instant − dayEndsAtMinutes)`,
+   and `today = studyDate(now, setting)`. With the default 0 this equals `localDate(now)`, so v1.0
+   behaviour is unchanged. A pure function in `src/core/logic/dates.ts`; services get the setting
+   from the user's settings (read once per call), and `localDate(clock())` is no longer used for
+   "today" anywhere outside that function.
 2. **Week.** Monday 00:00 to Sunday 23:59 local time. `weekStart(date)` = the Monday on or before `date`.
 3. **Roll-up.** `minutes(node, range)` = the sum of sessions on the node or any of its descendants within the range.
 4. **Target progress** = `minutes(track, this week) ÷ weekly target`.
@@ -467,6 +680,28 @@ All of these live in `src/core/logic` as pure functions that take `now` as a par
     - Neglect is computed as of the end of the period, or as of now if the period includes today.
 11. **Score %** = `score ÷ max × 100`, rounded to 1 decimal place.
 12. **Duration display:** `Xh Ym`, leaving out zero parts (`45m`, `2h`, `1h 30m`); zero is shown as `0m`.
+13. **Mistake schedule (v1.1, ERR-2).** Intervals: step 1 = +1 day, step 2 = +3 days, step 3 = +7
+    days, counted from the anchor date. A new mistake: `anchor = created_on`, `step = 1`,
+    `next_due = anchor + 1`. It is due on day `d` when it is open and `next_due ≤ d`. Reviewing on
+    day `r`: **right** at step 1 or 2 → the step becomes `step + 1` and `next_due = anchor +
+    interval(new step)` (if that is not after `r`, because the review was late, use `r + 1`); **right** at step 3 → `status = learned`, `learned_on = r`, no next
+    due date; **wrong** → `anchor = r`, `step = 1`, `next_due = r + 1`. Every review increments
+    `review_count` and sets `last_reviewed_on` and `last_result`. A learned mistake can't be reviewed
+    (undo restores the previous state instead).
+14. **Needed per day (v1.1, TODAY-3).** `days_left` = days from today to Sunday inclusive (1–7);
+    `needed = ceil(max(0, target − minutes this week) ÷ days_left)` minutes; shown as a duration.
+15. **Today's task (v1.1, TODAY-1).** Among visible, open, one-off tasks: those due today, else the
+    one with the oldest overdue due date. Prefer top-level tasks (no parent); then the earliest due
+    date; then sort order. None → no task.
+16. **Exam modules and mocks (v1.1, EXAM-4/5).** The exam's node is its deadline's node. Its
+    **modules** are the node's visible direct children (or the node itself when it has none). A
+    score belongs to the module whose subtree contains its node; scores on the exam node itself go
+    to an "Overall" column. **Mock rows** = distinct titles (case-insensitive, trimmed) of
+    `mock_test` scores in the exam node's subtree, ordered by their earliest date; a cell is the
+    latest score with that title in that module. **A row's target** = the target whose label
+    matches the row title (case-insensitive); otherwise the latest target dated on or before the
+    row's earliest date; otherwise none. The chart's target line steps to each target's
+    `min_percent` at its `target_on`.
 
 ## B10. Report formats
 
@@ -582,6 +817,10 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | Components | React Testing Library | The log form (validation, chips, picker) and the task tree (expand, complete, score dialog) |
 | MCP | Vitest | Each tool's input validation and output on InMemoryRepository; the secret check |
 | End-to-end | Playwright on `/demo` | Login page → Try the demo → log a session → see it in History and on Home → complete the weekly scored task → build the weekly report → copy as text. Asserts **zero** requests to `/api` or `/mcp`. |
+| v1.1 logic | Vitest | `studyDate` (00:00 vs 04:00 cutoff at 01:50, 03:59, 04:00; Sunday 23:30 vs Monday 01:00 with a cutoff, so the week is right), the mistake schedule (each step, late review, wrong resets, learned), needed per day, today's task selection, exam modules, mock rows, and row targets |
+| v1.1 services | Vitest + InMemoryRepository | DAY-4 end to end (log, streak, MCP "today"); completion dates (one-off and weekly, linked score date, report date); change recording for every entity and action, and every undo in UNDO-5 including `changed_since`; mistakes CRUD and reviews; restore (validation errors, replace, id remapping, links kept, change log cleared); export format 2 round-trips through restore |
+| v1.1 MCP | Vitest | Every new tool and option (MCP-13–22): input validation, output shape, errors (`has_subtasks`, batch `index`, future dates), annotations, "today" with a cutoff, and the MCP-14 size test; existing tool outputs unchanged by default (MCP-10) |
+| v1.1 components and e2e | RTL, Playwright on `/demo` | Undo toasts, Recent changes undo, Mistakes Due today right/wrong, exam grid's below-target marker, Today card, timer start → stop → prefilled log, notes search, restore summary and typed confirmation. The e2e suite still asserts zero `/api` and `/mcp` requests |
 
 - **CI on every PR** (to `develop` and `main`): lint, typecheck, unit/service/component tests, and build.
   The end-to-end tests join CI from M7.
@@ -624,7 +863,19 @@ docs/           SPEC.md, SETUP.md, PROGRESS.md, architecture.md
 | M7 | `feat/demo-pwa` | DEMO-1–5 complete (sample data, banner, disabled features), PWA-1–3, end-to-end suite | — | — |
 | M8 | `chore/polish` | Accessibility and performance pass, empty states, README, screenshots, architecture.md | Final checklist (§B17) | **R4:** v1.0.0 |
 
+| M9a | `feat/v1.1-claude` | Migration `0005` (all of B7.1), DAY-1–5, TASK-11 (and TASK-10), change recording and undo in core (UNDO-3, UNDO-5, UNDO-6 API), mistakes core (ERR-1–2 services), MCP-10–24 | Run `0005` in the SQL Editor (one step, explained in detail when asked); try Claude on the preview | — |
+| M9b | `feat/v1.1-app` | UNDO-1, UNDO-2, UNDO-4, UNDO-7, ERR-3–6, EXAM-1–6, TODAY-1–4 | Try it on the preview (demo first) | — |
+| M9c | `feat/v1.1-timer-data` | TIMER-1–3, DATA-1–4, README/architecture/screenshots for v1.1 | Try it on the preview; try restore only in demo mode or a throwaway account | **R6:** v1.1.0, after the owner says yes |
+
 COULD items are built only if time allows (§B14.5). OPS-4 (the owner's OK for releases) applies to every release.
+
+**M9 order and rules.** Build M9a → M9b → M9c, one PR into `develop` each. M9a lands first because
+it carries the migration and the core every later part uses; it must not change any behaviour while
+`day_ends_at_minutes` is 0, apart from the new options and tools. The owner runs `0005` once, after
+the M9a PR's CI is green and before trying any v1.1 preview (previews use the real database, D15).
+Until R6, production (v1.0.1) keeps working on the migrated database (B7.1 compatibility). If R6 has
+to wait, the owner may choose to release after M9a alone, since it already fixes the three main
+pain points for Claude.
 
 ### B14.3 Definition of done (every milestone)
 - Every MUST item in the milestone works. SHOULD items are done or listed in PROGRESS.md as deferred.
@@ -645,6 +896,10 @@ Aim for one Claude Code session per milestone; expect about 10–13 sessions in 
 
 If a milestone needs more than 3 sessions, stop and propose splitting it.
 
+**M9 (v1.1):** the owner asked for all of it in one session (2026-11-23). Expect one long session,
+with context summarised along the way, and three PRs (M9a, M9b, M9c). Work stays resumable from
+docs/PROGRESS.md after every PR.
+
 ### B14.5 Cut order (if time or usage runs short)
 Cut from the top of this list. Never cut MUST items. Record every cut in PROGRESS.md and the README's
 "Future improvements".
@@ -653,6 +908,9 @@ Cut from the top of this list. Never cut MUST items. Record every cut in PROGRES
 3. LOG-7, LOG-8, LOG-9, LOG-10, HIST-3, HIST-4, REP-2
 4. STRK-2, HEAT-3, DEAD-3, TREE-5, TREE-6
 5. PWA-1–2; replace automated screenshots with manual ones
+
+For v1.1 (only if blocked; the owner wants everything): 1. DATA-3–4 (restore) · 2. TIMER-1–3 ·
+3. DATA-1–2 · 4. EXAM-6, ERR-6, UNDO-7, DAY-5. MUST items are never cut.
 
 ### B14.6 Minimum useful version
 After **R2** (M0–M4), the owner has a live tracker with logging, history, the Home dashboard, and Claude
@@ -686,11 +944,18 @@ sharing, demo, polish) and can resume at any time from docs/PROGRESS.md.
 | D20 | **Hosting moves from Netlify to Vercel's free Hobby plan (owner's decision, 2026-10-10).** R3a was the last Netlify release. Vercel charges nothing per deploy (about 100 deployments a day on Hobby, 1M function requests a month) and fits the app's non-commercial use; limits: runtime logs kept 1 hour, non-commercial personal use only. The server moves to one deployed function (`api/server.ts`) that dispatches `/api/*`, `/auth/*`, `/mcp/*`, `/.well-known/*` to the unchanged handlers. Releases still need the owner's OK (OPS-4); R4 (v1.0.0) is the first Vercel release. | No deployment budget; Netlify credits were nearly exhausted, and Vercel's free limits are far above this app's traffic |
 | D21 | **Final colours and track management (owner's requests, 2026-10-25).** The v1.0.0 theme is warm paper and sand neutrals, deep teal for actions, pale mint for highlights, and a warm brick red for destructive actions, with the same roles inverted in dark mode (the theme still follows the system setting). A cooler paper/slate version was also built; the owner compared both and kept this warm one. Track and score-chart colours keep their own validated palette. A track's page has a **Manage track** button that opens the same node dialog as Settings → Structure, so rename, recolour, add a child, archive, restore, and delete live where the track is (TREE-1–3, TREE-5). | The owner asked for a nicer, cohesive colour scheme for the final version, and for a way to delete a track without digging through Settings |
 | D22 | **Pure black dark theme (owner's request, 2026-10-27, v1.0.1).** In dark mode the background and sidebar are `#000000`, and cards, popovers, secondary, muted, and accent surfaces are neutral greys instead of green-tinted ones. The mint stays for actions and highlights, and text/destructive colours are unchanged; the theme still follows the system setting and all pairs meet WCAG AA. The browser theme colour follows the scheme too (paper in light, black in dark). | The owner said the green-tinted dark background "looks AI generated" and asked for full black |
+| D23 | **v1.1 "the exam update" (owner's feature list, 2026-11-23).** All of the owner's list is in scope: smaller MCP responses, MCP edit/undo tools, completion dates, batch logging, the mistake tracker, the study-day cutoff, undo and change history in the app, the mistakes screen, the exam view, the Today card, the timer, notes search, export, and restore. Built as M9a–c in one session and released as v1.1.0 (R6). Existing MCP tools stay compatible (MCP-10). Interpretations made while writing the spec: compact sessions keep their id (MCP-16); the Today view is a card at the top of Home (TODAY-1); an exam's modules are its node's direct children (§B9.16); the app's complete dialog also gets a "Done on" date (TASK-11). | The owner uses Streakwise daily with Claude for a 30-day exam plan; large responses cost usage, mistakes couldn't be undone, and late-night study landed on the wrong day |
+| D24 | **No age limit on Claude's edits (owner, 2026-11-23: "claude should be able to do anything in future and past").** This replaces the draft rule that undo/edit tools only touch items from the last 7 days, and the 7-day limit on completion dates. Things that already happened still can't be dated in the future, and Claude confirms before deleting. The app's Recent changes list still shows 7 days. | The owner wants Claude to manage the plan freely |
+| D25 | **The streak stays session-based (owner, 2026-11-23).** A day counts toward the streak only when it has a session (§B9.6); completions and scores are dated by their study day but don't extend the streak. | "Streak" keeps meaning "days I actually studied" |
+| D26 | **Timer added (v1.1), superseding D3.** Optional; manual entry stays the default. Stored on the device only, so no database change. | The owner asked for it |
+| D27 | **Backup restore added (v1.1), removing "data import" from §B16.** Replace-only (never merge), validated first, with an automatic safety export and a typed RESTORE confirmation; new ids for every row. | The owner keeps JSON backups and wants a way back if data is ever lost |
+| D29 | **Compact `list_tasks` lists only what carries information (M9a, 2026-11-23).** `done` appears only when true, like the other flags, and a sub-task leaves out its `path` when it equals its parent task's (the parent is in the same list). Measured on the MCP-14 fixture (70 tasks, 200–400-character descriptions): the shape first written in MCP-13 is 28% of the full answer, which misses the 25% target; with this change it is 24%. Recorded as a technical decision; the owner can ask for it back. | MCP-13 and MCP-14 couldn't both hold as first written |
+| D28 | **Change history is recorded in core, after the write, best effort (UNDO-3).** Not in the same transaction as the write (the Supabase client can't span calls without an RPC per write); a missed entry only means that change can't be undone from the list. Multi-row undos still use RPCs. | One code path for app, demo, and MCP, without rewriting every write as an RPC |
 
 ## B16. Out of scope
 
-~~Multiple users or sign-up~~ (now in scope, D17) · a timer · push notifications · offline logging · built-in AI features ·
-a manual theme switch · Urdu · data import · native mobile apps · analytics or tracking.
+~~Multiple users or sign-up~~ (now in scope, D17) · ~~a timer~~ (v1.1, D26) · push notifications · offline logging · built-in AI features ·
+a manual theme switch · Urdu · ~~data import~~ (v1.1 restore, D27; merging or importing from other apps stays out) · native mobile apps · analytics or tracking.
 
 ## B17. Final acceptance checklist
 
@@ -734,3 +999,18 @@ Skip any line that only covers a SHOULD/COULD feature that was cut (§B14.5).
 - [ ] The keep-alive workflow has run successfully at least once (OPS-2)
 - [ ] Production deploys this month ≤ 8 (B14.1)
 - [x] The README is complete, with the live link, the demo link, and screenshots; v1.0.0 is tagged (M8, R4 2026-10-26)
+
+**v1.1 (M9, R6)**
+- [ ] Every new MCP tool has a test and appears in the tool list with a clear description (MCP-18–21)
+- [ ] `list_tasks` with `compact: true` on 70 tasks returns under 25% of the default size (MCP-14)
+- [ ] Existing MCP tools return the same output as v1.0.1 when the new options aren't used (MCP-10)
+- [ ] With "My day ends at" 04:00, a session logged at 01:50 on 23 Nov is dated 22 Nov in the app and through MCP, and the streak counts it for 22 Nov (DAY-4)
+- [ ] Undoing a task completion also removes its linked score, in the app and through MCP (UNDO-5, MCP-18)
+- [ ] `log_sessions` saves all items or none, and names the failing item (MCP-20)
+- [ ] A task completed for an earlier date appears on that date in reports (TASK-11)
+- [ ] Recent changes shows app and Claude changes for 7 days, and each kind of change can be undone (UNDO-4–5)
+- [ ] Mistakes follow +1/+3/+7, wrong resets, and learned counts are right per module (ERR)
+- [ ] The exam view shows the countdown, per-module chart with target lines, and the mock grid with below-target marks (EXAM)
+- [ ] Home's Today card shows today's task, minutes per subtask, and needed per day (TODAY)
+- [ ] Timer stop opens a prefilled log; notes search finds old notes; export format 2 restores cleanly into a throwaway account (TIMER, DATA)
+- [ ] `0005` ran on the real database, and v1.0.1 kept working until the R6 release (B7.1)
