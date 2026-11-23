@@ -682,8 +682,8 @@ With D15, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` are the same in every Netlify c
 ## Open questions for the owner
 
 - None blocking. Optional: remove the old Netlify redirect URLs in Supabase (see the owner steps).
-- `scripts/rewrite-imports.mjs` (a finished one-off from the Vercel move) is still untracked in the
-  working folder; keep or delete it, the owner's choice.
+- `scripts/rewrite-imports.mjs` (a finished one-off from the Vercel move) was deleted at the owner's
+  request (2026-11-23); the working folder is clean.
 
 ## Decisions made during the build
 
