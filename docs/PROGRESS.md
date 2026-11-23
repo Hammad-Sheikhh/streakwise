@@ -1,8 +1,7 @@
 # Progress
 
-_Last updated: 2026-11-23 by Claude (all of v1.1 built: M9a in PR #43 (CI green), M9b and M9c
-pushed on stacked branches; waiting for the owner to run `0005` and OK merging #43; production is
-v1.0.1)_
+_Last updated: 2026-11-23 by Claude (**v1.1.0 is live** (R6); next: the owner makes a new Claude
+link and replaces the connector, then Claude Code deletes the Netlify project with the owner's yes)_
 
 ## Milestones
 
@@ -21,7 +20,7 @@ v1.0.1)_
 | M8 Polish       | ✅ done   | #32, #33, #34 | WCAG AA checks on all 8 screens × 2 themes, final palette (warm paper, kept after a cooler comparison), "Manage track", screenshots, README, architecture.md. Merged into `develop` 2026-10-25 (M8 squash `c324a0b`, warm restore `c18286d`); released as **v1.0.0** in R4 (2026-10-26) |
 | M9a Claude v1.1 | ✅ done   | #43           | Migration `0005`, study day, completion dates, change history + undo core, mistakes core, MCP-10–24 (SPEC §B5.15 v1.1, §B7.1). Branch `feat/v1.1-claude`                                                                                                                                |
 | M9b App v1.1    | ✅ done   | #44           | UNDO-1/2/4/7, ERR-3–6, EXAM-1–6, TODAY-1–4, exam targets. Branch `feat/v1.1-app` (on top of `feat/v1.1-claude`); PR opens once #43 is merged and the branch is rebased                                                                                                                  |
-| M9c Timer/data  | 🔍 built  | (after M9b)   | TIMER-1–3, DATA-1–4, README/architecture/screenshots. Branch `feat/v1.1-timer-data` (on top of `feat/v1.1-app`); then **R6 = v1.1.0** with the owner's yes                                                                                                                              |
+| M9c Timer/data  | ✅ done   | #45, #46      | TIMER-1–3, DATA-1–4, README/architecture/screenshots. Branch `feat/v1.1-timer-data` (on top of `feat/v1.1-app`); then **R6 = v1.1.0** with the owner's yes                                                                                                                              |
 
 ## Releases to production (budget: max 8 per month, ~15 of 300 credits each)
 
@@ -41,6 +40,8 @@ v1.0.1)_
 
 | R5 | 2026-10-27 | **v1.0.1 patch.** TREE-2 fixes (tasks on archived nodes, track-page deadlines on archived parts), the Home first-session prompt, and the pure black dark theme (#37–#39; release #40, merge commit `531fb0a`, tag `v1.0.1`). Owner asked for the fixes and said "make it full black then release". Production deploy `streakwise-ks1eg65ng` from `main`. Live check: `/api/health` → `{"ok":true,"version":"1.0.1"}`, `POST /api/health` 405, `/api/dashboard` 401, `/`, `/login`, `/signup`, `/demo`, `/sw.js`, `manifest.webmanifest` 200, CSP and security headers present, `/r/*` noindex, `/sw.js` `Cache-Control: no-cache`, HTML has paper/black theme colours, CSS has `--background:#000` with neutral surfaces and no `#111815` left. |
 
+| R6 | 2026-11-23 | **v1.1.0, "the exam update".** M9a–c (#43–#45), version 1.1.0 (#46), and the October mobile login and install-icon fixes already in `develop` (#41); release #47, merge commit `436d21d`, tag `v1.1.0`, GitHub release published. Owner said "yes release, you can merge"; migration `0005` was applied first (owner, verified). Previews were not tried, at the owner's choice. Vercel production deploy https://vercel.com/team-nick4/streakwise/42xF9WpkiDsEfVTWruqfaXxqaGfJ from `main`. Live check: `/api/health` → `{"ok":true,"version":"1.1.0"}` about 105 s after the merge; `POST /api/health` 405; `/api/dashboard`, `/api/changes`, `/api/mistakes`, `/api/exam`, `POST /api/restore` 401; `GET /api/restore` 405; `/mcp/<wrong>` and `/.well-known/*` 404; `/`, `/login`, `/signup`, `/demo`, `/exam`, `/mistakes`, `/changes`, `/sw.js`, `manifest.webmanifest` 200; CSP and `nosniff` present; `/r/*` noindex; `/sw.js` `Cache-Control: no-cache`. |
+
 Production builds this month (Oct 2026): **6 Netlify builds** (~90 credits, counted conservatively) plus
 R4 and R5 on Vercel (no credit cost). Netlify is not used for builds any more.
 
@@ -48,7 +49,7 @@ R4 and R5 on Vercel (no credit cost). Netlify is not used for builds any more.
 2026-11-03). R3a (M7, cleanup #27, README) was released 2026-10-10 as the last Netlify release; no more Netlify
 production deploys.
 
-Live site: **https://streakwise-mu.vercel.app** (R5, v1.0.1, deployed from `main`) · Vercel project
+Live site: **https://streakwise-mu.vercel.app** (R6, v1.1.0, deployed from `main`) · Vercel project
 `streakwise` (account `hammadsheikhcs-7269`, team `team-nick4`). The Netlify project still serves its
 last release, R3a, at https://streakwise-ap.netlify.app until the owner deletes it.
 
@@ -135,8 +136,10 @@ One database for everything (D15), so each migration runs once.
 - [x] v1.1 (M9a): run `supabase/migrations/0005_v1_1.sql` in the Supabase SQL Editor (owner said
       "done", 2026-11-23; a read-only check found every new column and table, and no completion
       without a date)
-- [ ] v1.1: try M9a, M9b, and M9c on their previews (demo first; restore only in demo or a throwaway account)
-- [ ] v1.1: say yes/no to release R6 (v1.1.0), and whether the waiting 1.0.2 fixes ship with it
+- [x] ~~v1.1: try M9a, M9b, and M9c on their previews~~ Skipped: the owner approved the release
+      without trying the previews (2026-11-23)
+- [x] v1.1: say yes/no to release R6: yes (owner, 2026-11-23: "yes release, you can merge");
+      released as #47, tag `v1.1.0`; the 1.0.2 fixes shipped with it
 
 ## Current work / next step
 
@@ -177,7 +180,19 @@ One database for everything (D15), so each migration runs once.
 onto `develop` for its own PR. Then: the 1.1.0 version PR, the release PR into `main` (merge
 commit), tag `v1.1.0`, and live checks. Trying the previews was skipped at the owner's choice.
 
+**2026-11-23: R6 released — v1.1.0 is live.** See the Releases table for the live check.
+
 **Next (in order):**
+
+1. **Owner (guided in chat):** Settings → Claude connection → "Make a new link" on the live site,
+   then in Claude remove the old Streakwise connector and add the new one (No sign in), and switch
+   it on in chats/projects. Then confirm Claude answers.
+2. **Claude Code, after the owner confirms step 1 and says yes:** delete the Netlify project
+   `streakwise-ap` with the linked Netlify CLI (`netlify sites:delete 81b99859-71c3-4df1-a4e1-7d0edd9567b7`),
+   then check `https://streakwise-ap.netlify.app` no longer answers. Optional afterwards: remove the
+   Netlify addresses from Supabase → Authentication → URL Configuration.
+
+Earlier plan (done):
 
 1. ~~**Owner:** run `0005` in Supabase~~ Done (2026-11-23).
    Original note: run `0005` in Supabase (instructions were given in chat; the script was put on the
